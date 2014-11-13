@@ -4,7 +4,14 @@
 #include <utility>
 #include "matrix.hpp"
 
+
 namespace bn {
+
+} // namespace bn
+
+namespace {
+    using bn::matrix_type;
+}
 
 // s—ñ‚Ì®””{
 template<class T>
@@ -12,9 +19,12 @@ matrix_type operator*(matrix_type const& rhs, T const& lhs)
 {
     // after copy, process all elem
     auto result = rhs;
-    for(auto it = result.begin(); it != result.end(); ++it)
+    for(matrix_type::size_type i = 0; i < result.shape()[0]; ++i)
     {
-        *it *= lhs;
+        for(matrix_type::size_type j = 0; j < result.shape()[1]; ++j)
+        {
+            result[i][j] *= lhs;
+        }
     }
     return result;
 }
@@ -25,9 +35,6 @@ matrix_type operator*(T const& lhs, matrix_type const& rhs)
 {
     return rhs * lhs;
 }
-
-
-} // namespace bn
 
 #endif // #ifndef BNI_MATRIX_IMPL_HPP
 

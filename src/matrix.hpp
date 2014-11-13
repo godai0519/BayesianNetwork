@@ -8,14 +8,15 @@ namespace bn {
 
 // 制約:
 // アクセスは y-x
-using matrix_type = boost::multi_array<double, 2>;
+typedef boost::multi_array<double, 2> matrix_type;
 
-// 行列同士・行列と整数の積(定義)
-matrix_type operator*(matrix_type const& lhs, matrix_type const& rhs);
-template<class T> matrix_type operator*(matrix_type const& rhs, T const& lhs);
-template<class T> matrix_type operator*(T const& lhs, matrix_type const& rhs);
 
 } // namespace bn
+
+// 行列同士・行列と整数の積(定義)
+bn::matrix_type operator*(bn::matrix_type const& lhs, bn::matrix_type const& rhs);
+template<class T> bn::matrix_type operator*(bn::matrix_type const& rhs, T const& lhs);
+template<class T> bn::matrix_type operator*(T const& lhs, bn::matrix_type const& rhs);
 
 #include "matrix_impl.hpp"
 

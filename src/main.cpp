@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <cstdint>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 

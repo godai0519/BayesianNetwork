@@ -3,9 +3,13 @@
 
 namespace bn {
 
+
+} // namespace bn
+
+using bn::matrix_type;
 matrix_type operator*(matrix_type const& lhs, matrix_type const& rhs)
 {
-    assert(lhs.shape()[1] == rhs.shape()[0]);
+    assert(lhs.shape()[1] == rhs.shape()[0]); // requirement for calculating the product
 
     matrix_type result(boost::extents[lhs.shape()[0]][rhs.shape()[1]]); // 0.0 fill (http://melpon.org/wandbox/permlink/jXd8ETmx8y8ZwK4A)
     for(matrix_type::size_type i = 0; i < result.shape()[0]; ++i)
@@ -21,5 +25,3 @@ matrix_type operator*(matrix_type const& lhs, matrix_type const& rhs)
 
     return result;
 }
-
-} // namespace bn
