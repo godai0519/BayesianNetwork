@@ -1,11 +1,6 @@
 #include <vector>
 #include "matrix.hpp"
 
-namespace bn {
-
-
-} // namespace bn
-
 using bn::matrix_type;
 matrix_type operator*(matrix_type const& lhs, matrix_type const& rhs)
 {

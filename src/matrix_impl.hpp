@@ -4,11 +4,6 @@
 #include <utility>
 #include "matrix.hpp"
 
-
-namespace bn {
-
-} // namespace bn
-
 namespace {
     using bn::matrix_type;
 }

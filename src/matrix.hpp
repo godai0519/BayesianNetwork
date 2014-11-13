@@ -6,10 +6,8 @@
 
 namespace bn {
 
-// 制約:
-// アクセスは y-x
+// 制約: 一般的な2次元配列より，アクセスは [y][x]
 typedef boost::multi_array<double, 2> matrix_type;
-
 
 } // namespace bn
 
@@ -21,4 +19,3 @@ template<class T> bn::matrix_type operator*(T const& lhs, bn::matrix_type const&
 #include "matrix_impl.hpp"
 
 #endif // #ifndef BNI_MATRIX_HPP
-
