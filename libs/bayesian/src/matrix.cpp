@@ -1,5 +1,5 @@
 #include <vector>
-#include "matrix.hpp"
+#include "bayesian/matrix.hpp"
 
 using bn::matrix_type;
 matrix_type operator*(matrix_type const& lhs, matrix_type const& rhs)

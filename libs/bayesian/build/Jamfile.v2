@@ -1,0 +1,16 @@
+import os ;
+import path ;
+
+local BOOST_ROOT = [ os.environ BOOST_ROOT ] ;
+
+project bayesian :
+    requirements
+        <include>../../../
+        <include>$(BOOST_ROOT)
+        <cxxflags>-std=c++1y
+    : source-location ../../../
+    ;
+
+echo [ path.glob-tree ../src/ : *.cpp ] ;
+lib bayesian : libs/bayesian/src/matrix.cpp : <link>static ;
+

@@ -1,0 +1,41 @@
+import os ;
+
+local BOOST_ROOT = [ os.environ BOOST_ROOT ] ;
+use-project /boost : $(BOOST_ROOT) ;
+
+#
+# Collect build information
+#
+libraries = [ MATCH .*libs/(.*)/build/.* : [ glob libs/*/build/Jamfile.v2 ] [ glob libs/*/build/Jamfile ] ] ;
+
+#
+# Data show options process
+#
+if --show-all-libraries in [ modules.peek : ARGV ]
+{
+    echo "Following libraries are exist:" ;
+    for local l in $(all-libraries)
+    {
+        echo " - $(l)" ;
+    }
+    exit ;
+}
+
+if --show-libraries in [ modules.peek : ARGV ]
+{
+    echo "Following libraries are building target:" ;
+    for local l in $(libraries)
+    {
+        echo " - $(l)" ;
+    }
+    exit ;
+}
+
+for local l in $(all-libraries)
+{
+    use-project /$(l) : libs/$(l)/build ;
+    build-project libs/$(l)/build ;
+}
+
+build-project libs/bayesian/test ;
+
