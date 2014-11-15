@@ -11,6 +11,10 @@ project bayesian :
     : source-location ../../../
     ;
 
-echo [ path.glob-tree ../src/ : *.cpp ] ;
-lib bayesian : libs/bayesian/src/matrix.cpp : <link>static ;
+lib matrix : libs/bayesian/src/matrix.cpp : <link>static ;
+
+install build-libs
+    : matrix
+    : <location>../../../lib
+    ;
 

@@ -3,6 +3,10 @@ import os ;
 local BOOST_ROOT = [ os.environ BOOST_ROOT ] ;
 use-project /boost : $(BOOST_ROOT) ;
 
+project bayesian_network
+    : build-dir bin.v2
+    ;
+
 #
 # Collect build information
 #

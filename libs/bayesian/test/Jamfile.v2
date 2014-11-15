@@ -7,7 +7,7 @@ project matrix_test :
     requirements
         <include>../../../
         <library>/boost//unit_test_framework
-        <library>../build//bayesian
+        <library>../build//matrix
         <cxxflags>-std=c++1y
     ;
 
