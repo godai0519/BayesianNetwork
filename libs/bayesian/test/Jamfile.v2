@@ -6,7 +6,7 @@ local BOOST_ROOT = [ os.environ BOOST_ROOT ] ;
 project matrix_test :
     requirements
         <include>../../../
-        <library>/boost//unit_test_framework
+        <include>$(BOOST_ROOT)
         <library>../build//matrix
         <cxxflags>-std=c++1y
     ;
