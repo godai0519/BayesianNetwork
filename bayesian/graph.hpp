@@ -11,7 +11,6 @@ namespace bn {
 
 struct vertex {
     std::int_least32_t id;
-    std::string        id_str; // twitterレスポンスに準じてみたがここに書くべきでない．辞書を作るべき．
 
     bool evidence = false;
     std::int_least32_t evidence_select = 0;
