@@ -20,7 +20,7 @@ BOOST_AUTO_TEST_CASE( bp_specify_both_ends )
     mat_dc.assign(source_dc.begin(), source_dc.end());
     mat_t .assign(  teacher.begin(),   teacher.end());
 
-    ke::graph_t graph;
+    bn::graph_t graph;
     auto vertex_a = add_vertex(graph);
     auto vertex_b = add_vertex(graph);
     auto vertex_c = add_vertex(graph);
@@ -33,8 +33,8 @@ BOOST_AUTO_TEST_CASE( bp_specify_both_ends )
     graph[edge_bc.first].likelihood = mat_cb;
     graph[edge_cd.first].likelihood = mat_dc;
 
-    ke::bp func;
-    auto const result = func(graph, {std::make_pair(vertex_a, 2), std::make_pair(vertex_c, 2)});
+    bn::bp func;
+    auto const result = func(graph, vertex_b, {std::make_pair(vertex_a, 2), std::make_pair(vertex_c, 2)});
     for(int i = 0; i < 3; ++i)
     {
         // 誤差 0.00001%検査

@@ -10,7 +10,23 @@ public:
     bp() = default;
     virtual ~bp() = default;
 
-    double operator()(graph_t const graph);
+    matrix_type operator()(
+        graph_t const& graph,
+        graph_t::vertex_descriptor const& target,
+        std::vector<std::pair<graph_t::vertex_descriptor, int>> const& evidence
+        );
+
+private:
+    matrix_type propagate_forward(
+        graph_t const& graph,
+        graph_t::vertex_descriptor const& target,
+        std::vector<std::pair<graph_t::vertex_descriptor, int>> const& evidence
+        );
+    matrix_type propagate_backward(
+        graph_t const& graph,
+        graph_t::vertex_descriptor const& target,
+        std::vector<std::pair<graph_t::vertex_descriptor, int>> const& evidence
+        );
 };
 
 } // namespace bn

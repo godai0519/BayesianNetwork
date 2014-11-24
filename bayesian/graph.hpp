@@ -10,10 +10,8 @@
 namespace bn {
 
 struct vertex {
-    std::int_least32_t id;
-
-    bool evidence = false;
-    std::int_least32_t evidence_select = 0;
+    int id;
+    int selectable_num = 0; // æ‚è‚¤‚é’l‚Ì”
 };
 
 struct edge {
@@ -28,7 +26,8 @@ struct graph_tag {
 typedef boost::adjacency_list<
     boost::listS,
     boost::vecS,
-    boost::directedS,
+    boost::bidirectionalS,
+//    boost::directedS,
     vertex,
     edge,
     graph_tag,
