@@ -3,12 +3,14 @@
 #include "bayesian/graph.hpp"
 #include "bayesian/bp.hpp"
 
+#include <iostream>
+
 BOOST_AUTO_TEST_CASE( bp_specify_both_ends )
 {
     std::vector<double> const source_ba = { 0.20, 0.30, 0.50, 0.30, 0.30, 0.40, 0.80, 0.10, 0.10};
     std::vector<double> const source_cb = { 0.50, 0.50, 0.70, 0.30, 0.40, 0.60};
     std::vector<double> const source_dc = { 0.40, 0.30, 0.30, 0.20, 0.60, 0.20};
-    std::vector<double> const teacher   = { 0.31, 0.19, 0.50};
+    std::vector<double> const teacher   = { 0.3125, 0.1875, 0.5000};
 
     bn::matrix_type mat_ba(boost::extents[3][3]);
     bn::matrix_type mat_cb(boost::extents[3][2]);
@@ -32,13 +34,17 @@ BOOST_AUTO_TEST_CASE( bp_specify_both_ends )
     graph[edge_ab.first].likelihood = mat_ba;
     graph[edge_bc.first].likelihood = mat_cb;
     graph[edge_cd.first].likelihood = mat_dc;
+    graph[vertex_a].selectable_num = 3;
+    graph[vertex_b].selectable_num = 3;
+    graph[vertex_c].selectable_num = 2;
+    graph[vertex_d].selectable_num = 3;
 
     bn::bp func;
-    auto const result = func(graph, vertex_b, {std::make_pair(vertex_a, 2), std::make_pair(vertex_c, 2)});
+    auto const result = func(graph, vertex_b, {std::make_pair(vertex_a, 1), std::make_pair(vertex_c, 1)}); // P(B|A=2,C=2)
     for(int i = 0; i < 3; ++i)
     {
-        // 誤差 0.00001%検査
-        BOOST_CHECK_CLOSE(result[i][0], mat_t[i][0], 0.00001);
+        // 誤差 2%検査
+        BOOST_CHECK_CLOSE(result[i][0], mat_t[i][0], 2);
     }
 }
 
