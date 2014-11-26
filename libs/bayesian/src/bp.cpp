@@ -79,7 +79,14 @@ matrix_type bp::propagate_forward(
         return (*graph[edge].likelihood) * propagate_forward(graph, target(edge, graph), evidence);
     }
 
-    // TODO: 末端は全てが等しいとする
+    // 末端は全ての確率が等しいとする
+    auto const elem_num = graph[node].selectable_num;
+    matrix_type mat(boost::extents[elem_num][1]);
+    for(int i = 0; i < elem_num; ++i)
+    {
+        mat[i][0] = 1.0;
+    }
+    return mat;
 }
 
 // 上流要素の確率推論
@@ -109,7 +116,14 @@ matrix_type bp::propagate_backward(
         return propagate_backward(graph, source(edge, graph), evidence) * (*graph[edge].likelihood);
     }
 
-    // TODO: 末端は全てが等しいとする
+    // 末端は全てが等しいとする
+    auto const elem_num = graph[node].selectable_num;
+    matrix_type mat(boost::extents[1][elem_num]);
+    for(int i = 0; i < elem_num; ++i)
+    {
+        mat[0][i] = 1.0;
+    }
+    return mat;
 }
 
 } // namespace bn
