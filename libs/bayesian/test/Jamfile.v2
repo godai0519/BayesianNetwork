@@ -1,0 +1,16 @@
+import os ;
+import path ;
+
+local BOOST_ROOT = [ os.environ BOOST_ROOT ] ;
+
+project matrix_test :
+    requirements
+        <include>../../../
+        <include>$(BOOST_ROOT)
+        <library>../build//matrix
+        <cxxflags>-std=c++1y
+    ;
+
+run matrix.cpp /bayesian ;
+run bp.cpp /bayesian ;
+
