@@ -2,19 +2,17 @@
 #include "bayesian/graph.hpp"
 #include "bayesian/bp.hpp"
 
-#include <iostream>
-
 namespace bn {
 
 matrix_type bp::operator()(
     graph_t const& graph,
     graph_t::vertex_descriptor const& node,
-    std::vector<std::pair<graph_t::vertex_descriptor, int>> const& evidence
+    std::vector<std::pair<graph_t::vertex_descriptor, int>> const& condition
     )
 {
     // 前後の要素に伝播させる
-    auto const e_minus = propagate_forward(graph, node, evidence);
-    auto const e_plus = propagate_backward(graph, node, evidence);
+    auto const e_minus = propagate_forward(graph, node, condition);
+    auto const e_plus = propagate_backward(graph, node, condition);
 
     // 掛け算
     auto const elem_num = graph[node].selectable_num;
@@ -36,16 +34,16 @@ matrix_type bp::operator()(
     return mat;
 }
 
-std::pair<bool, int> find_evidence(
+std::pair<bool, int> find_condition(
     graph_t::vertex_descriptor const& node,
-    std::vector<std::pair<graph_t::vertex_descriptor, int>> const& evidence
+    std::vector<std::pair<graph_t::vertex_descriptor, int>> const& condition
     )
 {
-    for(auto const& e : evidence)
+    for(auto const& c : condition)
     {
-        if(e.first == node)
+        if(c.first == node)
         {
-            return std::make_pair(true, e.second);
+            return std::make_pair(true, c.second);
         }
     }
 
@@ -56,27 +54,27 @@ std::pair<bool, int> find_evidence(
 matrix_type bp::propagate_forward(
     graph_t const& graph,
     graph_t::vertex_descriptor const& node,
-    std::vector<std::pair<graph_t::vertex_descriptor, int>> const& evidence
+    std::vector<std::pair<graph_t::vertex_descriptor, int>> const& condition
     )
 {
-    // node ∈ evidence
-    auto is_evidence =  find_evidence(node, evidence);
-    if(is_evidence.first)
+    // node ∈ condition
+    auto is_condition = find_condition(node, condition);
+    if(is_condition.first)
     {
         auto const elem_num = graph[node].selectable_num;
         matrix_type mat(boost::extents[elem_num][1]);
         for(int i = 0; i < elem_num; ++i)
         {
-            mat[i][0] = (i == is_evidence.second) ? 1 : 0;
+            mat[i][0] = (i == is_condition.second) ? 1 : 0;
         }
         return mat;
     }
 
-    // evidenceでないから伝播 (e-要素)
+    // conditionに含まれないから伝播 (e-要素)
     BOOST_FOREACH(auto const& edge, out_edges(node, graph))
     {
         // TODO: 2つ以上の要素があった場合の処理を切り分ける
-        return (*graph[edge].likelihood) * propagate_forward(graph, target(edge, graph), evidence);
+        return (*graph[edge].likelihood) * propagate_forward(graph, target(edge, graph), condition);
     }
 
     // 末端は全ての確率が等しいとする
@@ -93,37 +91,39 @@ matrix_type bp::propagate_forward(
 matrix_type bp::propagate_backward(
     graph_t const& graph,
     graph_t::vertex_descriptor const& node,
-    std::vector<std::pair<graph_t::vertex_descriptor, int>> const& evidence
+    std::vector<std::pair<graph_t::vertex_descriptor, int>> const& condition
     )
 {
-    // node ∈ evidence
-    auto is_evidence =  find_evidence(node, evidence);
-    if(is_evidence.first)
+    // node ∈ condition
+    auto is_condition = find_condition(node, condition);
+    if(is_condition.first)
     {
         auto const elem_num = graph[node].selectable_num;
         matrix_type mat(boost::extents[1][elem_num]);
         for(int i = 0; i < elem_num; ++i)
         {
-            mat[0][i] = (i == is_evidence.second) ? 1 : 0;
+            mat[0][i] = (i == is_condition.second) ? 1 : 0;
         }
         return mat;
     }
 
-    // evidenceでないから伝播 (e+要素)
+    // conditionに含まれないから伝播 (e+要素)
     BOOST_FOREACH(auto const& edge, in_edges(node, graph))
     {
         // TODO: 2つ以上の要素があった場合の処理を切り分ける
-        return propagate_backward(graph, source(edge, graph), evidence) * (*graph[edge].likelihood);
+        return propagate_backward(graph, source(edge, graph), condition) * (*graph[edge].likelihood);
     }
 
-    // 末端は全てが等しいとする
-    auto const elem_num = graph[node].selectable_num;
-    matrix_type mat(boost::extents[1][elem_num]);
-    for(int i = 0; i < elem_num; ++i)
+    // 最上位ノードは事前確率を割り当てる
+    auto& e = graph[node].evidence;
+    if(e)
     {
-        mat[0][i] = 1.0;
+        return *e;
     }
-    return mat;
+    else
+    {
+        throw std::runtime_error("highest node doesn't have prior probability.");
+    }
 }
 
 } // namespace bn

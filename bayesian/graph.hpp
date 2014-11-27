@@ -12,6 +12,7 @@ namespace bn {
 struct vertex {
     int id;
     int selectable_num = 0; // æ‚è‚¤‚é’l‚Ì”
+    boost::optional<matrix_type> evidence;
 };
 
 struct edge {
