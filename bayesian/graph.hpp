@@ -28,7 +28,6 @@ typedef boost::adjacency_list<
     boost::listS,
     boost::vecS,
     boost::bidirectionalS,
-//    boost::directedS,
     vertex,
     edge,
     graph_tag,
