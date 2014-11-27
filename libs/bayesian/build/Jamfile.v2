@@ -12,6 +12,7 @@ project bayesian :
     ;
 
 lib matrix : libs/bayesian/src/matrix.cpp : <link>static ;
+lib bp : libs/bayesian/src/bp.cpp : <link>static ;
 
 install build-libs
     : matrix

@@ -10,11 +10,9 @@
 namespace bn {
 
 struct vertex {
-    std::int_least32_t id;
-    std::string        id_str; // twitterレスポンスに準じてみたがここに書くべきでない．辞書を作るべき．
-
-    bool evidence = false;
-    std::int_least32_t evidence_select = 0;
+    int id;
+    int selectable_num = 0; // 取りうる値の数
+    boost::optional<matrix_type> evidence;
 };
 
 struct edge {
@@ -29,7 +27,7 @@ struct graph_tag {
 typedef boost::adjacency_list<
     boost::listS,
     boost::vecS,
-    boost::directedS,
+    boost::bidirectionalS,
     vertex,
     edge,
     graph_tag,
