@@ -24,22 +24,22 @@ BOOST_AUTO_TEST_CASE( bp_specify_both_ends )
     mat_t .assign(  teacher.begin(),   teacher.end());
 
     bn::graph_t graph;
-    auto vertex_a = add_vertex(graph);
-    auto vertex_b = add_vertex(graph);
-    auto vertex_c = add_vertex(graph);
-    auto vertex_d = add_vertex(graph);
-    auto edge_ab = add_edge(vertex_a, vertex_b, graph);
-    auto edge_bc = add_edge(vertex_b, vertex_c, graph);
-    auto edge_cd = add_edge(vertex_c, vertex_d, graph);
+    auto vertex_a = graph.add_vertex();
+    auto vertex_b = graph.add_vertex();
+    auto vertex_c = graph.add_vertex();
+    auto vertex_d = graph.add_vertex();
+    auto edge_ab = graph.add_edge(vertex_a, vertex_b);
+    auto edge_bc = graph.add_edge(vertex_b, vertex_c);
+    auto edge_cd = graph.add_edge(vertex_c, vertex_d);
 
-    graph[edge_ab.first].likelihood = mat_ba;
-    graph[edge_bc.first].likelihood = mat_cb;
-    graph[edge_cd.first].likelihood = mat_dc;
-    graph[vertex_a].selectable_num = 3;
-    graph[vertex_b].selectable_num = 3;
-    graph[vertex_c].selectable_num = 2;
-    graph[vertex_d].selectable_num = 3;
-    graph[vertex_a].evidence = mat_a;
+    edge_ab->likelihood = mat_ba;
+    edge_bc->likelihood = mat_cb;
+    edge_cd->likelihood = mat_dc;
+    vertex_a->selectable_num = 3;
+    vertex_b->selectable_num = 3;
+    vertex_c->selectable_num = 2;
+    vertex_d->selectable_num = 3;
+    vertex_a->evidence = mat_a;
 
     bn::bp func;
     auto const result = func(graph, vertex_b, {std::make_pair(vertex_a, 1), std::make_pair(vertex_c, 1)}); // P(B|A=2,C=2)
@@ -71,22 +71,22 @@ BOOST_AUTO_TEST_CASE( bp_specify_only_upstream )
     mat_t .assign(  teacher.begin(),   teacher.end());
 
     bn::graph_t graph;
-    auto vertex_a = add_vertex(graph);
-    auto vertex_b = add_vertex(graph);
-    auto vertex_c = add_vertex(graph);
-    auto vertex_d = add_vertex(graph);
-    auto edge_ab = add_edge(vertex_a, vertex_b, graph);
-    auto edge_bc = add_edge(vertex_b, vertex_c, graph);
-    auto edge_cd = add_edge(vertex_c, vertex_d, graph);
+    auto vertex_a = graph.add_vertex();
+    auto vertex_b = graph.add_vertex();
+    auto vertex_c = graph.add_vertex();
+    auto vertex_d = graph.add_vertex();
+    auto edge_ab = graph.add_edge(vertex_a, vertex_b);
+    auto edge_bc = graph.add_edge(vertex_b, vertex_c);
+    auto edge_cd = graph.add_edge(vertex_c, vertex_d);
 
-    graph[edge_ab.first].likelihood = mat_ba;
-    graph[edge_bc.first].likelihood = mat_cb;
-    graph[edge_cd.first].likelihood = mat_dc;
-    graph[vertex_a].selectable_num = 3;
-    graph[vertex_b].selectable_num = 3;
-    graph[vertex_c].selectable_num = 2;
-    graph[vertex_d].selectable_num = 3;
-    graph[vertex_a].evidence = mat_a;
+    edge_ab->likelihood = mat_ba;
+    edge_bc->likelihood = mat_cb;
+    edge_cd->likelihood = mat_dc;
+    vertex_a->selectable_num = 3;
+    vertex_b->selectable_num = 3;
+    vertex_c->selectable_num = 2;
+    vertex_d->selectable_num = 3;
+    vertex_a->evidence = mat_a;
 
     bn::bp func;
     auto const result = func(graph, vertex_b, {std::make_pair(vertex_a, 0)}); // P(B|A=1)
@@ -118,22 +118,22 @@ BOOST_AUTO_TEST_CASE( bp_specify_only_downstream )
     mat_t .assign(  teacher.begin(),   teacher.end());
 
     bn::graph_t graph;
-    auto vertex_a = add_vertex(graph);
-    auto vertex_b = add_vertex(graph);
-    auto vertex_c = add_vertex(graph);
-    auto vertex_d = add_vertex(graph);
-    auto edge_ab = add_edge(vertex_a, vertex_b, graph);
-    auto edge_bc = add_edge(vertex_b, vertex_c, graph);
-    auto edge_cd = add_edge(vertex_c, vertex_d, graph);
+    auto vertex_a = graph.add_vertex();
+    auto vertex_b = graph.add_vertex();
+    auto vertex_c = graph.add_vertex();
+    auto vertex_d = graph.add_vertex();
+    auto edge_ab = graph.add_edge(vertex_a, vertex_b);
+    auto edge_bc = graph.add_edge(vertex_b, vertex_c);
+    auto edge_cd = graph.add_edge(vertex_c, vertex_d);
 
-    graph[edge_ab.first].likelihood = mat_ba;
-    graph[edge_bc.first].likelihood = mat_cb;
-    graph[edge_cd.first].likelihood = mat_dc;
-    graph[vertex_a].selectable_num = 3;
-    graph[vertex_b].selectable_num = 3;
-    graph[vertex_c].selectable_num = 2;
-    graph[vertex_d].selectable_num = 3;
-    graph[vertex_a].evidence = mat_a;
+    edge_ab->likelihood = mat_ba;
+    edge_bc->likelihood = mat_cb;
+    edge_cd->likelihood = mat_dc;
+    vertex_a->selectable_num = 3;
+    vertex_b->selectable_num = 3;
+    vertex_c->selectable_num = 2;
+    vertex_d->selectable_num = 3;
+    vertex_a->evidence = mat_a;
 
     bn::bp func;
     auto const result = func(graph, vertex_b, {std::make_pair(vertex_c, 1)}); // P(B|C=2)
@@ -165,22 +165,22 @@ BOOST_AUTO_TEST_CASE( bp_highest_node )
     mat_t .assign(  teacher.begin(),   teacher.end());
 
     bn::graph_t graph;
-    auto vertex_a = add_vertex(graph);
-    auto vertex_b = add_vertex(graph);
-    auto vertex_c = add_vertex(graph);
-    auto vertex_d = add_vertex(graph);
-    auto edge_ab = add_edge(vertex_a, vertex_b, graph);
-    auto edge_bc = add_edge(vertex_b, vertex_c, graph);
-    auto edge_cd = add_edge(vertex_c, vertex_d, graph);
+    auto vertex_a = graph.add_vertex();
+    auto vertex_b = graph.add_vertex();
+    auto vertex_c = graph.add_vertex();
+    auto vertex_d = graph.add_vertex();
+    auto edge_ab = graph.add_edge(vertex_a, vertex_b);
+    auto edge_bc = graph.add_edge(vertex_b, vertex_c);
+    auto edge_cd = graph.add_edge(vertex_c, vertex_d);
 
-    graph[edge_ab.first].likelihood = mat_ba;
-    graph[edge_bc.first].likelihood = mat_cb;
-    graph[edge_cd.first].likelihood = mat_dc;
-    graph[vertex_a].selectable_num = 3;
-    graph[vertex_b].selectable_num = 3;
-    graph[vertex_c].selectable_num = 2;
-    graph[vertex_d].selectable_num = 3;
-    graph[vertex_a].evidence = mat_a;
+    edge_ab->likelihood = mat_ba;
+    edge_bc->likelihood = mat_cb;
+    edge_cd->likelihood = mat_dc;
+    vertex_a->selectable_num = 3;
+    vertex_b->selectable_num = 3;
+    vertex_c->selectable_num = 2;
+    vertex_d->selectable_num = 3;
+    vertex_a->evidence = mat_a;
 
     bn::bp func;
     auto const result = func(graph, vertex_a, {std::make_pair(vertex_d, 2)}); // P(A|D=3)
