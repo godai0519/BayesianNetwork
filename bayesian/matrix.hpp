@@ -39,7 +39,7 @@ public:
     template<class InputIterator>
     bool assign(InputIterator begin, InputIterator const& end)
     {
-        if(std::distance(begin, end) >= width_ * height_)
+        if(static_cast<std::size_t>(std::distance(begin, end)) >= width_ * height_)
         {
             for(auto outer_it = mat_.begin(); outer_it != mat_.end(); ++outer_it)
             {
