@@ -18,7 +18,7 @@ matrix_type bp::operator()(
     auto const elem_num = node->selectable_num;
     double sum = 0.0;
     matrix_type mat(elem_num, 1);
-    for(int i = 0; i < e_minus.height(); ++i)
+    for(std::size_t i = 0; i < e_minus.height(); ++i)
     {
         double const product = e_minus[i][0] * e_plus[0][i];
         sum += product;
@@ -26,7 +26,7 @@ matrix_type bp::operator()(
     }
 
     // 正規化
-    for(int i = 0; i < e_minus.height(); ++i)
+    for(std::size_t i = 0; i < e_minus.height(); ++i)
     {
         mat[i][0] /= sum;
     }
@@ -74,7 +74,8 @@ matrix_type bp::propagate_forward(
     BOOST_FOREACH(auto const& edge, graph.out_edges(node))
     {
         // TODO: 2つ以上の要素があった場合の処理を切り分ける
-        return (*edge->likelihood) * propagate_forward(graph, graph.target(edge), condition);
+        if(!edge->likelihood.first) throw std::runtime_error("no set edge of likelihood");
+        return (edge->likelihood.second) * propagate_forward(graph, graph.target(edge), condition);
     }
 
     // 末端は全ての確率が等しいとする
@@ -111,14 +112,15 @@ matrix_type bp::propagate_backward(
     BOOST_FOREACH(auto const& edge, graph.in_edges(node))
     {
         // TODO: 2つ以上の要素があった場合の処理を切り分ける
-        return propagate_backward(graph, graph.source(edge), condition) * (*edge->likelihood);
+        if(!edge->likelihood.first) throw std::runtime_error("no set edge of likelihood");
+        return propagate_backward(graph, graph.source(edge), condition) * (edge->likelihood.second);
     }
 
     // 最上位ノードは事前確率を割り当てる
     auto& e = node->evidence;
-    if(e)
+    if(e.first)
     {
-        return *e;
+        return e.second;
     }
     else
     {

@@ -4,7 +4,8 @@
 #include <vector>
 #include <cstdint>
 #include <memory>
-#include <boost/optional.hpp>
+#include <limits>
+#include <algorithm>
 #include "matrix.hpp"
 
 namespace bn {
@@ -12,11 +13,11 @@ namespace bn {
 struct vertex_t {
     int id;
     int selectable_num = 0; // 取りうる値の数
-    boost::optional<matrix_type> evidence;
+    std::pair<bool, matrix_type> evidence;
 };
 
 struct edge_t {
-    boost::optional<matrix_type> likelihood;
+    std::pair<bool, matrix_type> likelihood;
 };
 
 typedef std::shared_ptr<vertex_t> vertex_type;
