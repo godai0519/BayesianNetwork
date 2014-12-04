@@ -11,11 +11,11 @@ BOOST_AUTO_TEST_CASE( bp_specify_both_ends )
     std::vector<double> const source_dc = { 0.40, 0.30, 0.30, 0.20, 0.60, 0.20};
     std::vector<double> const teacher   = { 0.3125, 0.1875, 0.5000};
 
-    bn::matrix_type mat_a (boost::extents[1][3]);
-    bn::matrix_type mat_ba(boost::extents[3][3]);
-    bn::matrix_type mat_cb(boost::extents[3][2]);
-    bn::matrix_type mat_dc(boost::extents[2][3]);
-    bn::matrix_type mat_t (boost::extents[3][1]);
+    bn::matrix_type mat_a (1, 3);
+    bn::matrix_type mat_ba(3, 3);
+    bn::matrix_type mat_cb(3, 2);
+    bn::matrix_type mat_dc(2, 3);
+    bn::matrix_type mat_t (3, 1);
 
     mat_a .assign(source_a .begin(), source_a .end());
     mat_ba.assign(source_ba.begin(), source_ba.end());
@@ -58,11 +58,11 @@ BOOST_AUTO_TEST_CASE( bp_specify_only_upstream )
     std::vector<double> const source_dc = { 0.40, 0.30, 0.30, 0.20, 0.60, 0.20};
     std::vector<double> const teacher   = { 0.20, 0.30, 0.50};
 
-    bn::matrix_type mat_a (boost::extents[1][3]);
-    bn::matrix_type mat_ba(boost::extents[3][3]);
-    bn::matrix_type mat_cb(boost::extents[3][2]);
-    bn::matrix_type mat_dc(boost::extents[2][3]);
-    bn::matrix_type mat_t (boost::extents[3][1]);
+    bn::matrix_type mat_a (1, 3);
+    bn::matrix_type mat_ba(3, 3);
+    bn::matrix_type mat_cb(3, 2);
+    bn::matrix_type mat_dc(2, 3);
+    bn::matrix_type mat_t (3, 1);
 
     mat_a .assign(source_a .begin(), source_a .end());
     mat_ba.assign(source_ba.begin(), source_ba.end());
@@ -105,11 +105,11 @@ BOOST_AUTO_TEST_CASE( bp_specify_only_downstream )
     std::vector<double> const source_dc = { 0.40, 0.30, 0.30, 0.20, 0.60, 0.20};
     std::vector<double> const teacher   = { 0.33, 0.17, 0.50};
 
-    bn::matrix_type mat_a (boost::extents[1][3]);
-    bn::matrix_type mat_ba(boost::extents[3][3]);
-    bn::matrix_type mat_cb(boost::extents[3][2]);
-    bn::matrix_type mat_dc(boost::extents[2][3]);
-    bn::matrix_type mat_t (boost::extents[3][1]);
+    bn::matrix_type mat_a (1, 3);
+    bn::matrix_type mat_ba(3, 3);
+    bn::matrix_type mat_cb(3, 2);
+    bn::matrix_type mat_dc(2, 3);
+    bn::matrix_type mat_t (3, 1);
 
     mat_a .assign(source_a .begin(), source_a .end());
     mat_ba.assign(source_ba.begin(), source_ba.end());
@@ -152,11 +152,11 @@ BOOST_AUTO_TEST_CASE( bp_highest_node )
     std::vector<double> const source_dc = { 0.40, 0.30, 0.30, 0.20, 0.60, 0.20};
     std::vector<double> const teacher   = { 0.30, 0.60, 0.10};
 
-    bn::matrix_type mat_a (boost::extents[1][3]);
-    bn::matrix_type mat_ba(boost::extents[3][3]);
-    bn::matrix_type mat_cb(boost::extents[3][2]);
-    bn::matrix_type mat_dc(boost::extents[2][3]);
-    bn::matrix_type mat_t (boost::extents[3][1]);
+    bn::matrix_type mat_a (1, 3);
+    bn::matrix_type mat_ba(3, 3);
+    bn::matrix_type mat_cb(3, 2);
+    bn::matrix_type mat_dc(2, 3);
+    bn::matrix_type mat_t (3, 1);
 
     mat_a .assign(source_a .begin(), source_a .end());
     mat_ba.assign(source_ba.begin(), source_ba.end());

@@ -14,9 +14,9 @@ matrix_type operator*(matrix_type const& rhs, T const& lhs)
 {
     // after copy, process all elem
     auto result = rhs;
-    for(matrix_type::size_type i = 0; i < result.shape()[0]; ++i)
+    for(std::size_t i = 0; i < result.height(); ++i)
     {
-        for(matrix_type::size_type j = 0; j < result.shape()[1]; ++j)
+        for(std::size_t j = 0; j < result.width(); ++j)
         {
             result[i][j] *= lhs;
         }

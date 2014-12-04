@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <memory>
 #include <boost/optional.hpp>
 #include "matrix.hpp"
 
@@ -25,7 +26,7 @@ class graph_t {
 public:
 
     graph_t() = default;
-    virtual ‾graph_t() = default;
+    virtual ~graph_t() = default;
 
     // 頂点を生成し，そのshared_ptrを返す
     // 必ず成功する

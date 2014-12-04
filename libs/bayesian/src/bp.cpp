@@ -17,8 +17,8 @@ matrix_type bp::operator()(
     // 掛け算
     auto const elem_num = node->selectable_num;
     double sum = 0.0;
-    matrix_type mat(boost::extents[elem_num][1]);
-    for(int i = 0; i < e_minus.shape()[0]; ++i)
+    matrix_type mat(elem_num, 1);
+    for(int i = 0; i < e_minus.height(); ++i)
     {
         double const product = e_minus[i][0] * e_plus[0][i];
         sum += product;
@@ -26,7 +26,7 @@ matrix_type bp::operator()(
     }
 
     // 正規化
-    for(int i = 0; i < e_minus.shape()[0]; ++i)
+    for(int i = 0; i < e_minus.height(); ++i)
     {
         mat[i][0] /= sum;
     }
@@ -62,7 +62,7 @@ matrix_type bp::propagate_forward(
     if(is_condition.first)
     {
         auto const elem_num = node->selectable_num;
-        matrix_type mat(boost::extents[elem_num][1]);
+        matrix_type mat(elem_num, 1);
         for(int i = 0; i < elem_num; ++i)
         {
             mat[i][0] = (i == is_condition.second) ? 1 : 0;
@@ -79,7 +79,7 @@ matrix_type bp::propagate_forward(
 
     // 末端は全ての確率が等しいとする
     auto const elem_num = node->selectable_num;
-    matrix_type mat(boost::extents[elem_num][1]);
+    matrix_type mat(elem_num, 1);
     for(int i = 0; i < elem_num; ++i)
     {
         mat[i][0] = 1.0;
@@ -99,7 +99,7 @@ matrix_type bp::propagate_backward(
     if(is_condition.first)
     {
         auto const elem_num = node->selectable_num;
-        matrix_type mat(boost::extents[1][elem_num]);
+        matrix_type mat(1, elem_num);
         for(int i = 0; i < elem_num; ++i)
         {
             mat[0][i] = (i == is_condition.second) ? 1 : 0;
