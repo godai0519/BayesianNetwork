@@ -8,7 +8,7 @@ namespace {
     using bn::matrix_type;
 }
 
-// s—ñ‚Ì®””{
+// è¡Œåˆ—ã®æ•´æ•°å€
 template<class T>
 matrix_type operator*(matrix_type const& rhs, T const& lhs)
 {

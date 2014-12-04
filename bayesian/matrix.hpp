@@ -6,12 +6,12 @@
 
 namespace bn {
 
-// §–ñ: ˆê”Ê“I‚È2ŸŒ³”z—ñ‚æ‚èCƒAƒNƒZƒX‚Í [y][x]
+// åˆ¶ç´„: ä¸€èˆ¬çš„ãª2æ¬¡å…ƒé…åˆ—ã‚ˆã‚Šï¼Œã‚¢ã‚¯ã‚»ã‚¹ã¯ [y][x]
 typedef boost::multi_array<double, 2> matrix_type;
 
 } // namespace bn
 
-// s—ñ“¯mEs—ñ‚Æ®”‚ÌÏ(’è‹`)
+// è¡Œåˆ—åŒå£«ãƒ»è¡Œåˆ—ã¨æ•´æ•°ã®ç©(å®šç¾©)
 bn::matrix_type operator*(bn::matrix_type const& lhs, bn::matrix_type const& rhs);
 template<class T> bn::matrix_type operator*(bn::matrix_type const& rhs, T const& lhs);
 template<class T> bn::matrix_type operator*(T const& lhs, bn::matrix_type const& rhs);

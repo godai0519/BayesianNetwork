@@ -11,7 +11,7 @@ namespace bn {
 
 struct vertex {
     int id;
-    int selectable_num = 0; // æ‚è‚¤‚é’l‚Ì”
+    int selectable_num = 0; // å–ã‚Šã†ã‚‹å€¤ã®æ•°
     boost::optional<matrix_type> evidence;
 };
 
@@ -23,7 +23,7 @@ struct graph_tag {
     std::string name;
 };
 
-// —vŒŸ“¢
+// è¦æ¤œè¨
 typedef boost::adjacency_list<
     boost::listS,
     boost::vecS,
