@@ -82,7 +82,30 @@ public:
         return e;
     }
 
-    // TODO: erase系
+    // 引数を元に一致する頂点を削除する
+    // その際，その頂点に入出辺も同時に削除する
+    // 削除に成功した場合はtrueを返却する
+    bool erase_vertex(vertex_type const& v)
+    {
+        auto const index = index_search(v);
+        if(index >= vertex_list_.size()) return false;
+
+        vertex_list_.erase(vertex_list_.begin() + index);
+        adjacent_list_.erase(adjacent_list_.begin() + index);
+        for(auto& line : adjacent_list_) line.erase(line.begin() + index);
+        return true;
+    }
+
+    // 引数を元に一致する辺を削除する
+    // 削除に成功した場合はtrueを返却する
+    bool erase_edge(edge_type const& e)
+    {
+        auto index = edge_search(e);
+        if(index.first >= vertex_list_.size() || index.second >= vertex_list_.size()) return false;
+
+        adjacent_list_[index.first][index.second] = nullptr;
+        return true;
+    }
 
     // 引数の頂点から出て行く辺を列挙する
     std::vector<edge_type> out_edges(vertex_type const& from) const
