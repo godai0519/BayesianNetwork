@@ -82,6 +82,8 @@ bn::matrix_type operator*(bn::matrix_type const& lhs, bn::matrix_type const& rhs
 template<class T> bn::matrix_type operator*(bn::matrix_type const& rhs, T const& lhs);
 template<class T> bn::matrix_type operator*(T const& lhs, bn::matrix_type const& rhs);
 
+bn::matrix_type operator%(bn::matrix_type const& lhs, bn::matrix_type const& rhs);
+
 #include "matrix_impl.hpp"
 
 #endif // #ifndef BNI_MATRIX_HPP
