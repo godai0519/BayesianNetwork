@@ -29,6 +29,22 @@ public:
     graph_t() = default;
     virtual ~graph_t() = default;
 
+    // copy ctor
+    graph_t(graph_t const& other)
+        : vertex_list_(other.vertex_list_)
+        , edge_list_(other.edge_list_)
+        , adjacent_list_(other.adjacent_list_)
+    {
+    }
+
+    // move ctor
+    graph_t(graph_t && other)
+        : vertex_list_(std::move(other.vertex_list_))
+        , edge_list_(std::move(other.edge_list_))
+        , adjacent_list_(std::move(other.adjacent_list_))
+    {
+    }
+
     // 頂点を生成し，そのshared_ptrを返す
     // 必ず成功する
     vertex_type add_vertex()
@@ -143,10 +159,6 @@ private:
         auto const tmp = std::numeric_limits<std::size_t>::max();
         return std::make_pair(tmp, tmp);
     }
-
-    // 実装予定
-    // コピコン
-    // ムブコン
 
     std::vector<vertex_type> vertex_list_;
     std::vector<edge_type>   edge_list_;
