@@ -2,16 +2,17 @@
 #include "bayesian/matrix.hpp"
 
 using bn::matrix_type;
+
 matrix_type operator*(matrix_type const& lhs, matrix_type const& rhs)
 {
-    assert(lhs.shape()[1] == rhs.shape()[0]); // requirement for calculating the product
+    assert(lhs.width() == rhs.height()); // requirement for calculating the product
 
-    matrix_type result(boost::extents[lhs.shape()[0]][rhs.shape()[1]]); // 0.0 fill (http://melpon.org/wandbox/permlink/jXd8ETmx8y8ZwK4A)
-    for(matrix_type::size_type i = 0; i < result.shape()[0]; ++i)
+    matrix_type result(lhs.height(), rhs.width(), 0.0);
+    for(std::size_t i = 0; i < result.height(); ++i)
     {
-        for(matrix_type::size_type j = 0; j < result.shape()[1]; ++j)
+        for(std::size_t j = 0; j < result.width(); ++j)
         {
-            for(matrix_type::size_type k = 0; k < lhs.shape()[1]; ++k)
+            for(std::size_t k = 0; k < lhs.width(); ++k)
             {
                 result[i][j] += lhs[i][k] * rhs[k][j];
             }
