@@ -57,12 +57,13 @@ matrix_type bp::propagate_forward(
     std::vector<std::pair<vertex_type, int>> const& condition
     )
 {
+    auto const elem_num = node->selectable_num;
+    matrix_type mat(elem_num, 1, 1);
+
     // node ∈ condition
     auto is_condition = find_condition(node, condition);
     if(is_condition.first)
     {
-        auto const elem_num = node->selectable_num;
-        matrix_type mat(elem_num, 1);
         for(int i = 0; i < elem_num; ++i)
         {
             mat[i][0] = (i == is_condition.second) ? 1 : 0;
@@ -74,9 +75,6 @@ matrix_type bp::propagate_forward(
     auto const out_edges = graph.out_edges(node);
     if(!out_edges.empty())
     {
-        auto const elem_num = node->selectable_num;
-        matrix_type mat(elem_num, 1, 1);
-
         BOOST_FOREACH(auto const& edge, out_edges)
         {
             if(!edge->likelihood.first) throw std::runtime_error("no set edge of likelihood");
@@ -87,8 +85,6 @@ matrix_type bp::propagate_forward(
     }
 
     // 末端は全ての確率が等しいとする
-    auto const elem_num = node->selectable_num;
-    matrix_type mat(elem_num, 1);
     for(int i = 0; i < elem_num; ++i)
     {
         mat[i][0] = 1.0;
@@ -103,12 +99,13 @@ matrix_type bp::propagate_backward(
     std::vector<std::pair<vertex_type, int>> const& condition
     )
 {
+    auto const elem_num = node->selectable_num;
+    matrix_type mat(1, elem_num, 1);
+
     // node ∈ condition
     auto is_condition = find_condition(node, condition);
     if(is_condition.first)
     {
-        auto const elem_num = node->selectable_num;
-        matrix_type mat(1, elem_num);
         for(int i = 0; i < elem_num; ++i)
         {
             mat[0][i] = (i == is_condition.second) ? 1 : 0;
@@ -120,9 +117,6 @@ matrix_type bp::propagate_backward(
     auto const in_edges = graph.in_edges(node);
     if(!in_edges.empty())
     {
-        auto const elem_num = node->selectable_num;
-        matrix_type mat(1, elem_num, 1);
-
         BOOST_FOREACH(auto const& edge, in_edges)
         {
             if(!edge->likelihood.first) throw std::runtime_error("no set edge of likelihood");
