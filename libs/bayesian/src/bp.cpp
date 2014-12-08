@@ -6,8 +6,8 @@ namespace bn {
 
 matrix_type bp::operator()(
     graph_t const& graph,
-    graph_t::vertex_descriptor const& node,
-    std::vector<std::pair<graph_t::vertex_descriptor, int>> const& condition
+    vertex_type const& node,
+    std::vector<std::pair<vertex_type, int>> const& condition
     )
 {
     // 前後の要素に伝播させる
@@ -15,10 +15,10 @@ matrix_type bp::operator()(
     auto const e_plus = propagate_backward(graph, node, condition);
 
     // 掛け算
-    auto const elem_num = graph[node].selectable_num;
+    auto const elem_num = node->selectable_num;
     double sum = 0.0;
-    matrix_type mat(boost::extents[elem_num][1]);
-    for(int i = 0; i < e_minus.shape()[0]; ++i)
+    matrix_type mat(elem_num, 1);
+    for(std::size_t i = 0; i < e_minus.height(); ++i)
     {
         double const product = e_minus[i][0] * e_plus[0][i];
         sum += product;
@@ -26,7 +26,7 @@ matrix_type bp::operator()(
     }
 
     // 正規化
-    for(int i = 0; i < e_minus.shape()[0]; ++i)
+    for(std::size_t i = 0; i < e_minus.height(); ++i)
     {
         mat[i][0] /= sum;
     }
@@ -35,8 +35,8 @@ matrix_type bp::operator()(
 }
 
 std::pair<bool, int> find_condition(
-    graph_t::vertex_descriptor const& node,
-    std::vector<std::pair<graph_t::vertex_descriptor, int>> const& condition
+    vertex_type const& node,
+    std::vector<std::pair<vertex_type, int>> const& condition
     )
 {
     for(auto const& c : condition)
@@ -53,16 +53,16 @@ std::pair<bool, int> find_condition(
 // 下流要素の確率推論
 matrix_type bp::propagate_forward(
     graph_t const& graph,
-    graph_t::vertex_descriptor const& node,
-    std::vector<std::pair<graph_t::vertex_descriptor, int>> const& condition
+    vertex_type const& node,
+    std::vector<std::pair<vertex_type, int>> const& condition
     )
 {
     // node ∈ condition
     auto is_condition = find_condition(node, condition);
     if(is_condition.first)
     {
-        auto const elem_num = graph[node].selectable_num;
-        matrix_type mat(boost::extents[elem_num][1]);
+        auto const elem_num = node->selectable_num;
+        matrix_type mat(elem_num, 1);
         for(int i = 0; i < elem_num; ++i)
         {
             mat[i][0] = (i == is_condition.second) ? 1 : 0;
@@ -71,15 +71,16 @@ matrix_type bp::propagate_forward(
     }
 
     // conditionに含まれないから伝播 (e-要素)
-    BOOST_FOREACH(auto const& edge, out_edges(node, graph))
+    BOOST_FOREACH(auto const& edge, graph.out_edges(node))
     {
         // TODO: 2つ以上の要素があった場合の処理を切り分ける
-        return (*graph[edge].likelihood) * propagate_forward(graph, target(edge, graph), condition);
+        if(!edge->likelihood.first) throw std::runtime_error("no set edge of likelihood");
+        return (edge->likelihood.second) * propagate_forward(graph, graph.target(edge), condition);
     }
 
     // 末端は全ての確率が等しいとする
-    auto const elem_num = graph[node].selectable_num;
-    matrix_type mat(boost::extents[elem_num][1]);
+    auto const elem_num = node->selectable_num;
+    matrix_type mat(elem_num, 1);
     for(int i = 0; i < elem_num; ++i)
     {
         mat[i][0] = 1.0;
@@ -90,16 +91,16 @@ matrix_type bp::propagate_forward(
 // 上流要素の確率推論
 matrix_type bp::propagate_backward(
     graph_t const& graph,
-    graph_t::vertex_descriptor const& node,
-    std::vector<std::pair<graph_t::vertex_descriptor, int>> const& condition
+    vertex_type const& node,
+    std::vector<std::pair<vertex_type, int>> const& condition
     )
 {
     // node ∈ condition
     auto is_condition = find_condition(node, condition);
     if(is_condition.first)
     {
-        auto const elem_num = graph[node].selectable_num;
-        matrix_type mat(boost::extents[1][elem_num]);
+        auto const elem_num = node->selectable_num;
+        matrix_type mat(1, elem_num);
         for(int i = 0; i < elem_num; ++i)
         {
             mat[0][i] = (i == is_condition.second) ? 1 : 0;
@@ -108,17 +109,18 @@ matrix_type bp::propagate_backward(
     }
 
     // conditionに含まれないから伝播 (e+要素)
-    BOOST_FOREACH(auto const& edge, in_edges(node, graph))
+    BOOST_FOREACH(auto const& edge, graph.in_edges(node))
     {
         // TODO: 2つ以上の要素があった場合の処理を切り分ける
-        return propagate_backward(graph, source(edge, graph), condition) * (*graph[edge].likelihood);
+        if(!edge->likelihood.first) throw std::runtime_error("no set edge of likelihood");
+        return propagate_backward(graph, graph.source(edge), condition) * (edge->likelihood.second);
     }
 
     // 最上位ノードは事前確率を割り当てる
-    auto& e = graph[node].evidence;
-    if(e)
+    auto& e = node->evidence;
+    if(e.first)
     {
-        return *e;
+        return e.second;
     }
     else
     {

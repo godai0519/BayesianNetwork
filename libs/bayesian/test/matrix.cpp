@@ -10,10 +10,10 @@ BOOST_AUTO_TEST_CASE( operator_product )
     std::vector<double> const source3 = {-1, -1,  2, -1,  0,  2,  1,  1, -1};
     std::vector<double> const teacher = { 4,  2, -4, -1,  1,  2,  1,  1,  0};
 
-    bn::matrix_type mat1(boost::extents[3][3]);
-    bn::matrix_type mat2(boost::extents[3][3]);
-    bn::matrix_type mat3(boost::extents[3][3]);
-    bn::matrix_type matt(boost::extents[3][3]);
+    bn::matrix_type mat1(3, 3);
+    bn::matrix_type mat2(3, 3);
+    bn::matrix_type mat3(3, 3);
+    bn::matrix_type matt(3, 3);
 
     mat1.assign(source1.begin(), source1.end());
     mat2.assign(source2.begin(), source2.end());

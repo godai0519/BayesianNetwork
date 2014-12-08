@@ -12,20 +12,20 @@ public:
 
     matrix_type operator()(
         graph_t const& graph,
-        graph_t::vertex_descriptor const& target,
-        std::vector<std::pair<graph_t::vertex_descriptor, int>> const& condition
+        vertex_type const& target,
+        std::vector<std::pair<vertex_type, int>> const& condition
         );
 
 private:
     matrix_type propagate_forward(
         graph_t const& graph,
-        graph_t::vertex_descriptor const& target,
-        std::vector<std::pair<graph_t::vertex_descriptor, int>> const& condition
+        vertex_type const& target,
+        std::vector<std::pair<vertex_type, int>> const& condition
         );
     matrix_type propagate_backward(
         graph_t const& graph,
-        graph_t::vertex_descriptor const& target,
-        std::vector<std::pair<graph_t::vertex_descriptor, int>> const& condition
+        vertex_type const& target,
+        std::vector<std::pair<vertex_type, int>> const& condition
         );
 };
 

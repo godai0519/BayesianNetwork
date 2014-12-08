@@ -2,16 +2,82 @@
 #define BNI_MATRIX_HPP
 
 #include <vector>
-#include <boost/multi_array.hpp>
+#include <cassert>
 
 namespace bn {
 
-// §–ñ: ˆê”Ê“I‚È2ŸŒ³”z—ñ‚æ‚èCƒAƒNƒZƒX‚Í [y][x]
-typedef boost::multi_array<double, 2> matrix_type;
+// åˆ¶ç´„: ä¸€èˆ¬çš„ãª2æ¬¡å…ƒé…åˆ—ã‚ˆã‚Šï¼Œã‚¢ã‚¯ã‚»ã‚¹ã¯ [y][x]
+class matrix_type {
+public:
+    explicit matrix_type() = default;
+    matrix_type(std::size_t const height, std::size_t const width, double const default_value = 0.0)
+    {
+        resize(height, width, default_value);
+    }
+    virtual ~matrix_type() = default;
+
+    std::size_t height() const { return height_; }
+    std::size_t width() const { return width_; }
+
+    // æŒ‡å®šã‚µã‚¤ã‚ºã«ä¼¸ç¸®
+    void resize(std::size_t const height, std::size_t const width, double const default_value = 0.0)
+    {
+        // width
+        for(auto& line : mat_)
+        {
+            line.resize(width, default_value);
+        }
+
+        // height
+        mat_.resize(height, std::vector<double>(width, default_value));
+
+        height_ = height;
+        width_  = width;
+    }
+
+    // assignã«å¤±æ•—ã™ã‚Œã°ï¼ŒfalseãŒå¸°ã‚‹
+    template<class InputIterator>
+    bool assign(InputIterator begin, InputIterator const& end)
+    {
+        if(static_cast<std::size_t>(std::distance(begin, end)) >= width_ * height_)
+        {
+            for(auto outer_it = mat_.begin(); outer_it != mat_.end(); ++outer_it)
+            {
+                for(auto inner_it = outer_it->begin(); inner_it != outer_it->end();)
+                {
+                    *inner_it++ = *begin++;
+                }
+            }
+
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    // å†…å´ã®é…åˆ—ã‚’è¿”ã™
+    // è¨­è¨ˆãŒé›‘ãªã®
+    std::vector<double>& operator[] (std::size_t const index)
+    {
+        return mat_[index];
+    }
+    std::vector<double> const& operator[] (std::size_t const index) const
+    {
+        return mat_[index];
+    }
+
+private:
+    std::size_t height_ = 0;
+    std::size_t width_ = 0;
+
+    std::vector<std::vector<double>> mat_;
+};
 
 } // namespace bn
 
-// s—ñ“¯mEs—ñ‚Æ®”‚ÌÏ(’è‹`)
+// è¡Œåˆ—åŒå£«ãƒ»è¡Œåˆ—ã¨æ•´æ•°ã®ç©(å®šç¾©)
 bn::matrix_type operator*(bn::matrix_type const& lhs, bn::matrix_type const& rhs);
 template<class T> bn::matrix_type operator*(bn::matrix_type const& rhs, T const& lhs);
 template<class T> bn::matrix_type operator*(T const& lhs, bn::matrix_type const& rhs);
