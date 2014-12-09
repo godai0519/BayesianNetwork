@@ -45,6 +45,11 @@ public:
     {
     }
 
+    std::vector<vertex_type> const& vertex_list() const
+    {
+        return vertex_list_;
+    }
+
     // 頂点を生成し，そのshared_ptrを返す
     // 必ず成功する
     vertex_type add_vertex()
