@@ -1,4 +1,3 @@
-#include <boost/foreach.hpp>
 #include "bayesian/graph.hpp"
 #include "bayesian/bp.hpp"
 
@@ -75,7 +74,7 @@ matrix_type bp::propagate_forward(
     auto const out_edges = graph.out_edges(node);
     if(!out_edges.empty())
     {
-        BOOST_FOREACH(auto const& edge, out_edges)
+        for(auto const& edge : out_edges)
         {
             if(!edge->likelihood.first) throw std::runtime_error("no set edge of likelihood");
             mat = mat % (edge->likelihood.second * propagate_forward(graph, graph.target(edge), condition));
@@ -117,7 +116,7 @@ matrix_type bp::propagate_backward(
     auto const in_edges = graph.in_edges(node);
     if(!in_edges.empty())
     {
-        BOOST_FOREACH(auto const& edge, in_edges)
+        for(auto const& edge : in_edges)
         {
             if(!edge->likelihood.first) throw std::runtime_error("no set edge of likelihood");
             mat = mat % (propagate_backward(graph, graph.source(edge), condition) * edge->likelihood.second);
