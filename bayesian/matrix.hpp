@@ -68,6 +68,60 @@ public:
         return mat_[index];
     }
 
+    // 要素同士の積 result(i,j) = lhs(i,j) * rhs(i,j)
+    // 外積(cross)でも内積(dot)でもない
+    matrix_type& operator%=(matrix_type const& rhs)
+    {
+        assert(this->width() == rhs.width() && this->height() == rhs.height());
+
+        for(std::size_t i = 0; i < this->height(); ++i)
+        {
+            for(std::size_t j = 0; j < this->width(); ++j)
+            {
+                mat_[i][j] *= rhs.mat_[i][j];
+            }
+        }
+
+        return *this;
+    }
+
+    matrix_type operator%(matrix_type const& rhs) const
+    {
+        matrix_type tmp(*this);
+        tmp %= rhs;
+        return tmp;
+    }
+
+    // 内積(dot)
+    bn::matrix_type operator*=(bn::matrix_type const& rhs)
+    {
+        assert(this->width() == rhs.height()); // requirement for calculating the product
+
+        std::vector<std::vector<double>> result(this->height(), std::vector<double>(rhs.width(), 0.0));
+        for(std::size_t i = 0; i < this->height(); ++i)
+        {
+            for(std::size_t j = 0; j < rhs.width(); ++j)
+            {
+                for(std::size_t k = 0; k < rhs.height(); ++k)
+                {
+                    result[i][j] += this->mat_[i][k] * rhs.mat_[k][j];
+                }
+            }
+        }
+
+        width_ = rhs.width();
+        mat_ = std::move(result);
+
+        return *this;
+    }
+
+    bn::matrix_type operator*(bn::matrix_type const& rhs) const
+    {
+        matrix_type tmp(*this);
+        tmp *= rhs;
+        return tmp;
+    }
+
 private:
     std::size_t height_ = 0;
     std::size_t width_ = 0;
@@ -78,7 +132,6 @@ private:
 } // namespace bn
 
 // 行列同士・行列と整数の積(定義)
-bn::matrix_type operator*(bn::matrix_type const& lhs, bn::matrix_type const& rhs);
 template<class T> bn::matrix_type operator*(bn::matrix_type const& rhs, T const& lhs);
 template<class T> bn::matrix_type operator*(T const& lhs, bn::matrix_type const& rhs);
 
