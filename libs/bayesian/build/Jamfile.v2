@@ -6,8 +6,6 @@ local BOOST_ROOT = [ os.environ BOOST_ROOT ] ;
 project bayesian :
     requirements
         <include>../../../
-        <include>$(BOOST_ROOT)
-        <cxxflags>-std=c++1y
     : source-location ../../../
     ;
 

@@ -8,7 +8,6 @@ project matrix_test :
         <include>../../../
         <include>$(BOOST_ROOT)
         <library>../build//matrix
-        <cxxflags>-std=c++1y
     ;
 
 run matrix.cpp /bayesian ;
