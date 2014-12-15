@@ -11,5 +11,6 @@ project matrix_test :
     ;
 
 run matrix.cpp /bayesian ;
+run cpt.cpp /bayesian ;
 run bp.cpp /bayesian ;
 
