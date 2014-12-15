@@ -32,7 +32,11 @@ inline void hash_combine(std::size_t& seed, T const& v)
 }
 
 // ぐぬぬ．規格的には特殊化はstd実装許可されてる(晶さん)
+#ifdef _MSC_VER
+template<> struct hash<bn::condition_t> : public unary_function<bn::condition_t, size_t> {
+#else
 template<> struct hash<bn::condition_t> : public __hash_base<std::size_t, bn::condition_t> {
+#endif
     inline std::size_t operator()(bn::condition_t const& cond) const noexcept
     {
         std::size_t value = 0;
