@@ -8,54 +8,18 @@
 #include <algorithm>
 #include <unordered_map>
 #include "matrix.hpp"
+#include "cpt.hpp"
 
 namespace bn {
 
 struct vertex_t;
 struct edge_t;
-
 typedef std::shared_ptr<vertex_t> vertex_type;
 typedef std::shared_ptr<edge_t>   edge_type;
-typedef std::unordered_map<vertex_type, int> condition_t;
-typedef std::unordered_map<condition_t, std::vector<double>> cpt_t;
-
-} // namespace bn
-
-namespace std {
-
-// from Boost
-template<class T>
-inline void hash_combine(std::size_t& seed, T const& v)
-{
-    std::hash<T> hasher;
-    seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-}
-
-// ぐぬぬ．規格的には特殊化はstd実装許可されてる(晶さん)
-#ifdef _MSC_VER
-template<> struct hash<bn::condition_t> : public unary_function<bn::condition_t, size_t> {
-#else
-template<> struct hash<bn::condition_t> : public __hash_base<std::size_t, bn::condition_t> {
-#endif
-    inline std::size_t operator()(bn::condition_t const& cond) const noexcept
-    {
-        std::size_t value = 0;
-        for(auto const& one : cond)
-        {
-            hash_combine(value, one.first);
-            hash_combine(value, one.second);
-        }
-        return value;
-    }
-};
-
-} // namespace std
-
-namespace bn {
 
 struct vertex_t {
     int id;
-    int selectable_num = 0; // 取りうる値の数
+    std::size_t selectable_num = 0; // 取りうる値の数
     std::pair<bool, matrix_type> evidence;
 
     cpt_t cpt;
@@ -64,7 +28,6 @@ struct vertex_t {
 struct edge_t {
     std::pair<bool, matrix_type> likelihood;
 };
-
 
 class graph_t {
 public:
