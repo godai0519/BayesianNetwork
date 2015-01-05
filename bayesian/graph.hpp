@@ -6,22 +6,28 @@
 #include <memory>
 #include <limits>
 #include <algorithm>
+#include <unordered_map>
 #include "matrix.hpp"
+#include "cpt.hpp"
 
 namespace bn {
 
+struct vertex_t;
+struct edge_t;
+typedef std::shared_ptr<vertex_t> vertex_type;
+typedef std::shared_ptr<edge_t>   edge_type;
+
 struct vertex_t {
     int id;
-    int selectable_num = 0; // 取りうる値の数
+    std::size_t selectable_num = 0; // 取りうる値の数
     std::pair<bool, matrix_type> evidence;
+
+    cpt_t cpt;
 };
 
 struct edge_t {
     std::pair<bool, matrix_type> likelihood;
 };
-
-typedef std::shared_ptr<vertex_t> vertex_type;
-typedef std::shared_ptr<edge_t>   edge_type;
 
 class graph_t {
 public:
