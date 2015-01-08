@@ -1,3 +1,4 @@
+#include <iterator>
 #include "bayesian/graph.hpp"
 #include "bayesian/cpt.hpp"
 
@@ -52,7 +53,7 @@ auto cpt_t::filter(condition_t const& cond) -> table_type
     table_type filtered;
     std::copy_if(
         table_.begin(), table_.end(), std::inserter(filtered, filtered.begin()),
-        [&cond](auto const& target) -> bool
+        [&cond](std::pair<condition_t, std::vector<double>> const& target) -> bool
         {
             for(auto it = cond.begin(); it != cond.end(); ++it)
             {
