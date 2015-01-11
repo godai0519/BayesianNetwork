@@ -1,6 +1,7 @@
 #ifndef BNI_SAMPLING_HPP
 #define BNI_SAMPLING_HPP
 
+#include <random>
 #include "graph.hpp"
 
 namespace bn {

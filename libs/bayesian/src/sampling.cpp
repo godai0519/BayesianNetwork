@@ -9,12 +9,23 @@ matrix_type sampling::operator()(
     std::vector<std::pair<vertex_type, int>> const& condition
     )
 {
-    // TODO: パターン作る(generate_pattern)
+    // パターン作る(generate_pattern)
+    auto const generated_patterns = generate_pattern(graph, 100/*tmp*/, condition);
 
-    // TODO: 数え上げを行う
-
-    matrix_type dummy;
-    return dummy;
+    // 数え上げを行う
+    bn::matrix_type result(node->selectable_num, 1, 0.0);
+	for(auto const& pattern : generated_patterns)
+	{
+		result[pattern.at(node)][0] += 1.0;
+	}
+	
+	// 全要素をパターン数で割る
+	for(std::size_t i = 0; i < node->selectable_num; ++i)
+	{
+		result[i][0] /= generated_patterns.size();
+	}
+	
+    return result;
 }
 
 sampling::pattern_list sampling::generate_pattern(
