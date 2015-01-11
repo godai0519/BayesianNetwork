@@ -10,7 +10,7 @@ matrix_type sampling::operator()(
     )
 {
     // パターン作る(generate_pattern)
-    auto const generated_patterns = generate_pattern(graph, 100/*tmp*/, condition);
+    auto const generated_patterns = generate_pattern(graph, 10000/*tmp*/, condition);
 
     // 数え上げを行う
     bn::matrix_type result(node->selectable_num, 1, 0.0);
