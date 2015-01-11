@@ -59,18 +59,20 @@ sampling::pattern_list sampling::generate_pattern(
     while(result.size() < static_cast<std::size_t>(num))
     {
         auto node_list = seed_node_list;
+		std::unordered_map<vertex_type, int> pattern;
+		
         while(!node_list.empty())
         {
             auto const first_node = node_list.back();
             node_list.pop_back();
 
-            std::unordered_map<vertex_type, int> pattern;
             choice_pattern(graph, first_node, node_list, pattern);
-            if(is_condition(pattern))
-            {
-                result.push_back(std::move(pattern));
-            }
         }
+
+		if(is_condition(pattern))
+		{
+			result.push_back(std::move(pattern));
+		}
     }
 
     return result;
@@ -104,11 +106,11 @@ void sampling::choice_pattern(
     }
 
     // CPTから必要データを取得
-    auto optional_cpt_data = current->cpt[parent_condition];
+    auto const optional_cpt_data = current->cpt[parent_condition];
     std::vector<double> condition_probability;
     if(optional_cpt_data.first)
     {
-        condition_probability = std::move(optional_cpt_data.second);
+        condition_probability = optional_cpt_data.second;
     }
     else
     {
