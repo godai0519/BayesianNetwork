@@ -6,24 +6,38 @@ namespace bn {
 // 辺のlikelihoodを保持し，簡易に前の状態をコピーすることが可能にするため
 class likelihood_list {
 public:
-    struct value_type {
+    class value_type {
+    public:
         value_type(vertex_type const& from, vertex_type const& to, edge_type const& edge)
-            : from(from), to(to), edge(edge)
+            : from_(from), to_(to), edge_(edge), likelihood_(from->selectable_num, to->selectable_num)
         {
         }
         virtual ~value_type() = default;
 
-        vertex_type const to;
-        vertex_type const from;
-        edge_type const edge;
+        vertex_type const from() const { return from_; }
+        vertex_type const to() const { return to_; }
+        edge_type const edge() const { return edge_; }
 
-        matrix_type likelihood;
+        matrix_type& likelihood()
+        {
+            return likelihood_;
+        }
+        matrix_type const& likelihood() const
+        {
+            return likelihood_;
+        }
+
+    private:
+        vertex_type from_;
+        vertex_type to_;
+        edge_type edge_;
+        matrix_type likelihood_;
     };
 
     matrix_type& add_manage(vertex_type const& from, vertex_type const& to, edge_type const& edge)
     {
         data_.emplace_back(from, to, edge);
-        return data_.back().likelihood;
+        return data_.back().likelihood();
     }
 
     void del_manage(edge_type const& edge)
@@ -38,32 +52,32 @@ public:
         if(it != data_.end()) data_.erase(it);
     }
 
-    matrix_type& operator[] (edge_type const& edge)
+    matrix_type& operator() (edge_type const& edge)
     {
         auto it = find(edge);
-        if(it == data_.end()) throw std::runtime_error("likelihood_list: operator[] (edge_type)");
-        return it->likelihood;
+        if(it == data_.end()) throw std::runtime_error("likelihood_list: operator() (edge_type)");
+        return it->likelihood();
     }
 
-    matrix_type const& operator[] (edge_type const& edge) const
+    matrix_type const& operator() (edge_type const& edge) const
     {
         auto it = find(edge);
-        if(it == data_.end()) throw std::runtime_error("likelihood_list: operator[] (edge_type) const");
-        return it->likelihood;
+        if(it == data_.end()) throw std::runtime_error("likelihood_list: operator() (edge_type) const");
+        return it->likelihood();
     }
 
-    matrix_type& operator[] (vertex_type const& from, vertex_type const& to)
+    matrix_type& operator() (vertex_type const& from, vertex_type const& to)
     {
         auto it = find(from, to);
-        if(it == data_.end()) throw std::runtime_error("likelihood_list: operator[] (vertex_type,vertex_type)");
-        return it->likelihood;
+        if(it == data_.end()) throw std::runtime_error("likelihood_list: operator() (vertex_type,vertex_type)");
+        return it->likelihood();
     }
 
-    matrix_type const& operator[] (vertex_type const& from, vertex_type const& to) const
+    matrix_type const& operator() (vertex_type const& from, vertex_type const& to) const
     {
         auto it = find(from, to);
-        if(it == data_.end()) throw std::runtime_error("likelihood_list: operator[] (vertex_type,vertex_type) const");
-        return it->likelihood;
+        if(it == data_.end()) throw std::runtime_error("likelihood_list: operator() (vertex_type,vertex_type) const");
+        return it->likelihood();
     }
 
 private:
@@ -72,7 +86,7 @@ private:
         auto it = data_.begin();
         while(it != data_.end())
         {
-            if(it->edge == edge) break;
+            if(it->edge() == edge) break;
             else ++it;
         }
         return it;
@@ -83,7 +97,29 @@ private:
         auto it = data_.begin();
         while(it != data_.end())
         {
-            if(std::tie(it->from, it->to) == std::tie(from, to)) break;
+            if(std::tie(it->from(), it->to()) == std::tie(from, to)) break;
+            else ++it;
+        }
+        return it;
+    }
+
+    std::vector<value_type>::const_iterator find(edge_type const& edge) const
+    {
+        auto it = data_.cbegin();
+        while(it != data_.cend())
+        {
+            if(it->edge() == edge) break;
+            else ++it;
+        }
+        return it;
+    }
+
+    std::vector<value_type>::const_iterator find(vertex_type const& from, vertex_type const& to) const
+    {
+        auto it = data_.cbegin();
+        while(it != data_.cend())
+        {
+            if(std::tie(it->from(), it->to()) == std::tie(from, to)) break;
             else ++it;
         }
         return it;
