@@ -113,8 +113,8 @@ auto likelihood_list::find(vertex_type const& from, vertex_type const& to) const
     return it;
 }
 
-// all_combination
-void all_combination_pattern(
+// 与えられた確率変数全ての組み合わせに対し，functionを実行するというインターフェースを提供する
+void bp::all_combination_pattern(
     condition_t& combination,
     condition_t::iterator it,
     std::function<void(condition_t const&)> const& func
@@ -139,7 +139,7 @@ void all_combination_pattern(
 }
 
 // combinationから必要なノードの選択状態だけ取り出して，条件を更新する
-condition_t update_select_condition(
+condition_t bp::update_select_condition(
     condition_t const& whole_condition,
     condition_t particle_condition
     )
@@ -152,7 +152,7 @@ condition_t update_select_condition(
 }
 
 // 実際こっちであるべき
-condition_t update_select_condition(
+condition_t bp::update_select_condition(
     condition_t const& whole_condition,
     std::vector<vertex_type> const& particle
     )
@@ -165,7 +165,7 @@ condition_t update_select_condition(
 }
 
 // 周辺化
-std::unordered_map<condition_t, double> marginalize(
+std::unordered_map<condition_t, double> bp::marginalize(
     std::unordered_map<condition_t, double> base,
     vertex_type const& target
     )
@@ -192,10 +192,9 @@ std::unordered_map<condition_t, double> marginalize(
     return result;
 }
 
-likelihood_list likelihood_list_;
 
 // 条件化(条件を添加する)
-void conditioning(
+void bp::conditioning(
     std::unordered_map<condition_t, double> const& probabilities,
     vertex_type const& target_node,
     vertex_type const& condition_node
@@ -228,7 +227,7 @@ void conditioning(
 }
 
 // 指定ノードから上流に拡散，上流が確定した後に自身を算出することで解を得る
-std::unordered_map<condition_t, double> calculate_likelihood_from_backward(
+std::unordered_map<condition_t, double> bp::calculate_likelihood_from_backward(
     graph_t const& graph,
     vertex_type const& node
     )
@@ -276,7 +275,7 @@ std::unordered_map<condition_t, double> calculate_likelihood_from_backward(
     std::unordered_map<condition_t, double> target_node_probability;
     all_combination_pattern(
         combination, combination.begin(),
-        [&node, &target_node_probability, &upward_probabilities](condition_t const& combination)
+        [this, &node, &target_node_probability, &upward_probabilities](condition_t const& combination)
         {
             // foldl使うと，どうせVC落ちるからやめた
             double probability = node->cpt[update_select_condition(combination, node->cpt.condition_node())]
@@ -305,7 +304,7 @@ std::unordered_map<condition_t, double> calculate_likelihood_from_backward(
 }
 
 // cptを元に全てのエッジのlikelihoodを算出する
-void calculate_likelihood(graph_t const& graph)
+void bp::calculate_likelihood(graph_t const& graph)
 {
     auto node_list = graph.vertex_list();
     for(auto const& node : node_list)
