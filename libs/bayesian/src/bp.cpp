@@ -1,6 +1,7 @@
+#include <functional>
 #include "bayesian/graph.hpp"
 #include "bayesian/bp.hpp"
-#include "cpt.hpp" // unordered_mapのネストの解決
+#include "bayesian/cpt.hpp" // unordered_mapのネストの解決
 
 namespace bn {
 
@@ -133,10 +134,10 @@ private:
 void all_combination_pattern(
     std::unordered_map<vertex_type, int>& combination,
     std::unordered_map<vertex_type, int>::iterator it,
-    std::function<void(std::unordered_map<vertex_type, int> const& combination)> const& func
+    std::function<void(std::unordered_map<vertex_type, int> const&)> const& func
     )
 {
-    if(it == conbination.end())
+    if(it == combination.end())
     {
         func(combination);
     }
@@ -145,7 +146,11 @@ void all_combination_pattern(
         for(int i = 0; i < it->first->selectable_num; ++i)
         {
             it->second = i;
-            all_combination_pattern(combination, it + 1, func);
+
+            // 前方だけだったのね…(処置は後で考える)
+            auto next = it;
+            ++next;
+            all_combination_pattern(combination, next, func);
         }
     }
 }
@@ -153,30 +158,43 @@ void all_combination_pattern(
 // combinationから必要なノードの選択状態だけ取り出して，条件を更新する
 std::unordered_map<vertex_type, int> update_select_condition(
     std::unordered_map<vertex_type, int> const& whole_condition,
-    std::unordered_map<vertex_type, int> const& base_condition
+    std::unordered_map<vertex_type, int> particle_condition
     )
 {
-    std::unordered_map<vertex_type, int> particle_condition = base_condition;
     for(auto it = particle_condition.begin(); it != particle_condition.end(); ++it)
     {
-        it->second = whole_condition[it->first];
+        it->second = whole_condition.at(it->first);
     }
     return particle_condition;
 }
 
+// 実際こっちであるべき
+std::unordered_map<vertex_type, int> update_select_condition(
+    std::unordered_map<vertex_type, int> const& whole_condition,
+    std::vector<vertex_type> const& particle
+    )
+{
+    std::unordered_map<vertex_type, int> particle_condition;
+    for(auto const& v : particle) particle_condition[v] = 0;
+
+    return update_select_condition(whole_condition, particle_condition);
+
+}
+
 // 周辺化
 std::unordered_map<std::unordered_map<vertex_type, int>, double> marginalize(
-    std::unordered_map<std::unordered_map<vertex_type, int>, double> const& base,
+    std::unordered_map<std::unordered_map<vertex_type, int>, double> base,
     vertex_type const& target
     )
 {
     std::unordered_map<std::unordered_map<vertex_type, int>, double> result;
+    auto condition = base.begin()->first;
     all_combination_pattern(
-        base, base.begin(),
-        [&result, &base, &target](std::unordered_map<std::unordered_map<vertex_type, int>, double> const& condition)
+        condition, condition.begin(),
+        [&result, &base, &target](std::unordered_map<vertex_type, int> const& condition)
         {
             auto new_condition = condition;
-            new_condtion.erase(target);
+            new_condition.erase(target);
 
             if(result.count(new_condition))
             {
@@ -191,7 +209,7 @@ std::unordered_map<std::unordered_map<vertex_type, int>, double> marginalize(
     return result;
 }
 
-likelihood_list lilelihood_list_;
+likelihood_list likelihood_list_;
 
 // 条件化(条件を添加する)
 void conditioning(
@@ -209,19 +227,19 @@ void conditioning(
         }
     }
 
-    for(int i = 0; i < condition_node.selectable_num; ++i)
+    for(int i = 0; i < condition_node->selectable_num; ++i)
     {
         double denominator = 0;
-        for(int j = 0; j < target_node.selectable; ++j)
+        for(int j = 0; j < target_node->selectable_num; ++j)
         {
             auto const target_prob = pair_probabilities[{{condition_node,i},{target_node,j}}];
             denominator += target_prob;
-            lilelihood_list_(condition_node, target_node)[i][j] = target_prob;
+            likelihood_list_(condition_node, target_node)[i][j] = target_prob;
         }
 
-        for(int j = 0; j < target_node.selectable; ++j)
+        for(int j = 0; j < target_node->selectable_num; ++j)
         {
-            lilelihood_list_(condition_node, target_node)[i][j] /= denominator;
+            likelihood_list_(condition_node, target_node)[i][j] /= denominator;
         }
     }
 }
@@ -243,7 +261,7 @@ std::unordered_map<std::unordered_map<vertex_type, int>, double> calculate_likel
         auto const upward_node = graph.source(upward_edge);
         direct_parents.push_back(upward_node);
 
-        likelihood_list_.ad_manage(upward_node, node, upward_edge);
+        likelihood_list_.add_manage(upward_node, node, upward_edge);
     }
 
     // 上流ノードがあるならば，上流を先に確定させる
@@ -255,7 +273,7 @@ std::unordered_map<std::unordered_map<vertex_type, int>, double> calculate_likel
         for(auto const& probability : result.begin()->first)
         {
             // 間接の親かどうか
-            auto const& parent_node = probability->first;
+            auto const& parent_node = probability.first;
             if(std::find(direct_parents.cbegin(), direct_parents.cend(), parent_node) == direct_parents.cend() &&
                std::find(indirect_parents.cbegin(), indirect_parents.cend(), parent_node) == indirect_parents.cend())
             {
@@ -275,15 +293,15 @@ std::unordered_map<std::unordered_map<vertex_type, int>, double> calculate_likel
     std::unordered_map<std::unordered_map<vertex_type, int>, double> target_node_probability;
     all_combination_pattern(
         combination, combination.begin(),
-        [&target_node_probability, &upward_probabilities](std::unordered_map<vertex_type, int> const& combination)
+        [&node, &target_node_probability, &upward_probabilities](std::unordered_map<vertex_type, int> const& combination)
         {
             // foldl使うと，どうせVC落ちるからやめた
-            double probability = node->cpt[update_select_condition(combination, node->cpt.begin()->first)]
-                                          [combination[node]];
+            double probability = node->cpt[update_select_condition(combination, node->cpt.condition_node())]
+                                   .second[combination.at(node)];
 
             for(auto const& upward : upward_probabilities)
             {
-               probability *= upward[update_select_condition(combination, upward.begin()->first)];
+               probability *= upward.at(update_select_condition(combination, upward.begin()->first));
             }
             target_node_probability[combination] = probability;
         });
@@ -313,7 +331,7 @@ void calculate_likelihood(graph_t const& graph)
         if(edges.size() == 0)
         {
             // 末端から走査したほうが都合がいいので，末端のノードを全網羅(==全エッジ走査)
-            calculate_likelihood_from_backward // TODO:
+            calculate_likelihood_from_backward(graph, node);
         }
     }
 }
