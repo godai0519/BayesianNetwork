@@ -115,9 +115,9 @@ auto likelihood_list::find(vertex_type const& from, vertex_type const& to) const
 
 // all_combination
 void all_combination_pattern(
-    std::unordered_map<vertex_type, int>& combination,
-    std::unordered_map<vertex_type, int>::iterator it,
-    std::function<void(std::unordered_map<vertex_type, int> const&)> const& func
+    condition_t& combination,
+    condition_t::iterator it,
+    std::function<void(condition_t const&)> const& func
     )
 {
     if(it == combination.end())
@@ -139,9 +139,9 @@ void all_combination_pattern(
 }
 
 // combinationから必要なノードの選択状態だけ取り出して，条件を更新する
-std::unordered_map<vertex_type, int> update_select_condition(
-    std::unordered_map<vertex_type, int> const& whole_condition,
-    std::unordered_map<vertex_type, int> particle_condition
+condition_t update_select_condition(
+    condition_t const& whole_condition,
+    condition_t particle_condition
     )
 {
     for(auto it = particle_condition.begin(); it != particle_condition.end(); ++it)
@@ -152,12 +152,12 @@ std::unordered_map<vertex_type, int> update_select_condition(
 }
 
 // 実際こっちであるべき
-std::unordered_map<vertex_type, int> update_select_condition(
-    std::unordered_map<vertex_type, int> const& whole_condition,
+condition_t update_select_condition(
+    condition_t const& whole_condition,
     std::vector<vertex_type> const& particle
     )
 {
-    std::unordered_map<vertex_type, int> particle_condition;
+    condition_t particle_condition;
     for(auto const& v : particle) particle_condition[v] = 0;
 
     return update_select_condition(whole_condition, particle_condition);
@@ -165,16 +165,16 @@ std::unordered_map<vertex_type, int> update_select_condition(
 }
 
 // 周辺化
-std::unordered_map<std::unordered_map<vertex_type, int>, double> marginalize(
-    std::unordered_map<std::unordered_map<vertex_type, int>, double> base,
+std::unordered_map<condition_t, double> marginalize(
+    std::unordered_map<condition_t, double> base,
     vertex_type const& target
     )
 {
-    std::unordered_map<std::unordered_map<vertex_type, int>, double> result;
+    std::unordered_map<condition_t, double> result;
     auto condition = base.begin()->first;
     all_combination_pattern(
         condition, condition.begin(),
-        [&result, &base, &target](std::unordered_map<vertex_type, int> const& condition)
+        [&result, &base, &target](condition_t const& condition)
         {
             auto new_condition = condition;
             new_condition.erase(target);
@@ -196,7 +196,7 @@ likelihood_list likelihood_list_;
 
 // 条件化(条件を添加する)
 void conditioning(
-    std::unordered_map<std::unordered_map<vertex_type, int>, double> const& probabilities,
+    std::unordered_map<condition_t, double> const& probabilities,
     vertex_type const& target_node,
     vertex_type const& condition_node
     )
@@ -228,7 +228,7 @@ void conditioning(
 }
 
 // 指定ノードから上流に拡散，上流が確定した後に自身を算出することで解を得る
-std::unordered_map<std::unordered_map<vertex_type, int>, double> calculate_likelihood_from_backward(
+std::unordered_map<condition_t, double> calculate_likelihood_from_backward(
     graph_t const& graph,
     vertex_type const& node
     )
@@ -236,7 +236,7 @@ std::unordered_map<std::unordered_map<vertex_type, int>, double> calculate_likel
     std::vector<vertex_type> direct_parents; // 直接の親
     std::vector<vertex_type> indirect_parents; // 間接の親
 
-    std::vector<std::unordered_map<std::unordered_map<vertex_type, int>, double>> upward_probabilities;
+    std::vector<std::unordered_map<condition_t, double>> upward_probabilities;
 
     // 上流ノードの列挙(boost::transformを使うと簡潔)
     for(auto const& upward_edge : graph.in_edges(node))
@@ -268,15 +268,15 @@ std::unordered_map<std::unordered_map<vertex_type, int>, double> calculate_likel
     }
 
     // 上流ノード全ての組み合わせを作製して回す
-    std::unordered_map<vertex_type, int> combination = {{node, 0}};
+    condition_t combination = {{node, 0}};
     for(auto const& key : direct_parents) combination[key] = 0;
     for(auto const& key : indirect_parents) combination[key] = 0;
 
     // returnにも使われる同時確率を計算
-    std::unordered_map<std::unordered_map<vertex_type, int>, double> target_node_probability;
+    std::unordered_map<condition_t, double> target_node_probability;
     all_combination_pattern(
         combination, combination.begin(),
-        [&node, &target_node_probability, &upward_probabilities](std::unordered_map<vertex_type, int> const& combination)
+        [&node, &target_node_probability, &upward_probabilities](condition_t const& combination)
         {
             // foldl使うと，どうせVC落ちるからやめた
             double probability = node->cpt[update_select_condition(combination, node->cpt.condition_node())]
