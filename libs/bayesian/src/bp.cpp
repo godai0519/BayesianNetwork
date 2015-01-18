@@ -118,6 +118,35 @@ bp::bp(graph_t const& graph)
 {
 }
 
+// TODO: 条件の指定されたノードであった場合の処理
+void bp::calculate_pi(vertex_type const& target)
+{
+    auto const in_vertexs = graph_.in_vertexs(target);
+    
+    // 事前にpi_iを更新させる
+    for(auto const& xi : in_vertexs) calculate_pi_i(target, xi);
+
+    matrix_type matrix(1, target->selectable_num, 0.0);
+    all_combination_pattern(
+        in_vertexs,
+        [&](condition_t const& condition)
+        {
+            auto const& cpt_data = target->cpt[condition].second;
+            for(int i = 0; i < target->selectable_num; ++i)
+            {
+                double value = cpt_data[i];
+                for(auto const& xi : in_vertexs)
+                {
+                    value *= pi_i[xi][0][condition.at(xi)];
+                }
+                matrix[0][i] += value;
+            }
+        });
+
+    // 計算された値でpiを更新させる
+    pi[target] = matrix;
+}
+
 // 与えられた確率変数全ての組み合わせに対し，functionを実行するというインターフェースを提供する
 void bp::all_combination_pattern(
     std::vector<vertex_type> const& combination,

@@ -58,6 +58,11 @@ public:
         );
 
 private:
+    void calculate_pi(vertex_type const& target);
+    void calculate_pi_i(vertex_type const& from, vertex_type const& target);
+    void calculate_lambda(vertex_type const& target);
+    void calculate_lambda_k(vertex_type const& from, vertex_type const& target);
+    
     // 与えられた確率変数全ての組み合わせに対し，functionを実行するというインターフェースを提供する
     void all_combination_pattern(
         std::vector<vertex_type> const& combination,
