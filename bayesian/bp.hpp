@@ -49,16 +49,21 @@ private:
 
 class bp {
 public:
-    bp() = default;
+    bp(graph_t const& graph);
     virtual ~bp() = default;
 
     matrix_type operator()(
-        graph_t const& graph,
         vertex_type const& target,
         std::vector<std::pair<vertex_type, int>> const& condition
         );
 
 private:
+    // 与えられた確率変数全ての組み合わせに対し，functionを実行するというインターフェースを提供する
+    void all_combination_pattern(
+        std::vector<vertex_type> const& combination,
+        std::function<void(condition_t const&)> const& function
+        );
+
     // 与えられた確率変数全ての組み合わせに対し，functionを実行するというインターフェースを提供する
     void all_combination_pattern(
         condition_t& combination,
@@ -103,6 +108,7 @@ private:
         std::vector<std::pair<vertex_type, int>> const& condition
         );
 
+    graph_t const graph_;
     likelihood_list likelihood_list_;
 };
 

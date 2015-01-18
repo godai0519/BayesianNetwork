@@ -113,29 +113,38 @@ auto likelihood_list::find(vertex_type const& from, vertex_type const& to) const
     return it;
 }
 
+bp::bp(graph_t const& graph)
+    : graph_(graph)
+{
+}
+
 // 与えられた確率変数全ての組み合わせに対し，functionを実行するというインターフェースを提供する
 void bp::all_combination_pattern(
-    condition_t& combination,
-    condition_t::iterator it,
-    std::function<void(condition_t const&)> const& func
+    std::vector<vertex_type> const& combination,
+    std::function<void(condition_t const&)> const& function
     )
 {
-    if(it == combination.end())
-    {
-        func(combination);
-    }
-    else
-    {
-        for(int i = 0; i < it->first->selectable_num; ++i)
-        {
-            it->second = i;
+    typedef std::vector<vertex_type>::const_iterator iterator_type;
+    std::function<void(iterator_type const, iterator_type const&)> recursive;
 
-            // 前方だけだったのね…(処置は後で考える)
-            auto next = it;
-            ++next;
-            all_combination_pattern(combination, next, func);
+    condition_t condition;
+    recursive = [&](iterator_type const it, iterator_type const& end)
+    {
+        if(it == end)
+        {
+            function(condition);
         }
-    }
+        else
+        {
+            for(int i = 0; i < (*it)->selectable_num; ++i)
+            {
+                condition[*it] = i;
+                recursive(it + 1, end);
+            }
+        }
+    };
+
+    recursive(combination.cbegin(), combination.cend());
 }
 
 // combinationから必要なノードの選択状態だけ取り出して，条件を更新する
