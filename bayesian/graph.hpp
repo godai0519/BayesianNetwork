@@ -26,7 +26,6 @@ struct vertex_t {
 };
 
 struct edge_t {
-    std::pair<bool, matrix_type> likelihood;
 };
 
 class graph_t {

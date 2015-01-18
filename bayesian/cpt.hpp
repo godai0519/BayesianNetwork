@@ -33,8 +33,8 @@ template<> struct hash<bn::condition_t> : public __hash_base<std::size_t, bn::co
         std::size_t value = 0;
         for(auto const& one : cond)
         {
-            hash_combine(value, one.first);
-            hash_combine(value, one.second);
+            value ^= std::hash<bn::vertex_type>()(one.first);
+            value ^= std::hash<int>()(one.second);
         }
         return value;
     }
