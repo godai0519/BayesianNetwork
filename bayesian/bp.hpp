@@ -1,6 +1,7 @@
 #ifndef BNI_BP_HPP
 #define BNI_BP_HPP
 
+#include <functional>
 #include "graph.hpp"
 
 namespace bn {

@@ -324,6 +324,9 @@ matrix_type bp::operator()(
     std::vector<std::pair<vertex_type, int>> const& condition
     )
 {
+    // likelihoodを求める
+    calculate_likelihood(graph);
+
     // 前後の要素に伝播させる
     auto const e_minus = propagate_forward(graph, node, condition);
     auto const e_plus = propagate_backward(graph, node, condition);
@@ -391,8 +394,7 @@ matrix_type bp::propagate_forward(
     {
         for(auto const& edge : out_edges)
         {
-            if(!edge->likelihood.first) throw std::runtime_error("no set edge of likelihood");
-            mat = mat % (edge->likelihood.second * propagate_forward(graph, graph.target(edge), condition));
+            mat = mat % (likelihood_list_(edge) * propagate_forward(graph, graph.target(edge), condition));
         }
 
         return mat;
@@ -433,23 +435,19 @@ matrix_type bp::propagate_backward(
     {
         for(auto const& edge : in_edges)
         {
-            if(!edge->likelihood.first) throw std::runtime_error("no set edge of likelihood");
-            mat = mat % (propagate_backward(graph, graph.source(edge), condition) * edge->likelihood.second);
+            mat = mat % (propagate_backward(graph, graph.source(edge), condition) * likelihood_list_(edge));
         }
 
         return mat;
     }
 
     // 最上位ノードは事前確率を割り当てる
-    auto& e = node->evidence;
-    if(e.first)
+    matrix_type evidence(1, node->selectable_num);
+    for(int i = 0; i < node->selectable_num; ++i)
     {
-        return e.second;
+        evidence[0][i] = node->cpt[{}].second[i];
     }
-    else
-    {
-        throw std::runtime_error("highest node doesn't have prior probability.");
-    }
+    return evidence;
 }
 
 } // namespace bn
