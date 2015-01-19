@@ -123,7 +123,7 @@ public:
         adjacent_list_[index.first][index.second] = nullptr;
         return true;
     }
-
+    
     // 引数の頂点から出て行く辺を列挙する
     std::vector<edge_type> out_edges(vertex_type const& from) const
     {
@@ -140,6 +140,17 @@ public:
         return ret;
     }
 
+    // 引数の頂点から出て行く隣接頂点を列挙する
+    std::vector<vertex_type> out_vertexs(vertex_type const& from) const
+    {
+        std::vector<vertex_type> ret;
+        for(auto const& edge : out_edges(from))
+        {
+            ret.push_back(target(edge));
+        }
+        return ret;
+    }
+
     // 引数の頂点へ入っていく辺を列挙する
     std::vector<edge_type> in_edges(vertex_type const& to) const
     {
@@ -152,6 +163,17 @@ public:
             {
                 ret.push_back(adjacent_list_[i][index]);
             }
+        }
+        return ret;
+    }
+
+    // 引数の頂点へ入っていく隣接頂点を列挙する
+    std::vector<vertex_type> in_vertexs(vertex_type const& to) const
+    {
+        std::vector<vertex_type> ret;
+        for(auto const& edge : in_edges(to))
+        {
+            ret.push_back(source(edge));
         }
         return ret;
     }
