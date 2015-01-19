@@ -137,7 +137,7 @@ void bp::calculate_pi(vertex_type const& target)
                 double value = cpt_data[i];
                 for(auto const& xi : in_vertexs)
                 {
-                    value *= pi_i[xi][0][condition.at(xi)];
+                    value *= pi_i[target][xi][0][condition.at(xi)];
                 }
                 matrix[0][i] += value;
             }
@@ -145,6 +145,28 @@ void bp::calculate_pi(vertex_type const& target)
 
     // 計算された値でpiを更新させる
     pi[target] = matrix;
+}
+
+void bp::calculate_pi_i(vertex_type const& from, vertex_type const& target)
+{
+    auto out_vertexs = graph_.out_vertexs(target);
+    out_vertexs.erase(out_vertexs.find(from));
+
+    // 事前にpiやlambda_kを更新させる
+    calculate_pi(target);
+    for(auto const& xj : out_vertexs) calculate_lambda_k(xj, target);
+
+    matrix_type matrix = pi[target];
+    for(int i = 0; i < target->selectable_num; ++i)
+    {
+        for(auto const& xj : out_vertexs)
+        {
+            matrix[0][i] *= lambda_k[xj][target][0][i];
+        }
+    }
+
+    // 計算された値でpi_iを更新させる
+    pi_i[from][target] = matrix;
 }
 
 // 与えられた確率変数全ての組み合わせに対し，functionを実行するというインターフェースを提供する
