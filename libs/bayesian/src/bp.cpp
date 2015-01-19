@@ -445,7 +445,8 @@ matrix_type bp::propagate_backward(
     matrix_type evidence(1, node->selectable_num);
     for(int i = 0; i < node->selectable_num; ++i)
     {
-        evidence[0][i] = node->cpt[{}].second[i];
+		condition_t const cond;
+        evidence[0][i] = node->cpt[cond].second[i];
     }
     return evidence;
 }
