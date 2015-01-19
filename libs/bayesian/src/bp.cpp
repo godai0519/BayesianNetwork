@@ -150,7 +150,7 @@ void bp::calculate_pi(vertex_type const& target)
 void bp::calculate_pi_i(vertex_type const& from, vertex_type const& target)
 {
     auto out_vertexs = graph_.out_vertexs(target);
-    out_vertexs.erase(out_vertexs.find(from));
+    out_vertexs.erase(std::find(out_vertexs.cbegin(), out_vertexs.cend(), from));
 
     // 事前にpiやlambda_kを更新させる
     calculate_pi(target);
