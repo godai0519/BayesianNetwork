@@ -30,24 +30,31 @@ struct edge_t {
 
 class graph_t {
 public:
-
     graph_t() = default;
     virtual ~graph_t() = default;
 
-    // copy ctor
-    graph_t(graph_t const& other)
-        : vertex_list_(other.vertex_list_)
-        , edge_list_(other.edge_list_)
-        , adjacent_list_(other.adjacent_list_)
+    // copy/move ctor
+    graph_t(graph_t const& other) = default;
+    graph_t(graph_t && other) = default;
+
+    graph_t& operator=(graph_t const& rhs)
     {
+        graph_t(rhs).swap(*this);
+        return *this;
     }
 
-    // move ctor
-    graph_t(graph_t && other)
-        : vertex_list_(std::move(other.vertex_list_))
-        , edge_list_(std::move(other.edge_list_))
-        , adjacent_list_(std::move(other.adjacent_list_))
+    graph_t& operator=(graph_t&& rhs) = default;
+
+    void swap(graph_t& other) noexcept
     {
+        std::swap(vertex_list_, other.vertex_list_);
+        std::swap(edge_list_, other.edge_list_);
+        std::swap(adjacent_list_, other.adjacent_list_);
+    }
+
+    friend void swap(graph_t& lhs, graph_t& rhs) noexcept
+    {
+        lhs.swap(rhs);
     }
 
     std::vector<vertex_type> const& vertex_list() const
@@ -116,7 +123,7 @@ public:
         adjacent_list_[index.first][index.second] = nullptr;
         return true;
     }
-
+    
     // 引数の頂点から出て行く辺を列挙する
     std::vector<edge_type> out_edges(vertex_type const& from) const
     {
@@ -133,6 +140,17 @@ public:
         return ret;
     }
 
+    // 引数の頂点から出て行く隣接頂点を列挙する
+    std::vector<vertex_type> out_vertexs(vertex_type const& from) const
+    {
+        std::vector<vertex_type> ret;
+        for(auto const& edge : out_edges(from))
+        {
+            ret.push_back(target(edge));
+        }
+        return ret;
+    }
+
     // 引数の頂点へ入っていく辺を列挙する
     std::vector<edge_type> in_edges(vertex_type const& to) const
     {
@@ -145,6 +163,17 @@ public:
             {
                 ret.push_back(adjacent_list_[i][index]);
             }
+        }
+        return ret;
+    }
+
+    // 引数の頂点へ入っていく隣接頂点を列挙する
+    std::vector<vertex_type> in_vertexs(vertex_type const& to) const
+    {
+        std::vector<vertex_type> ret;
+        for(auto const& edge : in_edges(to))
+        {
+            ret.push_back(source(edge));
         }
         return ret;
     }
