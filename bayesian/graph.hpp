@@ -30,24 +30,31 @@ struct edge_t {
 
 class graph_t {
 public:
-
     graph_t() = default;
     virtual ~graph_t() = default;
 
-    // copy ctor
-    graph_t(graph_t const& other)
-        : vertex_list_(other.vertex_list_)
-        , edge_list_(other.edge_list_)
-        , adjacent_list_(other.adjacent_list_)
+    // copy/move ctor
+    graph_t(graph_t const& other) = default;
+    graph_t(graph_t && other) = default;
+
+    graph_t& operator=(graph_t const& rhs)
     {
+        graph_t(rhs).swap(*this);
+        return *this;
     }
 
-    // move ctor
-    graph_t(graph_t && other)
-        : vertex_list_(std::move(other.vertex_list_))
-        , edge_list_(std::move(other.edge_list_))
-        , adjacent_list_(std::move(other.adjacent_list_))
+    graph_t& operator=(graph_t&& rhs) = default;
+
+    void swap(graph_t& other) noexcept
     {
+        std::swap(vertex_list_, other.vertex_list_);
+        std::swap(edge_list_, other.edge_list_);
+        std::swap(adjacent_list_, other.adjacent_list_);
+    }
+
+    friend void swap(graph_t& lhs, graph_t& rhs) noexcept
+    {
+        lhs.swap(rhs);
     }
 
     std::vector<vertex_type> const& vertex_list() const
