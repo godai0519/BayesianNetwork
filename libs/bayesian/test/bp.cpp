@@ -2,7 +2,7 @@
 #include <boost/test/included/unit_test.hpp>
 #include "bayesian/graph.hpp"
 #include "bayesian/bp.hpp"
-
+/*
 BOOST_AUTO_TEST_CASE( bp_specify_both_ends )
 {
     std::vector<double> const source_a  = { 0.30, 0.60, 0.10};
@@ -190,4 +190,4 @@ BOOST_AUTO_TEST_CASE( bp_highest_node )
         BOOST_CHECK_CLOSE(result[i][0], mat_t[i][0], 3);
     }
 }
-
+*/
