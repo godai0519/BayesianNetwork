@@ -79,10 +79,17 @@ public:
     }
 
     // 引数を元に辺を生成し，そのshared_ptrを返す
-    // 既に辺が存在していた場合，nullptrなshared_ptrを即座に返却する
+    // 既に辺が存在していた場合やDAGが成立しなくなる場合は，nullptrなshared_ptrを即座に返却する
     // 頂点が存在していなかった場合も同様
     edge_type add_edge(vertex_type const& from, vertex_type const& to)
     {
+        if(is_able_trace(to, from))
+        {
+            // これから張ろうとしている辺の終点から，始点に戻る経路があるとき失敗させる
+            // (閉路になるため，DAGを満たさなくなるから)
+            return nullptr;
+        }
+
         auto const index_from = index_search(from);
         auto const index_to   = index_search(to);
 
@@ -196,6 +203,22 @@ public:
         if(index.first == tmp || index.second == tmp) return nullptr;
 
         return vertex_list_[index.second];
+    }
+
+    // fromの頂点からtoの頂点が辿れるならばtrue，それ以外ならfalseを返す
+    // graphはDAGであることを前提とする
+    bool is_able_trace(vertex_type const& from, vertex_type const& to) const
+    {
+        if(from == to) return true;
+
+        auto const children = out_vertexs(from);
+        auto const result = std::any_of(
+            children.cbegin(), children.cend(),
+            [this, &to](vertex_type const& next)
+            {
+                return is_able_trace(next, to);
+            });
+        return result;
     }
 
 private:
