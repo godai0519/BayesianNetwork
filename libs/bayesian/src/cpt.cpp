@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iterator>
 #include "bayesian/graph.hpp"
 #include "bayesian/cpt.hpp"

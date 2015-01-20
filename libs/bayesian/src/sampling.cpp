@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "bayesian/graph.hpp"
 #include "bayesian/sampling.hpp"
 
