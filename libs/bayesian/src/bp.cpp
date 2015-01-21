@@ -39,14 +39,14 @@ void bp::calculate_pi(vertex_type const& target)
                 double value = cpt_data[i];
                 for(auto const& xi : in_vertexs)
                 {
-                    value *= pi_i[target][xi][0][condition.at(xi)];
+                    value *= pi_i_[target][xi][0][condition.at(xi)];
                 }
                 matrix[0][i] += value;
             }
         });
 
     // 計算された値でpiを更新させる
-    pi[target] = matrix;
+    pi_[target] = matrix;
 }
 
 void bp::calculate_pi_i(vertex_type const& from, vertex_type const& target)
@@ -58,17 +58,17 @@ void bp::calculate_pi_i(vertex_type const& from, vertex_type const& target)
     calculate_pi(target);
     for(auto const& xj : out_vertexs) calculate_lambda_k(xj, target);
 
-    matrix_type matrix = pi[target];
+    matrix_type matrix = pi_[target];
     for(int i = 0; i < target->selectable_num; ++i)
     {
         for(auto const& xj : out_vertexs)
         {
-            matrix[0][i] *= lambda_k[xj][target][0][i];
+            matrix[0][i] *= lambda_k_[xj][target][0][i];
         }
     }
 
     // 計算された値でpi_iを更新させる
-    pi_i[from][target] = matrix;
+    pi_i_[from][target] = matrix;
 }
 
 void bp::calculate_lambda(vertex_type const& target)
@@ -83,12 +83,12 @@ void bp::calculate_lambda(vertex_type const& target)
     {
         for(auto const& xi : out_vertexs)
         {
-            matrix[0][i] *= lambda_k[xi][target][0][i];
+            matrix[0][i] *= lambda_k_[xi][target][0][i];
         }
     }
 
     // 計算された値でlambdaを更新させる
-    lambda[target] = matrix;
+    lambda_[target] = matrix;
 }
 
 void bp::calculate_lambda_k(vertex_type const& from, vertex_type const& target)
@@ -102,7 +102,7 @@ void bp::calculate_lambda_k(vertex_type const& from, vertex_type const& target)
     matrix_type matrix(1, target->selectable_num, 0.0);
     for(int i = 0; i < from->selectable_num; ++i)
     {
-        auto const times = lambda[from][0][i];
+        auto const times = lambda_[from][0][i];
         all_combination_pattern(
             in_vertexs,
             [&](condition_t const& cond)
@@ -112,7 +112,7 @@ void bp::calculate_lambda_k(vertex_type const& from, vertex_type const& target)
                 {
                     if(p.first != target)
                     {
-                        value *= pi_i[from][p.first][0][p.second];
+                        value *= pi_i_[from][p.first][0][p.second];
                     }
                 }
                 matrix[0][cond.at(target)] += value;
@@ -120,7 +120,7 @@ void bp::calculate_lambda_k(vertex_type const& from, vertex_type const& target)
     }
 
     // 計算された値でlambdaを更新させる
-    lambda_k[from][target] = matrix;
+    lambda_k_[from][target] = matrix;
 }
 
 // 与えられた確率変数全ての組み合わせに対し，functionを実行するというインターフェースを提供する

@@ -31,6 +31,10 @@ private:
         );
 
     graph_t const graph_;
+    std::unordered_map<vertex_type, matrix_type> pi_;
+    std::unordered_map<vertex_type, matrix_type> lambda_;
+    std::unordered_map<vertex_type, std::unordered_map<vertex_type, matrix_type>> pi_i_;
+    std::unordered_map<vertex_type, std::unordered_map<vertex_type, matrix_type>> lambda_k_;
 };
 
 } // namespace bn
