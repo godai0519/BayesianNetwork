@@ -8,12 +8,13 @@ namespace bn {
 
 class bp {
 public:
+    typedef std::unordered_map<vertex_type, matrix_type> return_type;
+
     bp(graph_t const& graph);
     virtual ~bp() = default;
 
-    void operator()(
+    return_type operator()(
 /*
-    matrix_type operator()(
         vertex_type const& target,
         std::vector<std::pair<vertex_type, int>> const& condition
 */
@@ -21,6 +22,7 @@ public:
 
 private:
     void initialize();
+    matrix_type& normalize(matrix_type& target);
 
     void calculate_pi(vertex_type const& target);
     void calculate_pi_i(vertex_type const& from, vertex_type const& target);

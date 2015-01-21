@@ -10,9 +10,8 @@ bp::bp(graph_t const& graph)
 {
 }
 
-void bp::operator()(
+bp::return_type bp::operator()(
 /*
-matrix_type bp::operator()(
     vertex_type const& node,
     std::vector<std::pair<vertex_type, int>> const& condition
 */
@@ -37,6 +36,8 @@ matrix_type bp::operator()(
     }
 
     // すべてのpiとlambdaのうち，計算されていないものを計算する
+    // ついでに返すための値を作っていく
+    return_type result;
     for(auto const& node : graph_.vertex_list())
     {
         if(pi_.find(node) == pi_.cend())
@@ -47,7 +48,12 @@ matrix_type bp::operator()(
         {
             calculate_lambda(node);
         }
+
+        // 上からの確率と下からの確率を掛けあわせ，正規化する
+        result[node] = normalize(pi_[node] % lambda_[node]);
     }
+
+    return result;
 }
 
 void bp::initialize()
@@ -56,6 +62,21 @@ void bp::initialize()
     lambda_.clear();
     pi_i_.clear();
     lambda_k_.clear();
+}
+
+matrix_type& bp::normalize(matrix_type& target)
+{
+    double sum = 0;
+
+    for(std::size_t i = 0; i < target.height(); ++i)
+        for(std::size_t j = 0; j < target.width(); ++j)
+            sum += target[i][j];
+
+    for(std::size_t i = 0; i < target.height(); ++i)
+        for(std::size_t j = 0; j < target.width(); ++j)
+            target[i][j] /= sum;
+
+    return target;
 }
 
 void bp::calculate_pi(vertex_type const& target)
