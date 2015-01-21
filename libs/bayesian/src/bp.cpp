@@ -143,7 +143,8 @@ void bp::calculate_lambda_k(vertex_type const& from, vertex_type const& target)
     
     // 事前にlambdaを更新させる
     calculate_lambda(from);
-    for(auto const& xl : in_vertexs) calculate_pi_i(from, xl);
+    for(auto const& xl : in_vertexs)
+        if(xl != target) calculate_pi_i(from, xl);
 
     matrix_type matrix(1, target->selectable_num, 0.0);
     for(int i = 0; i < from->selectable_num; ++i)
