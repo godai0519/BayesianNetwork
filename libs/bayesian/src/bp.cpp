@@ -10,14 +10,10 @@ bp::bp(graph_t const& graph)
 {
 }
 
-bp::return_type bp::operator()(
-/*
-    vertex_type const& node,
-    std::vector<std::pair<vertex_type, int>> const& condition
-*/
-    )
+bp::return_type bp::operator()(std::unordered_map<vertex_type, matrix_type> const& precondition)
 {
     initialize();
+    lambda_ = precondition;
 
     // 最下流にall 1，最上流にevidenceを当てはめる
     for(auto const& node : graph_.vertex_list())
@@ -29,10 +25,13 @@ bp::return_type bp::operator()(
             pi.resize(1, node->selectable_num);
             pi.assign(data.cbegin(), data.cend());
         }
-//        if(graph_.out_edges(node).empty())
-//        {
-            lambda_[node].resize(1, node->selectable_num, 1.0);
-//        }
+        if(graph_.out_edges(node).empty())
+        {
+            if(lambda_.find(node) == lambda_.cend())
+            {
+                lambda_[node].resize(1, node->selectable_num, 1.0);
+            }
+        }
     }
 
     // すべてのpiとlambdaのうち，計算されていないものを計算する

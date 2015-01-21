@@ -98,11 +98,13 @@ BOOST_AUTO_TEST_CASE( bp_pearl_part2 )
         { 0.7882, 0.2118 },
         { 1.0000, 0.0000 }
     };
-    bn::condition_t const condition = {{vertex[3], 0}};
+
+    std::unordered_map<bn::vertex_type, bn::matrix_type> precondition;
+    precondition[vertex[3]].resize(1, 2, 0);
+    precondition[vertex[3]][0][0] = 1;
 
     bn::bp bp(graph);
-    auto const result = bp();
-//    auto const result = bp(condition);
+    auto const result = bp(precondition);
     
     for(std::size_t i = 0; i < vertex.size(); ++i)
     {
