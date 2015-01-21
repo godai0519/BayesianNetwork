@@ -10,19 +10,59 @@ bp::bp(graph_t const& graph)
 {
 }
 
+void bp::operator()(
 /*
 matrix_type bp::operator()(
-    graph_t const& graph,
     vertex_type const& node,
     std::vector<std::pair<vertex_type, int>> const& condition
+*/
     )
 {
+    initialize();
+
+    // 最下流にall 1，最上流にevidenceを当てはめる
+    for(auto const& node : graph_.vertex_list())
+    {
+        if(graph_.in_edges(node).empty())
+        {
+            auto& pi = pi_[node];
+            auto& data = node->cpt[condition_t()].second;
+            pi.resize(1, node->selectable_num);
+            pi.assign(data.cbegin(), data.cend());
+        }
+//        if(graph_.out_edges(node).empty())
+//        {
+            lambda_[node].resize(1, node->selectable_num, 1.0);
+//        }
+    }
+
+    // すべてのpiとlambdaのうち，計算されていないものを計算する
+    for(auto const& node : graph_.vertex_list())
+    {
+        if(pi_.find(node) == pi_.cend())
+        {
+            calculate_pi(node);
+        }
+        if(lambda_.find(node) == lambda_.cend())
+        {
+            calculate_lambda(node);
+        }
+    }
 }
-*/
+
+void bp::initialize()
+{
+    pi_.clear();
+    lambda_.clear();
+    pi_i_.clear();
+    lambda_k_.clear();
+}
 
 // TODO: 条件の指定されたノードであった場合の処理
 void bp::calculate_pi(vertex_type const& target)
 {
+    if(pi_.find(target) != pi_.cend()) return;
+
     auto const in_vertexs = graph_.in_vertexs(target);
     
     // 事前にpi_iを更新させる
@@ -51,6 +91,8 @@ void bp::calculate_pi(vertex_type const& target)
 
 void bp::calculate_pi_i(vertex_type const& from, vertex_type const& target)
 {
+    if(pi_i_[from].find(target) != pi_i_[from].end()) return;
+
     auto out_vertexs = graph_.out_vertexs(target);
     out_vertexs.erase(std::find(out_vertexs.cbegin(), out_vertexs.cend(), from));
 
@@ -73,6 +115,8 @@ void bp::calculate_pi_i(vertex_type const& from, vertex_type const& target)
 
 void bp::calculate_lambda(vertex_type const& target)
 {
+    if(lambda_.find(target) != lambda_.cend()) return;
+
     auto const out_vertexs = graph_.out_vertexs(target);
 
     // 事前にlambda_kを更新させる
@@ -93,6 +137,8 @@ void bp::calculate_lambda(vertex_type const& target)
 
 void bp::calculate_lambda_k(vertex_type const& from, vertex_type const& target)
 {
+    if(lambda_k_[from].find(target) != lambda_k_[from].end()) return;
+
     auto const in_vertexs = graph_.in_vertexs(from);
     
     // 事前にlambdaを更新させる

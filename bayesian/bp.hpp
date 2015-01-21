@@ -11,14 +11,17 @@ public:
     bp(graph_t const& graph);
     virtual ~bp() = default;
 
+    void operator()(
 /*
     matrix_type operator()(
         vertex_type const& target,
         std::vector<std::pair<vertex_type, int>> const& condition
-        );
 */
+        );
 
 private:
+    void initialize();
+
     void calculate_pi(vertex_type const& target);
     void calculate_pi_i(vertex_type const& from, vertex_type const& target);
     void calculate_lambda(vertex_type const& target);
