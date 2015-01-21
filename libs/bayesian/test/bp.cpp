@@ -2,6 +2,125 @@
 #include <boost/test/included/unit_test.hpp>
 #include "bayesian/graph.hpp"
 #include "bayesian/bp.hpp"
+
+// Pearl's Belief Propagation Algorithm -> Examples of application of algorithm
+// http://www.cse.unsw.edu.au/~cs9417ml/Bayes/Pages/PearlPropagation.html
+// 2 Samples
+bn::graph_t make_pearl_bp_graph()
+{
+    bn::graph_t graph;
+    auto vertex_r = graph.add_vertex();
+    auto vertex_s = graph.add_vertex();
+    auto vertex_w = graph.add_vertex();
+    auto vertex_h = graph.add_vertex();
+    auto edge_rw = graph.add_edge(vertex_r, vertex_w);
+    auto edge_rh = graph.add_edge(vertex_r, vertex_h);
+    auto edge_sh = graph.add_edge(vertex_s, vertex_h);
+    
+    {
+        vertex_r->id = 1;
+        vertex_r->selectable_num = 2;
+        vertex_r->cpt.assign({}, vertex_r);
+
+        bn::condition_t const cond = {};
+        vertex_r->cpt[cond].second = {0.2, 0.8};
+    }
+    {
+        vertex_s->id = 2;
+        vertex_s->selectable_num = 2;
+        vertex_s->cpt.assign({}, vertex_s);
+
+        bn::condition_t const cond = {};
+        vertex_s->cpt[cond].second = {0.1, 0.9};
+    }
+    {
+        vertex_w->id = 3;
+        vertex_w->selectable_num = 2;
+        vertex_w->cpt.assign({vertex_r}, vertex_w);
+
+        bn::condition_t const cond0 = {{vertex_r, 0}};
+        bn::condition_t const cond1 = {{vertex_r, 1}};
+        vertex_w->cpt[cond0].second = {1.0, 0.0};
+        vertex_w->cpt[cond1].second = {0.2, 0.8};
+    }
+    {
+        vertex_h->id = 4;
+        vertex_h->selectable_num = 2;
+        vertex_h->cpt.assign({vertex_r, vertex_s}, vertex_h);
+
+        bn::condition_t const cond00 = {{vertex_r, 0}, {vertex_s, 0}};
+        bn::condition_t const cond01 = {{vertex_r, 0}, {vertex_s, 1}};
+        bn::condition_t const cond10 = {{vertex_r, 1}, {vertex_s, 0}};
+        bn::condition_t const cond11 = {{vertex_r, 1}, {vertex_s, 1}};
+        vertex_h->cpt[cond00].second = {1.0, 0.0};
+        vertex_h->cpt[cond01].second = {0.9, 0.1};
+        vertex_h->cpt[cond10].second = {1.0, 0.0};
+        vertex_h->cpt[cond11].second = {0.0, 1.0};
+    }
+
+    return graph;
+}
+
+BOOST_AUTO_TEST_CASE( bp_pearl_part1 )
+{
+    bn::graph_t graph = make_pearl_bp_graph();
+    auto const vertex = graph.vertex_list();
+    std::vector<std::vector<double>> const teacher_r = {
+        { 0.200, 0.800 },
+        { 0.100, 0.900 },
+        { 0.360, 0.640 },
+        { 0.262, 0.738 }
+    };
+
+    bn::bp bp(graph);
+    auto const result = bp();
+    
+    for(std::size_t i = 0; i < vertex.size(); ++i)
+    {
+        matrix_type const data = result.at(vertex[i]);
+
+        BOOST_CHECK(data.height() == 1);
+
+        for(std::size_t j = 0; j < data.width(); ++j)
+        {
+            BOOST_CHECK_CLOSE(data[0][j], teacher_r[i][j], 0.01);
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE( bp_pearl_part2 )
+{
+    bn::graph_t graph = make_pearl_bp_graph();
+    auto const vertex = graph.vertex_list();
+    std::vector<std::vector<double>> const teacher_r = {
+        { 0.7353, 0.2647 },
+        { 0.3382, 0.6618 },
+        { 0.7882, 0.2118 },
+        { 1.0000, 0.0000 }
+    };
+    bn::condition_t const condition = {{vertex[3], 0}};
+
+    bn::bp bp(graph);
+    auto const result = bp();
+//    auto const result = bp(condition);
+    
+    for(std::size_t i = 0; i < vertex.size(); ++i)
+    {
+        matrix_type const data = result.at(vertex[i]);
+
+        BOOST_CHECK(data.height() == 1);
+
+        for(std::size_t j = 0; j < data.width(); ++j)
+        {
+            BOOST_CHECK_CLOSE(data[0][j], teacher_r[i][j], 0.01);
+        }
+    }
+}
+
+//
+// resume:
+// 4 samples
+//
 /*
 BOOST_AUTO_TEST_CASE( bp_specify_both_ends )
 {
