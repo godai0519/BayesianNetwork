@@ -189,6 +189,38 @@ void bp::calculate_lambda(vertex_type const& target)
     lambda[target] = matrix;
 }
 
+void bp::calculate_lambda_k(vertex_type const& from, vertex_type const& target)
+{
+    auto const in_vertexs = graph_.in_vertexs(from);
+    
+    // 事前にlambdaを更新させる
+    calculate_lambda(from);
+    for(auto const& xl : in_vertexs) calculate_pi_i(from, xl);
+
+    matrix_type matrix(1, target->selectable_num, 0.0);
+    for(int i = 0; i < from->selectable_num; ++i)
+    {
+        auto const times = lambda[from][0][i];
+        all_combination_pattern(
+            in_vertexs,
+            [&](condition_t const& cond)
+            {
+                double value = times * from->cpt[cond].second[i];
+                for(auto const& p : cond)
+                {
+                    if(p.first != target)
+                    {
+                        value *= pi_i[from][p.first][0][p.second];
+                    }
+                }
+                matrix[0][cond.at(target)] += value;
+            });
+    }
+
+    // 計算された値でlambdaを更新させる
+    lambda_k[from][target] = matrix;
+}
+
 // 与えられた確率変数全ての組み合わせに対し，functionを実行するというインターフェースを提供する
 void bp::all_combination_pattern(
     std::vector<vertex_type> const& combination,
