@@ -58,7 +58,6 @@ void bp::initialize()
     lambda_k_.clear();
 }
 
-// TODO: 条件の指定されたノードであった場合の処理
 void bp::calculate_pi(vertex_type const& target)
 {
     if(pi_.find(target) != pi_.cend()) return;
