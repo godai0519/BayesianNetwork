@@ -15,23 +15,21 @@ bp::return_type bp::operator()(std::unordered_map<vertex_type, matrix_type> cons
 {
     initialize();
     lambda_ = precondition;
+    pi_ = precondition;
 
     // 最下流にall 1，最上流にevidenceを当てはめる
     for(auto const& node : graph_.vertex_list())
     {
-        if(graph_.in_edges(node).empty())
+        if(graph_.in_edges(node).empty() && pi_.find(node) == pi_.cend())
         {
             auto& pi = pi_[node];
             auto& data = node->cpt[condition_t()].second;
             pi.resize(1, node->selectable_num);
             pi.assign(data.cbegin(), data.cend());
         }
-        if(graph_.out_edges(node).empty())
+        if(graph_.out_edges(node).empty() && lambda_.find(node) == lambda_.cend())
         {
-            if(lambda_.find(node) == lambda_.cend())
-            {
-                lambda_[node].resize(1, node->selectable_num, 1.0);
-            }
+            lambda_[node].resize(1, node->selectable_num, 1.0);
         }
     }
 
