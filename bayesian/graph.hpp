@@ -64,7 +64,7 @@ public:
     // 引数を元に一致する辺を削除する
     // 削除に成功した場合はtrueを返却する
     bool erase_edge(edge_type const& e);
-    
+
     // 引数の頂点から出て行く辺を列挙する
     std::vector<edge_type> out_edges(vertex_type const& from) const;
 
