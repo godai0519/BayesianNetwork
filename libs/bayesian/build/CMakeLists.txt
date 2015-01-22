@@ -4,6 +4,10 @@ add_library(bp STATIC
   ../src/bp.cpp
 )
 
+add_library(graph STATIC
+  ../src/graph.cpp
+)
+
 add_library(cpt STATIC
   ../src/cpt.cpp
 )
@@ -17,6 +21,7 @@ add_library(sampling STATIC
 )
 
 install(TARGETS bp DESTINATION lib)
+install(TARGETS graph DESTINATION lib)
 install(TARGETS cpt DESTINATION lib)
 install(TARGETS matrix DESTINATION lib)
 install(TARGETS sampling DESTINATION lib)

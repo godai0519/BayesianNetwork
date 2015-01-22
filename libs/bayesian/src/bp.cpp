@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <functional>
 #include "bayesian/graph.hpp"
 #include "bayesian/bp.hpp"

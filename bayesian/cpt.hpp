@@ -1,6 +1,8 @@
 #ifndef BNI_CPT_HPP
 #define BNI_CPT_HPP
 
+#include <unordered_map>
+
 namespace bn {
 
 struct vertex_t;
