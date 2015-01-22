@@ -53,8 +53,8 @@ bn::graph_t make_pearl_bp_graph()
         bn::condition_t const cond10 = {{vertex_r, 1}, {vertex_s, 0}};
         bn::condition_t const cond11 = {{vertex_r, 1}, {vertex_s, 1}};
         vertex_h->cpt[cond00].second = {1.0, 0.0};
-        vertex_h->cpt[cond01].second = {0.9, 0.1};
-        vertex_h->cpt[cond10].second = {1.0, 0.0};
+        vertex_h->cpt[cond01].second = {1.0, 0.0};
+        vertex_h->cpt[cond10].second = {0.9, 0.1};
         vertex_h->cpt[cond11].second = {0.0, 1.0};
     }
 
@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE( bp_pearl_part1 )
         { 0.200, 0.800 },
         { 0.100, 0.900 },
         { 0.360, 0.640 },
-        { 0.262, 0.738 }
+        { 0.272, 0.728 }
     };
 
     bn::bp bp(graph);
@@ -89,7 +89,6 @@ BOOST_AUTO_TEST_CASE( bp_pearl_part1 )
 }
 
 // 多分なんか違う
-/*
 BOOST_AUTO_TEST_CASE( bp_pearl_part2 )
 {
     bn::graph_t graph = make_pearl_bp_graph();
@@ -116,11 +115,10 @@ BOOST_AUTO_TEST_CASE( bp_pearl_part2 )
 
         for(std::size_t j = 0; j < data.width(); ++j)
         {
-            BOOST_CHECK_CLOSE(data[0][j], teacher_r[i][j], 0.01);
+            BOOST_CHECK_CLOSE(data[0][j], teacher_r[i][j], 0.1);
         }
     }
 }
-*/
 
 //
 // resume14:
