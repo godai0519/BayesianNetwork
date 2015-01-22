@@ -1,129 +1,221 @@
-#include <boost/foreach.hpp>
+#include <algorithm>
+#include <functional>
 #include "bayesian/graph.hpp"
 #include "bayesian/bp.hpp"
+#include "bayesian/cpt.hpp" // unordered_mapのネストの解決
 
 namespace bn {
 
-matrix_type bp::operator()(
-    graph_t const& graph,
-    graph_t::vertex_descriptor const& node,
-    std::vector<std::pair<graph_t::vertex_descriptor, int>> const& condition
-    )
+bp::bp(graph_t const& graph)
+    : graph_(graph)
 {
-    // 前後の要素に伝播させる
-    auto const e_minus = propagate_forward(graph, node, condition);
-    auto const e_plus = propagate_backward(graph, node, condition);
-
-    // 掛け算
-    auto const elem_num = graph[node].selectable_num;
-    double sum = 0.0;
-    matrix_type mat(boost::extents[elem_num][1]);
-    for(int i = 0; i < e_minus.shape()[0]; ++i)
-    {
-        double const product = e_minus[i][0] * e_plus[0][i];
-        sum += product;
-        mat[i][0] = product;
-    }
-
-    // 正規化
-    for(int i = 0; i < e_minus.shape()[0]; ++i)
-    {
-        mat[i][0] /= sum;
-    }
-
-    return mat;
 }
 
-std::pair<bool, int> find_condition(
-    graph_t::vertex_descriptor const& node,
-    std::vector<std::pair<graph_t::vertex_descriptor, int>> const& condition
-    )
+bp::return_type bp::operator()(std::unordered_map<vertex_type, matrix_type> const& precondition)
 {
-    for(auto const& c : condition)
+    initialize();
+    lambda_ = precondition;
+    pi_ = precondition;
+
+    // 最下流にall 1，最上流にevidenceを当てはめる
+    for(auto const& node : graph_.vertex_list())
     {
-        if(c.first == node)
+        if(graph_.in_edges(node).empty() && pi_.find(node) == pi_.cend())
         {
-            return std::make_pair(true, c.second);
+            auto& pi = pi_[node];
+            auto& data = node->cpt[condition_t()].second;
+            pi.resize(1, node->selectable_num);
+            pi.assign(data.cbegin(), data.cend());
+        }
+        if(graph_.out_edges(node).empty() && lambda_.find(node) == lambda_.cend())
+        {
+            lambda_[node].resize(1, node->selectable_num, 1.0);
         }
     }
 
-    return std::make_pair(false, 0);
+    // すべてのpiとlambdaのうち，計算されていないものを計算する
+    // ついでに返すための値を作っていく
+    return_type result;
+    for(auto const& node : graph_.vertex_list())
+    {
+        if(pi_.find(node) == pi_.cend())
+        {
+            calculate_pi(node);
+        }
+        if(lambda_.find(node) == lambda_.cend())
+        {
+            calculate_lambda(node);
+        }
+
+        // 上からの確率と下からの確率を掛けあわせ，正規化する
+        auto raw_bel = pi_[node] % lambda_[node];
+        result[node] = normalize(raw_bel);
+    }
+
+    return result;
 }
 
-// 下流要素の確率推論
-matrix_type bp::propagate_forward(
-    graph_t const& graph,
-    graph_t::vertex_descriptor const& node,
-    std::vector<std::pair<graph_t::vertex_descriptor, int>> const& condition
-    )
+void bp::initialize()
 {
-    // node ∈ condition
-    auto is_condition = find_condition(node, condition);
-    if(is_condition.first)
-    {
-        auto const elem_num = graph[node].selectable_num;
-        matrix_type mat(boost::extents[elem_num][1]);
-        for(int i = 0; i < elem_num; ++i)
-        {
-            mat[i][0] = (i == is_condition.second) ? 1 : 0;
-        }
-        return mat;
-    }
-
-    // conditionに含まれないから伝播 (e-要素)
-    BOOST_FOREACH(auto const& edge, out_edges(node, graph))
-    {
-        // TODO: 2つ以上の要素があった場合の処理を切り分ける
-        return (*graph[edge].likelihood) * propagate_forward(graph, target(edge, graph), condition);
-    }
-
-    // 末端は全ての確率が等しいとする
-    auto const elem_num = graph[node].selectable_num;
-    matrix_type mat(boost::extents[elem_num][1]);
-    for(int i = 0; i < elem_num; ++i)
-    {
-        mat[i][0] = 1.0;
-    }
-    return mat;
+    pi_.clear();
+    lambda_.clear();
+    pi_i_.clear();
+    lambda_k_.clear();
 }
 
-// 上流要素の確率推論
-matrix_type bp::propagate_backward(
-    graph_t const& graph,
-    graph_t::vertex_descriptor const& node,
-    std::vector<std::pair<graph_t::vertex_descriptor, int>> const& condition
+matrix_type& bp::normalize(matrix_type& target)
+{
+    double sum = 0;
+
+    for(std::size_t i = 0; i < target.height(); ++i)
+        for(std::size_t j = 0; j < target.width(); ++j)
+            sum += target[i][j];
+
+    for(std::size_t i = 0; i < target.height(); ++i)
+        for(std::size_t j = 0; j < target.width(); ++j)
+            target[i][j] /= sum;
+
+    return target;
+}
+
+void bp::calculate_pi(vertex_type const& target)
+{
+    if(pi_.find(target) != pi_.cend()) return;
+
+    auto const in_vertexs = graph_.in_vertexs(target);
+    
+    // 事前にpi_iを更新させる
+    for(auto const& xi : in_vertexs) calculate_pi_i(target, xi);
+
+    matrix_type matrix(1, target->selectable_num, 0.0);
+    all_combination_pattern(
+        in_vertexs,
+        [&](condition_t const& condition)
+        {
+            auto const& cpt_data = target->cpt[condition].second;
+            for(int i = 0; i < target->selectable_num; ++i)
+            {
+                double value = cpt_data[i];
+                for(auto const& xi : in_vertexs)
+                {
+                    value *= pi_i_[target][xi][0][condition.at(xi)];
+                }
+                matrix[0][i] += value;
+            }
+        });
+
+    // 計算された値でpiを更新させる
+    pi_[target] = matrix;
+}
+
+void bp::calculate_pi_i(vertex_type const& from, vertex_type const& target)
+{
+    if(pi_i_[from].find(target) != pi_i_[from].end()) return;
+
+    auto out_vertexs = graph_.out_vertexs(target);
+    out_vertexs.erase(std::find(out_vertexs.cbegin(), out_vertexs.cend(), from));
+
+    // 事前にpiやlambda_kを更新させる
+    calculate_pi(target);
+    for(auto const& xj : out_vertexs) calculate_lambda_k(xj, target);
+
+    matrix_type matrix = pi_[target];
+    for(int i = 0; i < target->selectable_num; ++i)
+    {
+        for(auto const& xj : out_vertexs)
+        {
+            matrix[0][i] *= lambda_k_[xj][target][0][i];
+        }
+    }
+
+    // 計算された値でpi_iを更新させる
+    pi_i_[from][target] = matrix;
+}
+
+void bp::calculate_lambda(vertex_type const& target)
+{
+    if(lambda_.find(target) != lambda_.cend()) return;
+
+    auto const out_vertexs = graph_.out_vertexs(target);
+
+    // 事前にlambda_kを更新させる
+    for(auto const& xi : out_vertexs) calculate_lambda_k(xi, target);
+
+    matrix_type matrix(1, target->selectable_num, 1.0);
+    for(int i = 0; i < target->selectable_num; ++i)
+    {
+        for(auto const& xi : out_vertexs)
+        {
+            matrix[0][i] *= lambda_k_[xi][target][0][i];
+        }
+    }
+
+    // 計算された値でlambdaを更新させる
+    lambda_[target] = matrix;
+}
+
+void bp::calculate_lambda_k(vertex_type const& from, vertex_type const& target)
+{
+    if(lambda_k_[from].find(target) != lambda_k_[from].end()) return;
+
+    auto const in_vertexs = graph_.in_vertexs(from);
+    
+    // 事前にlambdaを更新させる
+    calculate_lambda(from);
+    for(auto const& xl : in_vertexs)
+        if(xl != target) calculate_pi_i(from, xl);
+
+    matrix_type matrix(1, target->selectable_num, 0.0);
+    for(int i = 0; i < from->selectable_num; ++i)
+    {
+        auto const times = lambda_[from][0][i];
+        all_combination_pattern(
+            in_vertexs,
+            [&](condition_t const& cond)
+            {
+                double value = times * from->cpt[cond].second[i];
+                for(auto const& p : cond)
+                {
+                    if(p.first != target)
+                    {
+                        value *= pi_i_[from][p.first][0][p.second];
+                    }
+                }
+                matrix[0][cond.at(target)] += value;
+            });
+    }
+
+    // 計算された値でlambdaを更新させる
+    lambda_k_[from][target] = matrix;
+}
+
+// 与えられた確率変数全ての組み合わせに対し，functionを実行するというインターフェースを提供する
+void bp::all_combination_pattern(
+    std::vector<vertex_type> const& combination,
+    std::function<void(condition_t const&)> const& function
     )
 {
-    // node ∈ condition
-    auto is_condition = find_condition(node, condition);
-    if(is_condition.first)
+    typedef std::vector<vertex_type>::const_iterator iterator_type;
+    std::function<void(iterator_type const, iterator_type const&)> recursive;
+
+    condition_t condition;
+    recursive = [&](iterator_type const it, iterator_type const& end)
     {
-        auto const elem_num = graph[node].selectable_num;
-        matrix_type mat(boost::extents[1][elem_num]);
-        for(int i = 0; i < elem_num; ++i)
+        if(it == end)
         {
-            mat[0][i] = (i == is_condition.second) ? 1 : 0;
+            function(condition);
         }
-        return mat;
-    }
+        else
+        {
+            for(int i = 0; i < (*it)->selectable_num; ++i)
+            {
+                condition[*it] = i;
+                recursive(it + 1, end);
+            }
+        }
+    };
 
-    // conditionに含まれないから伝播 (e+要素)
-    BOOST_FOREACH(auto const& edge, in_edges(node, graph))
-    {
-        // TODO: 2つ以上の要素があった場合の処理を切り分ける
-        return propagate_backward(graph, source(edge, graph), condition) * (*graph[edge].likelihood);
-    }
-
-    // 最上位ノードは事前確率を割り当てる
-    auto& e = graph[node].evidence;
-    if(e)
-    {
-        return *e;
-    }
-    else
-    {
-        throw std::runtime_error("highest node doesn't have prior probability.");
-    }
+    recursive(combination.cbegin(), combination.cend());
 }
 
 } // namespace bn

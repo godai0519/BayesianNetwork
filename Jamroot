@@ -4,6 +4,10 @@ local BOOST_ROOT = [ os.environ BOOST_ROOT ] ;
 use-project /boost : $(BOOST_ROOT) ;
 
 project bayesian_network
+    : requirements
+        <toolset>msvc:<cxxflags>-DNOMINMAX
+        <toolset>gcc:<cxxflags>-std=c++1y
+        <toolset>clang:<cxxflags>-std=c++1y
     : build-dir bin.v2
     ;
 

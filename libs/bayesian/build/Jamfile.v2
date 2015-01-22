@@ -6,16 +6,17 @@ local BOOST_ROOT = [ os.environ BOOST_ROOT ] ;
 project bayesian :
     requirements
         <include>../../../
-        <include>$(BOOST_ROOT)
-        <cxxflags>-std=c++1y
     : source-location ../../../
     ;
 
 lib matrix : libs/bayesian/src/matrix.cpp : <link>static ;
+lib graph : libs/bayesian/src/graph.cpp : <link>static ;
+lib cpt : libs/bayesian/src/cpt.cpp : <link>static ;
 lib bp : libs/bayesian/src/bp.cpp : <link>static ;
+lib sampling : libs/bayesian/src/sampling.cpp : <link>static ;
 
 install build-libs
-    : matrix
+    : matrix graph cpt bp sampling
     : <location>../../../lib
     ;
 
