@@ -202,7 +202,7 @@ BOOST_AUTO_TEST_CASE( bp_resume_ex )
 
     for(std::size_t i = 0; i < data.width(); ++i)
     {
-        BOOST_CHECK_CLOSE(data[0][i], teacher_C[i], 0.01);
+        BOOST_CHECK_CLOSE(data[0][i], teacher_C[i], 3);
     }
 }
 
@@ -225,7 +225,7 @@ BOOST_AUTO_TEST_CASE( bp_resume_sample1 )
 
     for(std::size_t i = 0; i < data.width(); ++i)
     {
-        BOOST_CHECK_CLOSE(data[0][i], teacher_B[i], 0.01);
+        BOOST_CHECK_CLOSE(data[0][i], teacher_B[i], 3);
     }
 }
 
@@ -250,7 +250,7 @@ BOOST_AUTO_TEST_CASE( bp_resume_sample2 )
 
     for(std::size_t i = 0; i < data.width(); ++i)
     {
-        BOOST_CHECK_CLOSE(data[0][i], teacher_B[i], 0.01);
+        BOOST_CHECK_CLOSE(data[0][i], teacher_B[i], 3);
     }
 }
 
@@ -273,7 +273,7 @@ BOOST_AUTO_TEST_CASE( bp_resume_sample3 )
 
     for(std::size_t i = 0; i < data.width(); ++i)
     {
-        BOOST_CHECK_CLOSE(data[0][i], teacher_A[i], 0.01);
+        BOOST_CHECK_CLOSE(data[0][i], teacher_A[i], 3);
     }
 }
 
@@ -296,6 +296,6 @@ BOOST_AUTO_TEST_CASE( bp_resume_sample4 )
 
     for(std::size_t i = 0; i < data.width(); ++i)
     {
-        BOOST_CHECK_CLOSE(data[0][i], teacher_B[i], 0.01);
+        BOOST_CHECK_CLOSE(data[0][i], teacher_B[i], 3);
     }
 }
