@@ -13,7 +13,12 @@ public:
     bp(graph_t const& graph);
     virtual ~bp() = default;
 
-    return_type operator()(std::unordered_map<vertex_type, matrix_type> const& precondition = {});
+    inline return_type operator()()
+    {
+        std::unordered_map<vertex_type, matrix_type> const precondition;
+        return operator()(precondition);
+    }
+    return_type operator()(std::unordered_map<vertex_type, matrix_type> const& precondition);
 
 private:
     void initialize();

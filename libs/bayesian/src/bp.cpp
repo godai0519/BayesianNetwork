@@ -49,7 +49,8 @@ bp::return_type bp::operator()(std::unordered_map<vertex_type, matrix_type> cons
         }
 
         // 上からの確率と下からの確率を掛けあわせ，正規化する
-        result[node] = normalize(pi_[node] % lambda_[node]);
+        auto raw_bel = pi_[node] % lambda_[node];
+        result[node] = normalize(raw_bel);
     }
 
     return result;

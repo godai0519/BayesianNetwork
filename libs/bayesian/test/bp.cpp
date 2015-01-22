@@ -22,7 +22,7 @@ bn::graph_t make_pearl_bp_graph()
         vertex_r->selectable_num = 2;
         vertex_r->cpt.assign({}, vertex_r);
 
-        bn::condition_t const cond = {};
+        bn::condition_t const cond;
         vertex_r->cpt[cond].second = {0.2, 0.8};
     }
     {
@@ -30,7 +30,7 @@ bn::graph_t make_pearl_bp_graph()
         vertex_s->selectable_num = 2;
         vertex_s->cpt.assign({}, vertex_s);
 
-        bn::condition_t const cond = {};
+        bn::condition_t const cond;
         vertex_s->cpt[cond].second = {0.1, 0.9};
     }
     {
