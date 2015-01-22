@@ -123,195 +123,181 @@ BOOST_AUTO_TEST_CASE( bp_pearl_part2 )
 */
 
 //
-// resume:
-// 4 samples
+// resume14:
+// 5 samples
 //
-/*
-BOOST_AUTO_TEST_CASE( bp_specify_both_ends )
+bn::graph_t make_resume_graph()
 {
-    std::vector<double> const source_a  = { 0.30, 0.60, 0.10};
-    std::vector<double> const source_ba = { 0.20, 0.30, 0.50, 0.30, 0.30, 0.40, 0.80, 0.10, 0.10};
-    std::vector<double> const source_cb = { 0.50, 0.50, 0.70, 0.30, 0.40, 0.60};
-    std::vector<double> const source_dc = { 0.40, 0.30, 0.30, 0.20, 0.60, 0.20};
-    std::vector<double> const teacher   = { 0.3125, 0.1875, 0.5000};
-
-    bn::matrix_type mat_a (1, 3);
-    bn::matrix_type mat_ba(3, 3);
-    bn::matrix_type mat_cb(3, 2);
-    bn::matrix_type mat_dc(2, 3);
-    bn::matrix_type mat_t (3, 1);
-
-    mat_a .assign(source_a .begin(), source_a .end());
-    mat_ba.assign(source_ba.begin(), source_ba.end());
-    mat_cb.assign(source_cb.begin(), source_cb.end());
-    mat_dc.assign(source_dc.begin(), source_dc.end());
-    mat_t .assign(  teacher.begin(),   teacher.end());
-
     bn::graph_t graph;
-    auto vertex_a = graph.add_vertex();
-    auto vertex_b = graph.add_vertex();
-    auto vertex_c = graph.add_vertex();
-    auto vertex_d = graph.add_vertex();
-    auto edge_ab = graph.add_edge(vertex_a, vertex_b);
-    auto edge_bc = graph.add_edge(vertex_b, vertex_c);
-    auto edge_cd = graph.add_edge(vertex_c, vertex_d);
+    auto const vertex_A = graph.add_vertex();
+    auto const vertex_B = graph.add_vertex();
+    auto const vertex_C = graph.add_vertex();
+    auto const vertex_D = graph.add_vertex();
+    auto const edge_AB = graph.add_edge(vertex_A, vertex_B);
+    auto const edge_BC = graph.add_edge(vertex_B, vertex_C);
+    auto const edge_CD = graph.add_edge(vertex_C, vertex_D);
 
-    edge_ab->likelihood = {true, mat_ba};
-    edge_bc->likelihood = {true, mat_cb};
-    edge_cd->likelihood = {true, mat_dc};
-    vertex_a->selectable_num = 3;
-    vertex_b->selectable_num = 3;
-    vertex_c->selectable_num = 2;
-    vertex_d->selectable_num = 3;
-    vertex_a->evidence = {true, mat_a};
-
-    bn::bp func;
-    auto const result = func(graph, vertex_b, {std::make_pair(vertex_a, 1), std::make_pair(vertex_c, 1)}); // P(B|A=2,C=2)
-    for(int i = 0; i < 3; ++i)
     {
-        // 誤差 2%検査
-        BOOST_CHECK_CLOSE(result[i][0], mat_t[i][0], 2);
+        bn::condition_t const cond;
+
+        vertex_A->id = 1;
+        vertex_A->selectable_num = 3;
+        vertex_A->cpt.assign({}, vertex_A);
+        vertex_A->cpt[cond].second = { 0.30, 0.60, 0.10 };
+    }
+    {
+        bn::condition_t const cond0 = {{vertex_A, 0}};
+        bn::condition_t const cond1 = {{vertex_A, 1}};
+        bn::condition_t const cond2 = {{vertex_A, 2}};
+
+        vertex_B->id = 2;
+        vertex_B->selectable_num = 3;
+        vertex_B->cpt.assign({vertex_A}, vertex_B);
+        vertex_B->cpt[cond0].second = { 0.20, 0.30, 0.50 };
+        vertex_B->cpt[cond1].second = { 0.30, 0.30, 0.40 };
+        vertex_B->cpt[cond2].second = { 0.80, 0.10, 0.10 };
+    }
+    {
+        bn::condition_t const cond0 = {{vertex_B, 0}};
+        bn::condition_t const cond1 = {{vertex_B, 1}};
+        bn::condition_t const cond2 = {{vertex_B, 2}};
+
+        vertex_C->id = 3;
+        vertex_C->selectable_num = 2;
+        vertex_C->cpt.assign({vertex_B}, vertex_C);
+        vertex_C->cpt[cond0].second = { 0.50, 0.50 };
+        vertex_C->cpt[cond1].second = { 0.70, 0.30 };
+        vertex_C->cpt[cond2].second = { 0.40, 0.60 };
+    }
+    {
+        bn::condition_t const cond0 = {{vertex_C, 0}};
+        bn::condition_t const cond1 = {{vertex_C, 1}};
+
+        vertex_D->id = 4;
+        vertex_D->selectable_num = 3;
+        vertex_D->cpt.assign({vertex_C}, vertex_D);
+        vertex_D->cpt[cond0].second = { 0.40, 0.30, 0.30 };
+        vertex_D->cpt[cond1].second = { 0.20, 0.60, 0.20 };
+    }
+
+    return graph;
+}
+
+BOOST_AUTO_TEST_CASE( bp_resume_ex )
+{
+    std::vector<double> const teacher_C = { 0.570, 0.430 };
+
+    bn::graph_t graph = make_resume_graph();
+    auto const vertex = graph.vertex_list();
+    
+    std::unordered_map<bn::vertex_type, bn::matrix_type> precondition;
+    precondition[vertex[1]].resize(1, 3);
+    precondition[vertex[3]].resize(1, 3);
+    precondition[vertex[1]][0] = { 0.0, 0.0, 1.0 };
+    precondition[vertex[3]][0] = { 1.0, 0.0, 0.0 };
+    
+    bn::bp func(graph);
+    auto const result = func(precondition);
+    
+    auto const data = result.at(vertex[2]);
+    BOOST_CHECK(data.height() == 1);
+
+    for(std::size_t i = 0; i < data.width(); ++i)
+    {
+        BOOST_CHECK_CLOSE(data[0][i], teacher_C[i], 0.01);
     }
 }
 
-BOOST_AUTO_TEST_CASE( bp_specify_only_upstream )
+BOOST_AUTO_TEST_CASE( bp_resume_sample1 )
 {
-    std::vector<double> const source_a  = { 0.30, 0.60, 0.10};
-    std::vector<double> const source_ba = { 0.20, 0.30, 0.50, 0.30, 0.30, 0.40, 0.80, 0.10, 0.10};
-    std::vector<double> const source_cb = { 0.50, 0.50, 0.70, 0.30, 0.40, 0.60};
-    std::vector<double> const source_dc = { 0.40, 0.30, 0.30, 0.20, 0.60, 0.20};
-    std::vector<double> const teacher   = { 0.20, 0.30, 0.50};
+    std::vector<double> const teacher_B = { 0.330, 0.170, 0.500 };
 
-    bn::matrix_type mat_a (1, 3);
-    bn::matrix_type mat_ba(3, 3);
-    bn::matrix_type mat_cb(3, 2);
-    bn::matrix_type mat_dc(2, 3);
-    bn::matrix_type mat_t (3, 1);
+    bn::graph_t graph = make_resume_graph();
+    auto const vertex = graph.vertex_list();
+    
+    std::unordered_map<bn::vertex_type, bn::matrix_type> precondition;
+    precondition[vertex[2]].resize(1, 2);
+    precondition[vertex[2]][0] = { 0.0, 1.0 };
+    
+    bn::bp func(graph);
+    auto const result = func(precondition);
+    
+    auto const data = result.at(vertex[1]);
+    BOOST_CHECK(data.height() == 1);
 
-    mat_a .assign(source_a .begin(), source_a .end());
-    mat_ba.assign(source_ba.begin(), source_ba.end());
-    mat_cb.assign(source_cb.begin(), source_cb.end());
-    mat_dc.assign(source_dc.begin(), source_dc.end());
-    mat_t .assign(  teacher.begin(),   teacher.end());
-
-    bn::graph_t graph;
-    auto vertex_a = graph.add_vertex();
-    auto vertex_b = graph.add_vertex();
-    auto vertex_c = graph.add_vertex();
-    auto vertex_d = graph.add_vertex();
-    auto edge_ab = graph.add_edge(vertex_a, vertex_b);
-    auto edge_bc = graph.add_edge(vertex_b, vertex_c);
-    auto edge_cd = graph.add_edge(vertex_c, vertex_d);
-
-    edge_ab->likelihood = {true, mat_ba};
-    edge_bc->likelihood = {true, mat_cb};
-    edge_cd->likelihood = {true, mat_dc};
-    vertex_a->selectable_num = 3;
-    vertex_b->selectable_num = 3;
-    vertex_c->selectable_num = 2;
-    vertex_d->selectable_num = 3;
-    vertex_a->evidence = {true, mat_a};
-
-    bn::bp func;
-    auto const result = func(graph, vertex_b, {std::make_pair(vertex_a, 0)}); // P(B|A=1)
-    for(int i = 0; i < 3; ++i)
+    for(std::size_t i = 0; i < data.width(); ++i)
     {
-        // 誤差 2%検査
-        BOOST_CHECK_CLOSE(result[i][0], mat_t[i][0], 2);
+        BOOST_CHECK_CLOSE(data[0][i], teacher_B[i], 0.01);
     }
 }
 
-BOOST_AUTO_TEST_CASE( bp_specify_only_downstream )
+BOOST_AUTO_TEST_CASE( bp_resume_sample2 )
 {
-    std::vector<double> const source_a  = { 0.30, 0.60, 0.10};
-    std::vector<double> const source_ba = { 0.20, 0.30, 0.50, 0.30, 0.30, 0.40, 0.80, 0.10, 0.10};
-    std::vector<double> const source_cb = { 0.50, 0.50, 0.70, 0.30, 0.40, 0.60};
-    std::vector<double> const source_dc = { 0.40, 0.30, 0.30, 0.20, 0.60, 0.20};
-    std::vector<double> const teacher   = { 0.33, 0.17, 0.50};
+    std::vector<double> const teacher_B = { 0.310, 0.190, 0.500 };
 
-    bn::matrix_type mat_a (1, 3);
-    bn::matrix_type mat_ba(3, 3);
-    bn::matrix_type mat_cb(3, 2);
-    bn::matrix_type mat_dc(2, 3);
-    bn::matrix_type mat_t (3, 1);
+    bn::graph_t graph = make_resume_graph();
+    auto const vertex = graph.vertex_list();
+    
+    std::unordered_map<bn::vertex_type, bn::matrix_type> precondition;
+    precondition[vertex[0]].resize(1, 3);
+    precondition[vertex[2]].resize(1, 2);
+    precondition[vertex[0]][0] = { 0.0, 1.0, 0.0 };
+    precondition[vertex[2]][0] = { 0.0, 1.0 };
+    
+    bn::bp func(graph);
+    auto const result = func(precondition);
+    
+    auto const data = result.at(vertex[1]);
+    BOOST_CHECK(data.height() == 1);
 
-    mat_a .assign(source_a .begin(), source_a .end());
-    mat_ba.assign(source_ba.begin(), source_ba.end());
-    mat_cb.assign(source_cb.begin(), source_cb.end());
-    mat_dc.assign(source_dc.begin(), source_dc.end());
-    mat_t .assign(  teacher.begin(),   teacher.end());
-
-    bn::graph_t graph;
-    auto vertex_a = graph.add_vertex();
-    auto vertex_b = graph.add_vertex();
-    auto vertex_c = graph.add_vertex();
-    auto vertex_d = graph.add_vertex();
-    auto edge_ab = graph.add_edge(vertex_a, vertex_b);
-    auto edge_bc = graph.add_edge(vertex_b, vertex_c);
-    auto edge_cd = graph.add_edge(vertex_c, vertex_d);
-
-    edge_ab->likelihood = {true, mat_ba};
-    edge_bc->likelihood = {true, mat_cb};
-    edge_cd->likelihood = {true, mat_dc};
-    vertex_a->selectable_num = 3;
-    vertex_b->selectable_num = 3;
-    vertex_c->selectable_num = 2;
-    vertex_d->selectable_num = 3;
-    vertex_a->evidence = {true, mat_a};
-
-    bn::bp func;
-    auto const result = func(graph, vertex_b, {std::make_pair(vertex_c, 1)}); // P(B|C=2)
-    for(int i = 0; i < 3; ++i)
+    for(std::size_t i = 0; i < data.width(); ++i)
     {
-        // 誤差 3%検査
-        BOOST_CHECK_CLOSE(result[i][0], mat_t[i][0], 3);
+        BOOST_CHECK_CLOSE(data[0][i], teacher_B[i], 0.01);
     }
 }
 
-BOOST_AUTO_TEST_CASE( bp_highest_node )
+BOOST_AUTO_TEST_CASE( bp_resume_sample3 )
 {
-    std::vector<double> const source_a  = { 0.30, 0.60, 0.10};
-    std::vector<double> const source_ba = { 0.20, 0.30, 0.50, 0.30, 0.30, 0.40, 0.80, 0.10, 0.10};
-    std::vector<double> const source_cb = { 0.50, 0.50, 0.70, 0.30, 0.40, 0.60};
-    std::vector<double> const source_dc = { 0.40, 0.30, 0.30, 0.20, 0.60, 0.20};
-    std::vector<double> const teacher   = { 0.30, 0.60, 0.10};
+    std::vector<double> const teacher_A = { 0.300, 0.600, 0.100 };
 
-    bn::matrix_type mat_a (1, 3);
-    bn::matrix_type mat_ba(3, 3);
-    bn::matrix_type mat_cb(3, 2);
-    bn::matrix_type mat_dc(2, 3);
-    bn::matrix_type mat_t (3, 1);
+    bn::graph_t graph = make_resume_graph();
+    auto const vertex = graph.vertex_list();
+    
+    std::unordered_map<bn::vertex_type, bn::matrix_type> precondition;
+    precondition[vertex[3]].resize(1, 3);
+    precondition[vertex[3]][0] = { 0.0, 0.0, 1.0 };
+    
+    bn::bp func(graph);
+    auto const result = func(precondition);
+    
+    auto const data = result.at(vertex[0]);
+    BOOST_CHECK(data.height() == 1);
 
-    mat_a .assign(source_a .begin(), source_a .end());
-    mat_ba.assign(source_ba.begin(), source_ba.end());
-    mat_cb.assign(source_cb.begin(), source_cb.end());
-    mat_dc.assign(source_dc.begin(), source_dc.end());
-    mat_t .assign(  teacher.begin(),   teacher.end());
-
-    bn::graph_t graph;
-    auto vertex_a = graph.add_vertex();
-    auto vertex_b = graph.add_vertex();
-    auto vertex_c = graph.add_vertex();
-    auto vertex_d = graph.add_vertex();
-    auto edge_ab = graph.add_edge(vertex_a, vertex_b);
-    auto edge_bc = graph.add_edge(vertex_b, vertex_c);
-    auto edge_cd = graph.add_edge(vertex_c, vertex_d);
-
-    edge_ab->likelihood = {true, mat_ba};
-    edge_bc->likelihood = {true, mat_cb};
-    edge_cd->likelihood = {true, mat_dc};
-    vertex_a->selectable_num = 3;
-    vertex_b->selectable_num = 3;
-    vertex_c->selectable_num = 2;
-    vertex_d->selectable_num = 3;
-    vertex_a->evidence = {true, mat_a};
-
-    bn::bp func;
-    auto const result = func(graph, vertex_a, {std::make_pair(vertex_d, 2)}); // P(A|D=3)
-    for(int i = 0; i < 3; ++i)
+    for(std::size_t i = 0; i < data.width(); ++i)
     {
-        // 誤差 3%検査
-        BOOST_CHECK_CLOSE(result[i][0], mat_t[i][0], 3);
+        BOOST_CHECK_CLOSE(data[0][i], teacher_A[i], 0.01);
     }
 }
-*/
+
+BOOST_AUTO_TEST_CASE( bp_resume_sample4 )
+{
+    std::vector<double> const teacher_B = { 0.200, 0.300, 0.500 };
+
+    bn::graph_t graph = make_resume_graph();
+    auto const vertex = graph.vertex_list();
+    
+    std::unordered_map<bn::vertex_type, bn::matrix_type> precondition;
+    precondition[vertex[0]].resize(1, 3);
+    precondition[vertex[0]][0] = { 1.0, 0.0, 0.0 };
+    
+    bn::bp func(graph);
+    auto const result = func(precondition);
+    
+    auto const data = result.at(vertex[1]);
+    BOOST_CHECK(data.height() == 1);
+
+    for(std::size_t i = 0; i < data.width(); ++i)
+    {
+        BOOST_CHECK_CLOSE(data[0][i], teacher_B[i], 0.01);
+    }
+}
