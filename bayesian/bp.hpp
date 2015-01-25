@@ -10,8 +10,10 @@ class bp {
 public:
     typedef std::unordered_map<vertex_type, matrix_type> return_type;
 
-    bp(graph_t const& graph);
+    explicit bp(graph_t const& graph);
     virtual ~bp() = default;
+
+    void initialize();
 
     inline return_type operator()()
     {
@@ -21,7 +23,6 @@ public:
     return_type operator()(std::unordered_map<vertex_type, matrix_type> const& precondition);
 
 private:
-    void initialize();
     matrix_type& normalize(matrix_type& target);
 
     void calculate_pi(vertex_type const& target);

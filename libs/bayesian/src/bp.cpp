@@ -9,11 +9,19 @@ namespace bn {
 bp::bp(graph_t const& graph)
     : graph_(graph)
 {
+    initialize();
+}
+
+void bp::initialize()
+{
+    pi_.clear();
+    lambda_.clear();
+    pi_i_.clear();
+    lambda_k_.clear();
 }
 
 bp::return_type bp::operator()(std::unordered_map<vertex_type, matrix_type> const& precondition)
 {
-    initialize();
     lambda_ = precondition;
     pi_ = precondition;
 
@@ -53,14 +61,6 @@ bp::return_type bp::operator()(std::unordered_map<vertex_type, matrix_type> cons
     }
 
     return result;
-}
-
-void bp::initialize()
-{
-    pi_.clear();
-    lambda_.clear();
-    pi_i_.clear();
-    lambda_k_.clear();
 }
 
 matrix_type& bp::normalize(matrix_type& target)
