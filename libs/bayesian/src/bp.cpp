@@ -9,7 +9,6 @@ namespace bn {
 bp::bp(graph_t const& graph)
     : graph_(graph)
 {
-    initialize();
 }
 
 void bp::initialize()
@@ -120,7 +119,7 @@ bp::return_type bp::operator()(std::unordered_map<vertex_type, matrix_type> cons
     return result;
 }
 
-matrix_type& bp::normalize(matrix_type& target)
+matrix_type& bp::normalize(matrix_type& target) const
 {
     double sum = 0;
 
@@ -233,7 +232,7 @@ void bp::calculate_lambda_k(vertex_type const& from, vertex_type const& target)
 void bp::all_combination_pattern(
     std::vector<vertex_type> const& combination,
     std::function<void(condition_t const&)> const& function
-    )
+    ) const
 {
     typedef std::vector<vertex_type>::const_iterator iterator_type;
     std::function<void(iterator_type const, iterator_type const&)> recursive;
