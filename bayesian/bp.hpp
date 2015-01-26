@@ -13,11 +13,14 @@ public:
     explicit bp(graph_t const& graph);
     virtual ~bp() = default;
 
+    // By-pass
     inline return_type operator()()
     {
         std::unordered_map<vertex_type, matrix_type> const precondition;
         return operator()(precondition);
     }
+
+    // Run: Loopy Belief Propagation
     return_type operator()(std::unordered_map<vertex_type, matrix_type> const& precondition);
 
 private:
@@ -33,16 +36,22 @@ private:
         std::function<void(condition_t const&)> const& function
         ) const;
 
+    // matrixに存在するすべての数の和が1になるように正規化する
     matrix_type& normalize(matrix_type& target) const;
+
+    // 引数のノードが事前条件ノードであるかどうか確認する
     bool is_preconditional_node(vertex_type const& node) const;
 
     graph_t const graph_;
+    std::vector<vertex_type> preconditional_node_;
+
+    // 現在のメッセージ状況
     std::unordered_map<vertex_type, matrix_type> pi_;
     std::unordered_map<vertex_type, matrix_type> lambda_;
     std::unordered_map<vertex_type, std::unordered_map<vertex_type, matrix_type>> pi_i_;
     std::unordered_map<vertex_type, std::unordered_map<vertex_type, matrix_type>> lambda_k_;
-    std::vector<vertex_type> preconditional_node_;
 
+    // 未来のメッセージ状況
     std::unordered_map<vertex_type, matrix_type> new_pi_;
     std::unordered_map<vertex_type, matrix_type> new_lambda_;
     std::unordered_map<vertex_type, std::unordered_map<vertex_type, matrix_type>> new_pi_i_;
