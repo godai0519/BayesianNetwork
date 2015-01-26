@@ -36,11 +36,19 @@ private:
         std::function<void(condition_t const&)> const& function
         );
 
+    bool is_preconditional_node(vertex_type const& node) const;
+
     graph_t const graph_;
     std::unordered_map<vertex_type, matrix_type> pi_;
     std::unordered_map<vertex_type, matrix_type> lambda_;
     std::unordered_map<vertex_type, std::unordered_map<vertex_type, matrix_type>> pi_i_;
     std::unordered_map<vertex_type, std::unordered_map<vertex_type, matrix_type>> lambda_k_;
+    std::vector<vertex_type> preconditional_node_;
+
+    std::unordered_map<vertex_type, matrix_type> new_pi_;
+    std::unordered_map<vertex_type, matrix_type> new_lambda_;
+    std::unordered_map<vertex_type, std::unordered_map<vertex_type, matrix_type>> new_pi_i_;
+    std::unordered_map<vertex_type, std::unordered_map<vertex_type, matrix_type>> new_lambda_k_;
 };
 
 } // namespace bn
