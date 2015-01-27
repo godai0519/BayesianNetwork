@@ -14,14 +14,14 @@ public:
     virtual ~bp() = default;
 
     // By-pass
-    inline return_type operator()()
+    inline return_type operator()(double const epsilon = 0.001)
     {
         std::unordered_map<vertex_type, matrix_type> const precondition;
-        return operator()(precondition);
+        return operator()(precondition, epsilon);
     }
 
     // Run: Loopy Belief Propagation
-    return_type operator()(std::unordered_map<vertex_type, matrix_type> const& precondition);
+    return_type operator()(std::unordered_map<vertex_type, matrix_type> const& precondition, double const epsilon = 0.001);
 
 private:
     void initialize();

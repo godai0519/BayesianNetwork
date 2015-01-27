@@ -23,7 +23,7 @@ void bp::initialize()
     new_lambda_k_.clear();
 }
 
-bp::return_type bp::operator()(std::unordered_map<vertex_type, matrix_type> const& precondition)
+bp::return_type bp::operator()(std::unordered_map<vertex_type, matrix_type> const& precondition, double const epsilon)
 {
     initialize();
 
@@ -67,7 +67,7 @@ bp::return_type bp::operator()(std::unordered_map<vertex_type, matrix_type> cons
         pi_[p.first] = lambda_[p.first] = p.second; // both π and λ
     }
 
-    for(int i = 0; i < 100; ++i) // temp
+    while(true)
     {
         // Update message (メッセージの更新)
         for(auto const& node : graph_.vertex_list())
@@ -95,6 +95,36 @@ bp::return_type bp::operator()(std::unordered_map<vertex_type, matrix_type> cons
             }
         }
 
+        // Calculate difference of π-message and λ-messege, between before and after update
+        // 更新前後の π-message と λ-messege の差を計算しておく
+        double maximum_difference = std::numeric_limits<double>::min();
+        for(auto const& node : graph_.vertex_list())
+        {
+            // π-message
+            for(auto const& parent : graph_.in_vertexs(node))
+            {
+                for(std::size_t i = 0; i < parent->selectable_num; ++i)
+                {
+                    maximum_difference = std::max(
+                        maximum_difference,
+                        std::abs(new_pi_i_[node][parent][0][i] - pi_i_[node][parent][0][i])
+                        );
+                }
+            }
+
+            // λ-message
+            for(auto const& child : graph_.out_vertexs(node))
+            {
+                for(std::size_t i = 0; i < node->selectable_num; ++i)
+                {
+                    maximum_difference = std::max(
+                        maximum_difference,
+                        std::abs(new_lambda_k_[child][node][0][i] - lambda_k_[child][node][0][i])
+                        );
+                }
+            }
+        }
+
         // Set future state to current state (push forward time)
         // πとλの未来の状態を現在の状態にコピーする(世代交代)
         for(auto const& outer : new_pi_) pi_[outer.first] = outer.second;
@@ -106,6 +136,10 @@ bp::return_type bp::operator()(std::unordered_map<vertex_type, matrix_type> cons
         new_lambda_.clear();
         new_pi_i_.clear();
         new_lambda_k_.clear();
+
+        // Conform to escape condition
+        // 脱出条件に従えばループを脱出する
+        if(maximum_difference < epsilon) break;
     }
         
     // すべてのπとλから，返すための値を作っていく
