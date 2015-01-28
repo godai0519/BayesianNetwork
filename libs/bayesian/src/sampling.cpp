@@ -4,9 +4,8 @@
 
 namespace bn {
 
-matrix_type sampling::operator()(
+sampling::return_type sampling::operator()(
     graph_t const& graph,
-    vertex_type const& node,
     std::vector<std::pair<vertex_type, int>> const& condition
     )
 {
@@ -14,17 +13,23 @@ matrix_type sampling::operator()(
     auto const generated_patterns = generate_pattern(graph, 10000/*tmp*/, condition);
 
     // 数え上げを行う
-    bn::matrix_type result(1, node->selectable_num, 0.0);
-	for(auto const& pattern : generated_patterns)
-	{
-		result[0][pattern.at(node)] += 1.0;
-	}
+    sampling::return_type result;
+    for(auto const node : graph.vertex_list())
+    {
+        bn::matrix_type mat(1, node->selectable_num, 0.0);
+	    for(auto const& pattern : generated_patterns)
+	    {
+		    mat[0][pattern.at(node)] += 1.0;
+	    }
 	
-	// 全要素をパターン数で割る
-	for(std::size_t i = 0; i < node->selectable_num; ++i)
-	{
-		result[0][i] /= generated_patterns.size();
-	}
+	    // 全要素をパターン数で割る
+	    for(std::size_t i = 0; i < node->selectable_num; ++i)
+	    {
+		    mat[0][i] /= generated_patterns.size();
+	    }
+
+        result[node] = std::move(mat);
+    }
 	
     return result;
 }

@@ -8,14 +8,14 @@ namespace bn {
 
 class sampling {
 public:
+    typedef std::unordered_map<vertex_type, matrix_type> return_type;
     typedef std::vector<std::unordered_map<vertex_type, int>> pattern_list;
 
     sampling() = default;
     virtual ~sampling() = default;
 
-    matrix_type operator()(
+    return_type operator()(
         graph_t const& graph,
-        vertex_type const& target,
         std::vector<std::pair<vertex_type, int>> const& condition
         );
 

@@ -66,8 +66,8 @@ BOOST_AUTO_TEST_CASE( sampling_standard )
     }
 
     bn::sampling func;
-    auto const result = func(graph, vertex_2, {{vertex_4,1}, {vertex_1, 0}});
+    auto const result = func(graph, {{vertex_4,1}, {vertex_1, 0}});
 
-    BOOST_CHECK_CLOSE(result[0][0], 0.62, 10);
-    BOOST_CHECK_CLOSE(result[0][1], 0.38, 10);
+    BOOST_CHECK_CLOSE(result.at(vertex_2)[0][0], 0.62, 10);
+    BOOST_CHECK_CLOSE(result.at(vertex_2)[0][1], 0.38, 10);
 }
