@@ -11,59 +11,149 @@ bp::bp(graph_t const& graph)
 {
 }
 
-bp::return_type bp::operator()(std::unordered_map<vertex_type, matrix_type> const& precondition)
-{
-    initialize();
-    lambda_ = precondition;
-    pi_ = precondition;
-
-    // 最下流にall 1，最上流にevidenceを当てはめる
-    for(auto const& node : graph_.vertex_list())
-    {
-        if(graph_.in_edges(node).empty() && pi_.find(node) == pi_.cend())
-        {
-            auto& pi = pi_[node];
-            auto& data = node->cpt[condition_t()].second;
-            pi.resize(1, node->selectable_num);
-            pi.assign(data.cbegin(), data.cend());
-        }
-        if(graph_.out_edges(node).empty() && lambda_.find(node) == lambda_.cend())
-        {
-            lambda_[node].resize(1, node->selectable_num, 1.0);
-        }
-    }
-
-    // すべてのpiとlambdaのうち，計算されていないものを計算する
-    // ついでに返すための値を作っていく
-    return_type result;
-    for(auto const& node : graph_.vertex_list())
-    {
-        if(pi_.find(node) == pi_.cend())
-        {
-            calculate_pi(node);
-        }
-        if(lambda_.find(node) == lambda_.cend())
-        {
-            calculate_lambda(node);
-        }
-
-        // 上からの確率と下からの確率を掛けあわせ，正規化する
-        auto raw_bel = pi_[node] % lambda_[node];
-        result[node] = normalize(raw_bel);
-    }
-
-    return result;
-}
-
 void bp::initialize()
 {
     pi_.clear();
     lambda_.clear();
     pi_i_.clear();
     lambda_k_.clear();
+    new_pi_.clear();
+    new_lambda_.clear();
+    new_pi_i_.clear();
+    new_lambda_k_.clear();
 }
 
-matrix_type& bp::normalize(matrix_type& target)
+bp::return_type bp::operator()(std::unordered_map<vertex_type, matrix_type> const& precondition, double const epsilon)
+{
+    initialize();
+
+    for(auto const& node : graph_.vertex_list())
+    {
+        // Initialize ∀node's π (すべてのノードのπ=(1,1,...,1))
+        pi_[node].resize(1, node->selectable_num, 1.0);
+        
+        // Initialize ∀node's λ (すべてのノードのλ=(1,1,...,1))
+        lambda_[node].resize(1, node->selectable_num, 1.0);
+        
+        // Initialize π-message (親ノードとのメッセージの初期値)
+        for(auto const& parent : graph_.in_vertexs(node))
+        {
+            auto& pi_i = pi_i_[node][parent];
+            pi_i.resize(1, parent->selectable_num, 1.0);
+        }
+
+        // Initialize λ-message (子ノードとのメッセージの初期値)
+        for(auto const& child : graph_.out_vertexs(node))
+        {
+            auto& lambda_k = lambda_k_[child][node];
+            lambda_k.resize(1, node->selectable_num, 1.0);
+        }
+
+        // Most upstream node is evidence (最上流ノードはCPTから分かる)
+        if(graph_.in_edges(node).empty())
+        {
+            auto& pi = pi_[node];
+            auto& data = node->cpt[condition_t()].second;
+            pi.resize(1, node->selectable_num);
+            pi.assign(data.cbegin(), data.cend());
+        }
+    }
+    
+    // Set preconditions (事前条件の値の割り当て)
+    preconditional_node_.clear();
+    for(auto const& p : precondition)
+    {
+        preconditional_node_.push_back(p.first); // marking
+        pi_[p.first] = lambda_[p.first] = p.second; // both π and λ
+    }
+
+    while(true)
+    {
+        // Update message (メッセージの更新)
+        for(auto const& node : graph_.vertex_list())
+        {
+            for(auto const& parent : graph_.in_vertexs(node))
+            {
+                calculate_pi_i(node, parent);
+            }
+            for(auto const& child : graph_.out_vertexs(node))
+            {
+                calculate_lambda_k(child, node);
+            }
+        }
+
+        // Update node (頂点の更新)
+        for(auto const& node : graph_.vertex_list())
+        {
+            if(new_pi_.find(node) == new_pi_.cend())
+            {
+                calculate_pi(node);
+            }
+            if(new_lambda_.find(node) == new_lambda_.cend())
+            {
+                calculate_lambda(node);
+            }
+        }
+
+        // Calculate difference of π-message and λ-messege, between before and after update
+        // 更新前後の π-message と λ-messege の差を計算しておく
+        double maximum_difference = std::numeric_limits<double>::min();
+        for(auto const& node : graph_.vertex_list())
+        {
+            // π-message
+            for(auto const& parent : graph_.in_vertexs(node))
+            {
+                for(std::size_t i = 0; i < parent->selectable_num; ++i)
+                {
+                    maximum_difference = std::max(
+                        maximum_difference,
+                        std::abs(new_pi_i_[node][parent][0][i] - pi_i_[node][parent][0][i])
+                        );
+                }
+            }
+
+            // λ-message
+            for(auto const& child : graph_.out_vertexs(node))
+            {
+                for(std::size_t i = 0; i < node->selectable_num; ++i)
+                {
+                    maximum_difference = std::max(
+                        maximum_difference,
+                        std::abs(new_lambda_k_[child][node][0][i] - lambda_k_[child][node][0][i])
+                        );
+                }
+            }
+        }
+
+        // Set future state to current state (push forward time)
+        // πとλの未来の状態を現在の状態にコピーする(世代交代)
+        for(auto const& outer : new_pi_) pi_[outer.first] = outer.second;
+        for(auto const& outer : new_lambda_) lambda_[outer.first] = outer.second;
+        for(auto const& outer : new_pi_i_) for(auto const& inner : outer.second) pi_i_[outer.first][inner.first] = inner.second;
+        for(auto const& outer : new_lambda_k_) for(auto const& inner : outer.second) lambda_k_[outer.first][inner.first] = inner.second;
+
+        new_pi_.clear();
+        new_lambda_.clear();
+        new_pi_i_.clear();
+        new_lambda_k_.clear();
+
+        // Conform to escape condition
+        // 脱出条件に従えばループを脱出する
+        if(maximum_difference < epsilon) break;
+    }
+        
+    // すべてのπとλから，返すための値を作っていく
+    return_type result;
+    for(auto const& node : graph_.vertex_list())
+    {
+        // 上からの確率と下からの確率を掛けあわせ，正規化する
+        auto raw_bel = pi_[node] % lambda_[node];
+        result[node] = normalize(raw_bel);
+    }
+    return result;
+}
+
+matrix_type& bp::normalize(matrix_type& target) const
 {
     double sum = 0;
 
@@ -80,12 +170,10 @@ matrix_type& bp::normalize(matrix_type& target)
 
 void bp::calculate_pi(vertex_type const& target)
 {
-    if(pi_.find(target) != pi_.cend()) return;
+    // 事前条件ノードならば更新をしない
+    if(is_preconditional_node(target)) return;
 
     auto const in_vertexs = graph_.in_vertexs(target);
-    
-    // 事前にpi_iを更新させる
-    for(auto const& xi : in_vertexs) calculate_pi_i(target, xi);
 
     matrix_type matrix(1, target->selectable_num, 0.0);
     all_combination_pattern(
@@ -104,20 +192,14 @@ void bp::calculate_pi(vertex_type const& target)
             }
         });
 
-    // 計算された値でpiを更新させる
-    pi_[target] = matrix;
+    // 計算された値でπを更新させる
+    new_pi_[target] = normalize(matrix);
 }
 
 void bp::calculate_pi_i(vertex_type const& from, vertex_type const& target)
 {
-    if(pi_i_[from].find(target) != pi_i_[from].end()) return;
-
     auto out_vertexs = graph_.out_vertexs(target);
     out_vertexs.erase(std::find(out_vertexs.cbegin(), out_vertexs.cend(), from));
-
-    // 事前にpiやlambda_kを更新させる
-    calculate_pi(target);
-    for(auto const& xj : out_vertexs) calculate_lambda_k(xj, target);
 
     matrix_type matrix = pi_[target];
     for(int i = 0; i < target->selectable_num; ++i)
@@ -128,18 +210,16 @@ void bp::calculate_pi_i(vertex_type const& from, vertex_type const& target)
         }
     }
 
-    // 計算された値でpi_iを更新させる
-    pi_i_[from][target] = matrix;
+    // 計算された値でπiを更新させる
+    new_pi_i_[from][target] = normalize(matrix);
 }
 
 void bp::calculate_lambda(vertex_type const& target)
 {
-    if(lambda_.find(target) != lambda_.cend()) return;
+    // 事前条件ノードならば更新をしない
+    if(is_preconditional_node(target)) return;
 
     auto const out_vertexs = graph_.out_vertexs(target);
-
-    // 事前にlambda_kを更新させる
-    for(auto const& xi : out_vertexs) calculate_lambda_k(xi, target);
 
     matrix_type matrix(1, target->selectable_num, 1.0);
     for(int i = 0; i < target->selectable_num; ++i)
@@ -150,21 +230,14 @@ void bp::calculate_lambda(vertex_type const& target)
         }
     }
 
-    // 計算された値でlambdaを更新させる
-    lambda_[target] = matrix;
+    // 計算された値でλを更新させる
+    new_lambda_[target] = normalize(matrix);
 }
 
 void bp::calculate_lambda_k(vertex_type const& from, vertex_type const& target)
 {
-    if(lambda_k_[from].find(target) != lambda_k_[from].end()) return;
-
     auto const in_vertexs = graph_.in_vertexs(from);
     
-    // 事前にlambdaを更新させる
-    calculate_lambda(from);
-    for(auto const& xl : in_vertexs)
-        if(xl != target) calculate_pi_i(from, xl);
-
     matrix_type matrix(1, target->selectable_num, 0.0);
     for(int i = 0; i < from->selectable_num; ++i)
     {
@@ -185,15 +258,15 @@ void bp::calculate_lambda_k(vertex_type const& from, vertex_type const& target)
             });
     }
 
-    // 計算された値でlambdaを更新させる
-    lambda_k_[from][target] = matrix;
+    // 計算された値でλkを更新させる
+    new_lambda_k_[from][target] = normalize(matrix);
 }
 
 // 与えられた確率変数全ての組み合わせに対し，functionを実行するというインターフェースを提供する
 void bp::all_combination_pattern(
     std::vector<vertex_type> const& combination,
     std::function<void(condition_t const&)> const& function
-    )
+    ) const
 {
     typedef std::vector<vertex_type>::const_iterator iterator_type;
     std::function<void(iterator_type const, iterator_type const&)> recursive;
@@ -216,6 +289,12 @@ void bp::all_combination_pattern(
     };
 
     recursive(combination.cbegin(), combination.cend());
+}
+
+bool bp::is_preconditional_node(vertex_type const& node) const
+{
+    auto const it = std::find(preconditional_node_.cbegin(), preconditional_node_.cend(), node);
+    return it != preconditional_node_.cend();
 }
 
 } // namespace bn

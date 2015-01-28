@@ -17,13 +17,10 @@ typedef std::shared_ptr<edge_t>   edge_type;
 struct vertex_t {
     int id;
     std::size_t selectable_num = 0; // 取りうる値の数
-    std::pair<bool, matrix_type> evidence;
-
     cpt_t cpt;
 };
 
-struct edge_t {
-};
+struct edge_t {}; // tag
 
 class graph_t {
 public:
