@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <iterator>
+#include <algorithm>
 #include <string>
 #include "graph.hpp"
 
@@ -78,9 +79,9 @@ bool bayesian_network<NodeType>::load_cpt(graph_t const& graph)
     if(data_.size() == 0) return false;
 
     // 読み込みを行う
-    for(auto const& node : graph_.vertex_list())
+    for(auto const& node : graph.vertex_list())
     {
-        auto const in_vertex = graph_.in_vertexs(node);
+        auto const in_vertex = graph.in_vertexs(node);
         node->cpt.assign(in_vertex, node); // CPTの初期化
 
         // 親ノードのすべての組み合わせに対し，ループを回し，該当するサンプルがあった場合は数え上げる
