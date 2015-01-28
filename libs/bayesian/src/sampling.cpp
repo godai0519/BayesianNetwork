@@ -14,16 +14,16 @@ matrix_type sampling::operator()(
     auto const generated_patterns = generate_pattern(graph, 10000/*tmp*/, condition);
 
     // 数え上げを行う
-    bn::matrix_type result(node->selectable_num, 1, 0.0);
+    bn::matrix_type result(1, node->selectable_num, 0.0);
 	for(auto const& pattern : generated_patterns)
 	{
-		result[pattern.at(node)][0] += 1.0;
+		result[0][pattern.at(node)] += 1.0;
 	}
 	
 	// 全要素をパターン数で割る
 	for(std::size_t i = 0; i < node->selectable_num; ++i)
 	{
-		result[i][0] /= generated_patterns.size();
+		result[0][i] /= generated_patterns.size();
 	}
 	
     return result;
