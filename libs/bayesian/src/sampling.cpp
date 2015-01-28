@@ -4,17 +4,21 @@
 
 namespace bn {
 
+sampling::sampling(graph_t const& graph)
+    : graph_(graph)
+{
+}
+
 sampling::return_type sampling::operator()(
-    graph_t const& graph,
     std::vector<std::pair<vertex_type, int>> const& condition
     )
 {
     // パターン作る(generate_pattern)
-    auto const generated_patterns = generate_pattern(graph, 10000/*tmp*/, condition);
+    auto const generated_patterns = generate_pattern(10000/*tmp*/, condition);
 
     // 数え上げを行う
     sampling::return_type result;
-    for(auto const node : graph.vertex_list())
+    for(auto const node : graph_.vertex_list())
     {
         bn::matrix_type mat(1, node->selectable_num, 0.0);
 	    for(auto const& pattern : generated_patterns)
@@ -35,7 +39,6 @@ sampling::return_type sampling::operator()(
 }
 
 sampling::pattern_list sampling::generate_pattern(
-    graph_t const& graph,
     int const num,
     std::vector<std::pair<vertex_type, int>> const& condition
     )
@@ -56,7 +59,7 @@ sampling::pattern_list sampling::generate_pattern(
         };
 
     // 最初の要素をseed_node_listから削除したうえで再帰に移譲(当然ノードがなければ失敗)
-    auto const seed_node_list = graph.vertex_list();
+    auto const seed_node_list = graph_.vertex_list();
     if(seed_node_list.empty()) return {};
 
 
@@ -72,7 +75,7 @@ sampling::pattern_list sampling::generate_pattern(
             auto const first_node = node_list.back();
             node_list.pop_back();
 
-            choice_pattern(graph, first_node, node_list, pattern);
+            choice_pattern(first_node, node_list, pattern);
         }
 
 		if(is_condition(pattern))
@@ -85,7 +88,6 @@ sampling::pattern_list sampling::generate_pattern(
 }
 
 void sampling::choice_pattern(
-    graph_t const& graph,
     vertex_type const& current,
     std::vector<vertex_type>& remain_node,
     std::unordered_map<vertex_type, int>& pattern
@@ -94,9 +96,8 @@ void sampling::choice_pattern(
     // 上位ノードが決定していることを確認する．
     // 決定していなかった場合は再帰的処理
     std::unordered_map<vertex_type, int> parent_condition;
-    for(auto const& edge : graph.in_edges(current))
+    for(auto const& parent : graph_.in_vertexs(current))
     {
-        auto const parent = graph.source(edge);
         auto const position = std::find(remain_node.begin(), remain_node.end(), parent);
         if(position != remain_node.end())
         {
@@ -105,7 +106,7 @@ void sampling::choice_pattern(
             remain_node.erase(position);
 
             // 再帰
-            choice_pattern(graph, next_current, remain_node, pattern);
+            choice_pattern(next_current, remain_node, pattern);
         }
 
         parent_condition[parent] = pattern[parent];
