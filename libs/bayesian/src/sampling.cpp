@@ -10,11 +10,12 @@ sampling::sampling(graph_t const& graph)
 }
 
 sampling::return_type sampling::operator()(
-    std::vector<std::pair<vertex_type, int>> const& condition
+    std::vector<std::pair<vertex_type, int>> const& condition,
+    int const generate_sample_num
     )
 {
     // パターン作る(generate_pattern)
-    auto const generated_patterns = generate_pattern(10000/*tmp*/, condition);
+    auto const generated_patterns = generate_pattern(generate_sample_num, condition);
 
     // 数え上げを行う
     sampling::return_type result;

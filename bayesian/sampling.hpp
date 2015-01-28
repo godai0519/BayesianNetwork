@@ -14,8 +14,17 @@ public:
     explicit sampling(graph_t const& graph);
     virtual ~sampling() = default;
 
+    // By-pass
+    inline return_type operator()(int const generate_sample_num = 10000)
+    {
+        std::vector<std::pair<vertex_type, int>> const precondition;
+        return operator()(precondition, generate_sample_num);
+    }
+
+    // Run: Logic Sampling (a.k.a. Rejection Sampling)
     return_type operator()(
-        std::vector<std::pair<vertex_type, int>> const& condition
+        std::vector<std::pair<vertex_type, int>> const& precondition,
+        int const generate_sample_num = 10000
         );
 
 private:
