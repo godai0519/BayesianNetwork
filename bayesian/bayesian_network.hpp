@@ -15,28 +15,16 @@ public:
     // グラフをセットしないctor
     explicit bayesian_network();
 
-    // 引数のグラフをmove or copyで格納するctor
-    template<class T>
-    explicit bayesian_network(T && graph);
-
-    // グラフがセットされているかどうか
-    bool is_graph() const;
-    
-    // 引数のグラフをmove or copyで格納する
-    template<class T>
-    void set_graph(T && graph);
-   
-    // 登録されたグラフを削除する
-    void reset_graph();
-
-    // 現在格納されているグラフを返す
-    // is_graph() == falseのときは，空のグラフを返す
-    graph_t graph() const;
-
-    // 引数指定されたファイルから，データを読み込みCPTを生成する
+    // 引数指定されたファイルからデータを読み込み，データ系列をメンバ変数data_に格納する
+    // 引数: filename: タブ区切りのCSV
+    //       node_list: ファイルに記述されている順番を指定するvector
     // 成功した場合，trueが返される
-    // CPTはグラフの中，rawデータ系列はメンバ変数data_に格納される
-    bool load_cpt(std::string const& filename, std::vector<vertex_type> const& node_list);
+    bool load_data(std::string const& filename, std::vector<vertex_type> const& node_list);
+
+    // 事前に読みだしたCSVデータに従ってCPTを作成する
+    // 引数: 読み込みしたCPTを保存するgraph_t
+    // 成功した場合，trueが返される
+    bool load_cpt(graph_t const& graph);
 
     // load_cptされたrawデータ系列を返す
     std::vector<condition_t> data() const;
@@ -48,13 +36,7 @@ public:
         std::function<void(condition_t const&)> const& function
         );
 
-/*
-    template<class Func>
-    auto apply(Func const& f) -> decltype(f(graph_));
-*/
 private:
-    bool is_graph_ = false;
-    graph_t graph_;
     std::vector<condition_t> data_;
 };
 
@@ -63,45 +45,9 @@ bayesian_network<NodeType>::bayesian_network()
 {
 }
 
-template<class NodeType> template<class T>
-bayesian_network<NodeType>::bayesian_network(T && graph)
-{
-    set_graph(std::forward<T>(graph));
-}
-
 template<class NodeType>
-bool bayesian_network<NodeType>::is_graph() const
+bool bayesian_network<NodeType>::load_data(std::string const& filename, std::vector<vertex_type> const& node_list)
 {
-    return is_graph_;
-}
-
-template<class NodeType> template<class T>
-void bayesian_network<NodeType>::set_graph(T && graph)
-{
-    is_graph_ = true;
-    graph_ = std::forward<T>(graph);
-}
-
-template<class NodeType>
-void bayesian_network<NodeType>::reset_graph()
-{
-    is_graph_ = false;
-    graph_.swap(graph_t());
-}
-
-template<class NodeType>
-graph_t bayesian_network<NodeType>::graph() const
-{
-    if(is_graph()) return graph_;
-    else return graph_t();
-}
-
-template<class NodeType>
-bool bayesian_network<NodeType>::load_cpt(std::string const& filename, std::vector<vertex_type> const& node_list)
-{
-    // グラフがセットされていなかった場合はエラー
-    if(!is_graph()) return false;
-
     // オープンして確認
     std::ifstream ifs(filename);
     if(!ifs.is_open()) return false;
@@ -121,8 +67,18 @@ bool bayesian_network<NodeType>::load_cpt(std::string const& filename, std::vect
             );
         data_.push_back(std::move(cond));
     }
-    
-    for(auto const& node : node_list)
+
+    return true;
+}
+
+template<class NodeType>
+bool bayesian_network<NodeType>::load_cpt(graph_t const& graph)
+{
+    // データが読み込みされていない可能性がある
+    if(data_.size() == 0) return false;
+
+    // 読み込みを行う
+    for(auto const& node : graph_.vertex_list())
     {
         auto const in_vertex = graph_.in_vertexs(node);
         node->cpt.assign(in_vertex, node); // CPTの初期化
@@ -191,14 +147,6 @@ void bayesian_network<NodeType>::all_combination_pattern(
 
     recursive(combination.cbegin(), combination.cend());
 }
-
-/*
-template<class NodeType> template<class Func>
-auto bayesian_network<NodeType>::apply(Func const& f) -> decltype(f(graph_))
-{
-    return f(graph);
-}
-*/
 
 } // namespace bn
 
