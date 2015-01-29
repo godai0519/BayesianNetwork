@@ -15,7 +15,7 @@ std::vector<std::string> stream_to_lines(InputStream& is)
     std::string line;
     while(std::getline(is, line))
     {
-        if(line.back() == '¥r') line.pop_back();
+        if(!line.empty() && line.back() == '¥r') line.pop_back();
         result.push_back(line);
     }
 
