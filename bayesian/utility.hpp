@@ -15,15 +15,15 @@ std::vector<std::string> stream_to_lines(InputStream& is)
     std::string line;
     while(std::getline(is, line))
     {
-        if(line.back() == '\r') line.pop_back();
+        if(line.back() == 'Â¥r') line.pop_back();
         result.push_back(line);
     }
 
     return result;
 }
 
-// templateg‚Á‚Ä‘‚«‚½‚³‚µ‚©‚È‚¢
-// ‚Â[‚©ƒSƒŠ‰Ÿ‚µ
+// templateä½¿ã£ã¦æ›¸ããŸã•ã—ã‹ãªã„
+// ã¤ãƒ¼ã‹ã‚´ãƒªæŠ¼ã—
 class dsc {
 public:
     graph_t parse(std::vector<std::string> data);

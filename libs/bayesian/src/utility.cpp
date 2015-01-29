@@ -9,7 +9,7 @@ namespace io {
 
 graph_t dsc::parse(std::vector<std::string> data)
 {
-    // ‹ós‚Ìíœ‹y‚Ñs“ª‚Ì‹ó”’‚ğíœ
+    // ç©ºè¡Œã®å‰Šé™¤åŠã³è¡Œé ­ã®ç©ºç™½ã‚’å‰Šé™¤
     data.erase(std::remove_if(data.begin(), data.end(), [](std::string const& str){ return str.empty(); }), data.end());
     for(auto& str : data) // boost::algorithm::trim
     {
@@ -26,7 +26,7 @@ graph_t dsc::parse(std::vector<std::string> data)
     auto const end = data.end();
     while(it != end)
     {
-        // ‚Ü‚¾switchƒpƒ^[ƒ“g‚Á‚½‚Ù‚¤‚ª‚Ü‚Æ‚à‚¾‚í
+        // ã¾ã switchãƒ‘ã‚¿ãƒ¼ãƒ³ä½¿ã£ãŸã»ã†ãŒã¾ã¨ã‚‚ã ã‚
         if(it->substr(0, 14) == "belief network")
         {
             parse_header(it, end);
@@ -66,23 +66,23 @@ void dsc::parse_header(LineIterator& it, LineIterator const& end)
     std::string key = it->substr(16); // key"
     key.pop_back();  // key
 
-    // TODO: Graph name(key)‚Ìg‚¢•û
+    // TODO: Graph name(key)ã®ä½¿ã„æ–¹
 
     ++it;
 }
 
 void dsc::parse_node(LineIterator& it, LineIterator const& end)
 {
-    // 1s–Ú
+    // 1è¡Œç›®
     assert(it->substr(0, 4) == "node");
     std::string const node_name = it->substr(5);
     dictionary_[node_name] = graph_.add_vertex();
     ++it;
 
-    // 2s–Ú({)
+    // 2è¡Œç›®({)
     ++it;
 
-    // 3s–ÚˆÈ~
+    // 3è¡Œç›®ä»¥é™
     while(*it != "}")
     {
         if(it->substr(0, 2) == "//")
@@ -124,7 +124,7 @@ std::vector<std::string> spirit(std::string const& str, std::string const& delim
 
 void dsc::parse_cpt(LineIterator& it, LineIterator const& end)
 {
-    // 1s–Ú
+    // 1è¡Œç›®
     assert(it->substr(0, 11) == "probability");
 
     std::string condition_str = it->substr(12);
@@ -147,10 +147,10 @@ void dsc::parse_cpt(LineIterator& it, LineIterator const& end)
     target_node->cpt.assign(cond_nodes, target_node);
     ++it;
 
-    // 2s–Ú
+    // 2è¡Œç›®
     ++it;
     
-    // 3s–ÚˆÈ~
+    // 3è¡Œç›®ä»¥é™
     condition_t cond;
     if(cond_nodes.empty())
     {
