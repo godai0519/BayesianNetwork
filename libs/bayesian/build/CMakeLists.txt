@@ -20,8 +20,13 @@ add_library(sampling STATIC
   ../src/sampling.cpp
 )
 
+add_library(utility STATIC
+  ../src/utility.cpp
+)
+
 install(TARGETS bp DESTINATION lib)
 install(TARGETS graph DESTINATION lib)
 install(TARGETS cpt DESTINATION lib)
 install(TARGETS matrix DESTINATION lib)
 install(TARGETS sampling DESTINATION lib)
+install(TARGETS utility DESTINATION lib)
