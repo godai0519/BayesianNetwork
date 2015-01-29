@@ -52,6 +52,11 @@ std::vector<vertex_type> const& graph_t::vertex_list() const
     return vertex_list_;
 }
 
+std::vector<edge_type> const& graph_t::edge_list() const
+{
+    return edge_list_;
+}
+
 vertex_type graph_t::add_vertex()
 {
     // 登録
@@ -107,7 +112,40 @@ bool graph_t::erase_edge(edge_type const& e)
     auto index = edge_search(e);
     if(index.first >= vertex_list_.size() || index.second >= vertex_list_.size()) return false;
 
+    edge_list_.erase(std::remove(edge_list_.begin(), edge_list_.end(), e), edge_list_.end());
     adjacent_list_[index.first][index.second] = nullptr;
+    return true;
+}
+
+bool graph_t::erase_all_vertex()
+{
+    vertex_list_.clear();
+    edge_list_.clear();
+    adjacent_list_.clear();
+    return true;
+}
+
+bool graph_t::erase_all_edge()
+{
+    edge_list_.clear();
+    adjacent_list_.assign(vertex_list_.size(), std::vector<edge_type>(vertex_list_.size(), nullptr));
+    return true;
+}
+
+bool graph_t::change_edge_direction(edge_type const& e)
+{
+    auto to   = target(e);
+    auto from = source(e);
+
+    if (erase_edge(e) == false)
+        return false;
+
+    if (add_edge(to, from) == nullptr)
+    {
+        //ダメだったら戻す
+        add_edge(from, to);
+        return false;
+    }
     return true;
 }
 
