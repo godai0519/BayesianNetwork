@@ -114,7 +114,7 @@ std::vector<std::string> spirit(std::string const& str, std::string const& delim
     for(std::string::size_type pos = 0; true;)
     {
         auto const next = str.find(delim, pos);
-        res.push_back(str.substr(pos, next));
+        res.push_back(str.substr(pos, next - pos));
 
         if(next == std::string::npos) break;
         pos = next + delim.size();
