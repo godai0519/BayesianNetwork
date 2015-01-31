@@ -18,6 +18,13 @@ public:
     // Run: Likelihood Weighting
     return_type operator() (evidence_list const& evidence, std::uint64_t const sample_num = 10000);
 
+    // Make: accurate sample
+    std::pair<std::vector<pattern_list>, return_type> make_samples(
+        evidence_list const& evidence,
+        std::uint64_t const unit_size = 1000000/* 1'000'000 */,
+        double const epsilon = 0.001
+        );
+
 private:
     // Make a sample according to evidence node
     // evidenceノードに従って，1サンプルを作成する
@@ -29,7 +36,7 @@ private:
 
     // Normalization Σ[i,j](a_ij) = 1
     // (重複)
-    matrix_type& normalize(matrix_type& target) const;
+    matrix_type normalize(matrix_type target) const;
     
     // 乱数生成器
     class probability_generator {
