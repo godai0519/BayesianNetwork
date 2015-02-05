@@ -37,10 +37,68 @@ auto likelihood_weighting::operator() (evidence_list const& evidence, std::uint6
     // Normalization
     for(auto const& node : graph_.vertex_list())
     {
-        normalize(ret[node]);
+        ret[node] = normalize(ret[node]);
     }
 
     return ret;
+}
+
+auto likelihood_weighting::make_samples(
+    evidence_list const& evidence,
+    std::uint64_t const unit_size,
+    double const epsilon,
+    std::function<void(std::vector<pattern_list>&)> handler
+    ) -> std::pair<std::vector<pattern_list>, return_type>
+{
+    std::vector<pattern_list> patterns;
+    return_type w_list;
+    return_type probabilities;
+
+    // Initialize
+    patterns.reserve(unit_size);
+    for(auto const& node : graph_.vertex_list())
+    {
+        w_list[node].resize(1, node->selectable_num, 0.0);
+        probabilities[node].resize(1, node->selectable_num, 0.0);
+    }
+
+    while(true)
+    {
+        // Generate one unit
+        for(std::uint64_t i = 0; i < unit_size; ++i)
+        {
+            auto const sample = weighted_sample(evidence);
+            pattern_list const& pattern = sample.first;
+            double const& w = sample.second;
+        
+            for(auto const& node : graph_.vertex_list())
+            {
+                auto const node_select = pattern.at(node);
+                w_list[node][0][node_select] += w;
+            }
+
+            patterns.push_back(pattern);
+        }
+
+        handler(patterns);
+        
+        double max_difference = std::numeric_limits<double>::min();
+        for(auto const& node : graph_.vertex_list())
+        {
+            auto& old_probability = probabilities[node];
+            auto next_probability = normalize(w_list[node]);
+            for(std::size_t i = 0; i < next_probability.width(); ++i)
+            {
+                max_difference = std::max(max_difference, std::abs(old_probability[0][i] - next_probability[0][i]));
+            }
+
+            old_probability = std::move(next_probability);
+        }
+
+        if(max_difference < epsilon) break;
+    }
+
+    return std::make_pair(patterns, probabilities);
 }
 
 auto likelihood_weighting::weighted_sample(evidence_list const& evidence) -> std::pair<pattern_list, double>
@@ -114,7 +172,7 @@ int likelihood_weighting::make_random_by_weight(double const value, std::vector<
     return weight.size() - 1;
 }
 
-matrix_type& likelihood_weighting::normalize(matrix_type& target) const
+matrix_type likelihood_weighting::normalize(matrix_type target) const
 {
     double sum = 0;
 
