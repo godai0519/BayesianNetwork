@@ -46,7 +46,8 @@ auto likelihood_weighting::operator() (evidence_list const& evidence, std::uint6
 auto likelihood_weighting::make_samples(
     evidence_list const& evidence,
     std::uint64_t const unit_size,
-    double const epsilon
+    double const epsilon,
+    std::function<void(std::vector<pattern_list>&)> handler
     ) -> std::pair<std::vector<pattern_list>, return_type>
 {
     std::vector<pattern_list> patterns;
@@ -54,6 +55,7 @@ auto likelihood_weighting::make_samples(
     return_type probabilities;
 
     // Initialize
+    patterns.reserve(unit_size);
     for(auto const& node : graph_.vertex_list())
     {
         w_list[node].resize(1, node->selectable_num, 0.0);
@@ -77,6 +79,8 @@ auto likelihood_weighting::make_samples(
 
             patterns.push_back(pattern);
         }
+
+        handler(patterns);
         
         double max_difference = std::numeric_limits<double>::min();
         for(auto const& node : graph_.vertex_list())

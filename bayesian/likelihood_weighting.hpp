@@ -21,8 +21,9 @@ public:
     // Make: accurate sample
     std::pair<std::vector<pattern_list>, return_type> make_samples(
         evidence_list const& evidence,
-        std::uint64_t const unit_size = 1000000/* 1'000'000 */,
-        double const epsilon = 0.001
+        std::uint64_t const unit_size/* = 1000000/* 1'000'000 */,
+        double const epsilon/* = 0.001*/,
+        std::function<void(std::vector<pattern_list>&)> handler
         );
 
 private:
