@@ -153,7 +153,7 @@ bp::return_type bp::operator()(std::unordered_map<vertex_type, matrix_type> cons
     return result;
 }
 
-matrix_type& bp::normalize(matrix_type& target) const
+matrix_type bp::normalize(matrix_type target) const
 {
     double sum = 0;
 

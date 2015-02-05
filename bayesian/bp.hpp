@@ -37,7 +37,7 @@ private:
         ) const;
 
     // matrixに存在するすべての数の和が1になるように正規化する
-    matrix_type& normalize(matrix_type& target) const;
+    matrix_type normalize(matrix_type target) const;
 
     // 引数のノードが事前条件ノードであるかどうか確認する
     bool is_preconditional_node(vertex_type const& node) const;
