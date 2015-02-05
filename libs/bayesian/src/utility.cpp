@@ -14,7 +14,7 @@ graph_t dsc::parse(std::vector<std::string> data)
     for(auto& str : data) // boost::algorithm::trim
     {
         auto it = str.begin();
-        while(it != str.end() && !std::isprint(*it)) ++it;
+        while(it != str.end() && (!std::isprint(*it) || std::isspace(*it))) ++it;
         str.erase(str.begin(), it);
     }
 
