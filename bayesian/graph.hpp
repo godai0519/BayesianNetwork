@@ -43,6 +43,7 @@ public:
 #endif
 
     std::vector<vertex_type> const& vertex_list() const;
+    std::vector<edge_type> const& edge_list() const;
 
     // 頂点を生成し，そのshared_ptrを返す
     // 必ず成功する
@@ -61,6 +62,15 @@ public:
     // 引数を元に一致する辺を削除する
     // 削除に成功した場合はtrueを返却する
     bool erase_edge(edge_type const& e);
+
+    // 全ての頂点を削除する(付随的にerase_all_edgeも起こる)
+    bool erase_all_vertex();
+
+    // 全ての辺を削除する
+    bool erase_all_edge();
+
+    // 引数で指定された辺を逆向きにする
+    bool change_edge_direction(edge_type const& e);
 
     // 引数の頂点から出て行く辺を列挙する
     std::vector<edge_type> out_edges(vertex_type const& from) const;
