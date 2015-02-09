@@ -11,9 +11,8 @@ project bayesian :
 
 lib graph : libs/bayesian/src/graph.cpp : <link>static ;
 lib cpt : libs/bayesian/src/cpt.cpp : <link>static ;
-lib utility : libs/bayesian/src/utility.cpp : <link>static ;
 
 install build-libs
-    : graph cpt utility
+    : graph cpt
     : <location>../../../lib
     ;
