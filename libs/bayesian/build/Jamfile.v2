@@ -13,11 +13,11 @@ lib matrix : libs/bayesian/src/matrix.cpp : <link>static ;
 lib graph : libs/bayesian/src/graph.cpp : <link>static ;
 lib cpt : libs/bayesian/src/cpt.cpp : <link>static ;
 lib belief_propagation : libs/bayesian/src/belief_propagation.cpp : <link>static ;
-lib sampling : libs/bayesian/src/sampling.cpp : <link>static ;
+lib rejection_sampling : libs/bayesian/src/rejection_sampling.cpp : <link>static ;
 lib likelihood_weighting : libs/bayesian/src/likelihood_weighting.cpp : <link>static ;
 lib utility : libs/bayesian/src/utility.cpp : <link>static ;
 
 install build-libs
-    : matrix graph cpt belief_propagation sampling likelihood_weighting utility
+    : matrix graph cpt belief_propagation rejection_sampling likelihood_weighting utility
     : <location>../../../lib
     ;

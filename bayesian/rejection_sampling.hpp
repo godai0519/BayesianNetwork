@@ -6,13 +6,13 @@
 
 namespace bn {
 
-class sampling {
+class rejection_sampling {
 public:
     typedef std::unordered_map<vertex_type, matrix_type> return_type;
     typedef std::vector<std::unordered_map<vertex_type, int>> pattern_list;
 
-    explicit sampling(graph_t const& graph);
-    virtual ~sampling() = default;
+    explicit rejection_sampling(graph_t const& graph);
+    virtual ~rejection_sampling() = default;
 
     // By-pass
     inline return_type operator()(int const generate_sample_num = 10000)
@@ -58,4 +58,3 @@ private:
 } // namespace bn
 
 #endif // #ifndef BNI_SAMPLING_HPP
-

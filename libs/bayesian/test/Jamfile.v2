@@ -14,4 +14,4 @@ run matrix.cpp /bayesian ;
 run graph.cpp /bayesian ;
 run cpt.cpp /bayesian ;
 run belief_propagation.cpp /bayesian ;
-run sampling.cpp /bayesian ;
+run rejection_sampling.cpp /bayesian ;

@@ -1,15 +1,15 @@
 #include <algorithm>
 #include "bayesian/graph.hpp"
-#include "bayesian/sampling.hpp"
+#include "bayesian/rejection_sampling.hpp"
 
 namespace bn {
 
-sampling::sampling(graph_t const& graph)
+rejection_sampling::rejection_sampling(graph_t const& graph)
     : graph_(graph)
 {
 }
 
-sampling::return_type sampling::operator()(
+rejection_sampling::return_type rejection_sampling::operator()(
     std::vector<std::pair<vertex_type, int>> const& condition,
     int const generate_sample_num
     )
@@ -18,7 +18,7 @@ sampling::return_type sampling::operator()(
     auto const generated_patterns = generate_pattern(generate_sample_num, condition);
 
     // 数え上げを行う
-    sampling::return_type result;
+    rejection_sampling::return_type result;
     for(auto const node : graph_.vertex_list())
     {
         bn::matrix_type mat(1, node->selectable_num, 0.0);
@@ -26,7 +26,7 @@ sampling::return_type sampling::operator()(
 	    {
 		    mat[0][pattern.at(node)] += 1.0;
 	    }
-	
+
 	    // 全要素をパターン数で割る
 	    for(std::size_t i = 0; i < node->selectable_num; ++i)
 	    {
@@ -35,11 +35,11 @@ sampling::return_type sampling::operator()(
 
         result[node] = std::move(mat);
     }
-	
+
     return result;
 }
 
-sampling::pattern_list sampling::generate_pattern(
+rejection_sampling::pattern_list rejection_sampling::generate_pattern(
     int const num,
     std::vector<std::pair<vertex_type, int>> const& condition
     )
@@ -70,7 +70,7 @@ sampling::pattern_list sampling::generate_pattern(
     {
         auto node_list = seed_node_list;
 		std::unordered_map<vertex_type, int> pattern;
-		
+
         while(!node_list.empty())
         {
             auto const first_node = node_list.back();
@@ -88,7 +88,7 @@ sampling::pattern_list sampling::generate_pattern(
     return result;
 }
 
-void sampling::choice_pattern(
+void rejection_sampling::choice_pattern(
     vertex_type const& current,
     std::vector<vertex_type>& remain_node,
     std::unordered_map<vertex_type, int>& pattern
@@ -142,7 +142,7 @@ void sampling::choice_pattern(
     return;
 }
 
-sampling::probability_generator::probability_generator()
+rejection_sampling::probability_generator::probability_generator()
     : distribution_(0.0, 1.0)
 {
     std::random_device rand_dev;
@@ -152,10 +152,9 @@ sampling::probability_generator::probability_generator()
     engine_.reset(new std::mt19937(seed));
 }
 
-double sampling::probability_generator::operator() ()
+double rejection_sampling::probability_generator::operator() ()
 {
     return distribution_(*engine_);
 }
 
 } // namespace bn
-
