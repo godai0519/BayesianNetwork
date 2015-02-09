@@ -107,4 +107,3 @@ std::pair<bool, std::vector<double> const&> cpt_t::operator[] (condition_t const
 
 
 } // namespace bn
-

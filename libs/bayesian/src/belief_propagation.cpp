@@ -36,14 +36,14 @@ belief_propagation::return_type belief_propagation::operator()(std::unordered_ma
         lambda_[node].resize(1, node->selectable_num, 1.0);
 
         // Initialize π-message (親ノードとのメッセージの初期値)
-        for(auto const& parent : graph_.in_vertexs(node))
+        for(auto const& parent : graph_.in_vertexes(node))
         {
             auto& pi_i = pi_i_[node][parent];
             pi_i.resize(1, parent->selectable_num, 1.0);
         }
 
         // Initialize λ-message (子ノードとのメッセージの初期値)
-        for(auto const& child : graph_.out_vertexs(node))
+        for(auto const& child : graph_.out_vertexes(node))
         {
             auto& lambda_k = lambda_k_[child][node];
             lambda_k.resize(1, node->selectable_num, 1.0);
@@ -72,11 +72,11 @@ belief_propagation::return_type belief_propagation::operator()(std::unordered_ma
         // Update message (メッセージの更新)
         for(auto const& node : graph_.vertex_list())
         {
-            for(auto const& parent : graph_.in_vertexs(node))
+            for(auto const& parent : graph_.in_vertexes(node))
             {
                 calculate_pi_i(node, parent);
             }
-            for(auto const& child : graph_.out_vertexs(node))
+            for(auto const& child : graph_.out_vertexes(node))
             {
                 calculate_lambda_k(child, node);
             }
@@ -101,7 +101,7 @@ belief_propagation::return_type belief_propagation::operator()(std::unordered_ma
         for(auto const& node : graph_.vertex_list())
         {
             // π-message
-            for(auto const& parent : graph_.in_vertexs(node))
+            for(auto const& parent : graph_.in_vertexes(node))
             {
                 for(std::size_t i = 0; i < parent->selectable_num; ++i)
                 {
@@ -113,7 +113,7 @@ belief_propagation::return_type belief_propagation::operator()(std::unordered_ma
             }
 
             // λ-message
-            for(auto const& child : graph_.out_vertexs(node))
+            for(auto const& child : graph_.out_vertexes(node))
             {
                 for(std::size_t i = 0; i < node->selectable_num; ++i)
                 {
@@ -173,18 +173,18 @@ void belief_propagation::calculate_pi(vertex_type const& target)
     // 事前条件ノードならば更新をしない
     if(is_preconditional_node(target)) return;
 
-    auto const in_vertexs = graph_.in_vertexs(target);
+    auto const in_vertexes = graph_.in_vertexes(target);
 
     matrix_type matrix(1, target->selectable_num, 0.0);
     all_combination_pattern(
-        in_vertexs,
+        in_vertexes,
         [&](condition_t const& condition)
         {
             auto const& cpt_data = target->cpt[condition].second;
             for(int i = 0; i < target->selectable_num; ++i)
             {
                 double value = cpt_data[i];
-                for(auto const& xi : in_vertexs)
+                for(auto const& xi : in_vertexes)
                 {
                     value *= pi_i_[target][xi][0][condition.at(xi)];
                 }
@@ -198,13 +198,13 @@ void belief_propagation::calculate_pi(vertex_type const& target)
 
 void belief_propagation::calculate_pi_i(vertex_type const& from, vertex_type const& target)
 {
-    auto out_vertexs = graph_.out_vertexs(target);
-    out_vertexs.erase(std::find(out_vertexs.cbegin(), out_vertexs.cend(), from));
+    auto out_vertexes = graph_.out_vertexes(target);
+    out_vertexes.erase(std::find(out_vertexes.cbegin(), out_vertexes.cend(), from));
 
     matrix_type matrix = pi_[target];
     for(int i = 0; i < target->selectable_num; ++i)
     {
-        for(auto const& xj : out_vertexs)
+        for(auto const& xj : out_vertexes)
         {
             matrix[0][i] *= lambda_k_[xj][target][0][i];
         }
@@ -219,12 +219,12 @@ void belief_propagation::calculate_lambda(vertex_type const& target)
     // 事前条件ノードならば更新をしない
     if(is_preconditional_node(target)) return;
 
-    auto const out_vertexs = graph_.out_vertexs(target);
+    auto const out_vertexes = graph_.out_vertexes(target);
 
     matrix_type matrix(1, target->selectable_num, 1.0);
     for(int i = 0; i < target->selectable_num; ++i)
     {
-        for(auto const& xi : out_vertexs)
+        for(auto const& xi : out_vertexes)
         {
             matrix[0][i] *= lambda_k_[xi][target][0][i];
         }
@@ -236,14 +236,14 @@ void belief_propagation::calculate_lambda(vertex_type const& target)
 
 void belief_propagation::calculate_lambda_k(vertex_type const& from, vertex_type const& target)
 {
-    auto const in_vertexs = graph_.in_vertexs(from);
+    auto const in_vertexes = graph_.in_vertexes(from);
 
     matrix_type matrix(1, target->selectable_num, 0.0);
     for(int i = 0; i < from->selectable_num; ++i)
     {
         auto const times = lambda_[from][0][i];
         all_combination_pattern(
-            in_vertexs,
+            in_vertexes,
             [&](condition_t const& cond)
             {
                 double value = times * from->cpt[cond].second[i];

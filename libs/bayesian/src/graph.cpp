@@ -3,7 +3,7 @@
 #include "bayesian/graph.hpp"
 
 namespace bn {
-    
+
 graph_t& graph_t::operator=(graph_t const& rhs)
 {
     graph_t(rhs).swap(*this);
@@ -164,7 +164,7 @@ std::vector<edge_type> graph_t::out_edges(vertex_type const& from) const
     return ret;
 }
 
-std::vector<vertex_type> graph_t::out_vertexs(vertex_type const& from) const
+std::vector<vertex_type> graph_t::out_vertexes(vertex_type const& from) const
 {
     std::vector<vertex_type> ret;
     for(auto const& edge : out_edges(from))
@@ -189,7 +189,7 @@ std::vector<edge_type> graph_t::in_edges(vertex_type const& to) const
     return ret;
 }
 
-std::vector<vertex_type> graph_t::in_vertexs(vertex_type const& to) const
+std::vector<vertex_type> graph_t::in_vertexes(vertex_type const& to) const
 {
     std::vector<vertex_type> ret;
     for(auto const& edge : in_edges(to))
@@ -221,7 +221,7 @@ bool graph_t::is_able_trace(vertex_type const& from, vertex_type const& to) cons
 {
     if(from == to) return true;
 
-    auto const children = out_vertexs(from);
+    auto const children = out_vertexes(from);
     auto const result = std::any_of(
         children.cbegin(), children.cend(),
         [this, &to](vertex_type const& next)
@@ -255,4 +255,3 @@ std::pair<std::size_t, std::size_t> graph_t::edge_search(edge_type const& edge) 
 }
 
 } // namespace bn
-

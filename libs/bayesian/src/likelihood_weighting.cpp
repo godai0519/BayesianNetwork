@@ -26,14 +26,14 @@ auto likelihood_weighting::operator() (evidence_list const& evidence, std::uint6
         auto const sample = weighted_sample(evidence);
         pattern_list const& pattern = sample.first;
         double const& w = sample.second;
-        
+
         for(auto const& node : graph_.vertex_list())
         {
             auto const node_select = pattern.at(node);
             ret[node][0][node_select] += w;
         }
     }
-    
+
     // Normalization
     for(auto const& node : graph_.vertex_list())
     {
@@ -70,7 +70,7 @@ auto likelihood_weighting::make_samples(
             auto const sample = weighted_sample(evidence);
             pattern_list const& pattern = sample.first;
             double const& w = sample.second;
-        
+
             for(auto const& node : graph_.vertex_list())
             {
                 auto const node_select = pattern.at(node);
@@ -81,7 +81,7 @@ auto likelihood_weighting::make_samples(
         }
 
         handler(patterns);
-        
+
         double max_difference = std::numeric_limits<double>::min();
         for(auto const& node : graph_.vertex_list())
         {
@@ -112,7 +112,7 @@ auto likelihood_weighting::weighted_sample(evidence_list const& evidence) -> std
         {
             condition_t parent_cond;
 
-            for(auto const& parent : graph_.in_vertexs(target))
+            for(auto const& parent : graph_.in_vertexes(target))
             {
                 // 親がまだ設定されていなければ再帰
                 auto const it = std::find(remain_node.cbegin(), remain_node.cend(), parent);
@@ -125,7 +125,7 @@ auto likelihood_weighting::weighted_sample(evidence_list const& evidence) -> std
                 // 条件追加
                 parent_cond[parent] = pattern[parent];
             }
-            
+
             // evidenceに含まれれば or 含まれなければ乱数
             auto const evidence_it = evidence.find(target);
             if(evidence_it != evidence.end())
@@ -203,4 +203,3 @@ double likelihood_weighting::probability_generator::operator() ()
 }
 
 } // namespace bn
-

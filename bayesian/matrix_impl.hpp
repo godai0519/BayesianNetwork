@@ -24,7 +24,7 @@ matrix_type operator*(matrix_type const& rhs, T const& lhs)
     return result;
 }
 
-// delegate "integer * matrix" to "matrix * integer" 
+// delegate "integer * matrix" to "matrix * integer"
 template<class T>
 matrix_type operator*(T const& lhs, matrix_type const& rhs)
 {
@@ -32,4 +32,3 @@ matrix_type operator*(T const& lhs, matrix_type const& rhs)
 }
 
 #endif // #ifndef BNI_MATRIX_IMPL_HPP
-

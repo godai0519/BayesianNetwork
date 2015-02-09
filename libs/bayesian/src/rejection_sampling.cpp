@@ -97,7 +97,7 @@ void rejection_sampling::choice_pattern(
     // 上位ノードが決定していることを確認する．
     // 決定していなかった場合は再帰的処理
     std::unordered_map<vertex_type, int> parent_condition;
-    for(auto const& parent : graph_.in_vertexs(current))
+    for(auto const& parent : graph_.in_vertexes(current))
     {
         auto const position = std::find(remain_node.begin(), remain_node.end(), parent);
         if(position != remain_node.end())

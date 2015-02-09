@@ -95,7 +95,7 @@ bool bayesian_network<NodeType>::load_cpt(graph_t const& graph)
     // 読み込みを行う
     for(auto const& node : graph.vertex_list())
     {
-        auto const in_vertex = graph.in_vertexs(node);
+        auto const in_vertex = graph.in_vertexes(node);
         node->cpt.assign(in_vertex, node); // CPTの初期化
 
         // 親ノードのすべての組み合わせに対し，ループを回し，該当するサンプルがあった場合は数え上げる
@@ -118,7 +118,7 @@ bool bayesian_network<NodeType>::load_cpt(graph_t const& graph)
                         node_counter[sample.at(node)] += 1.0;
                     }
                 }
-                
+
                 for(std::size_t i = 0; i < cpt.size(); ++i)
                 {
                     if(count != 0) cpt[i] = (double)node_counter[i] / count;
@@ -135,7 +135,7 @@ bool bayesian_network<NodeType>::load_cpt_by_save_memory(std::string const& file
      // CPTの初期化
     for(auto const& node : graph.vertex_list())
     {
-        auto const in_vertex = graph.in_vertexs(node);
+        auto const in_vertex = graph.in_vertexes(node);
         node->cpt.assign(in_vertex, node);
     }
 
@@ -144,7 +144,7 @@ bool bayesian_network<NodeType>::load_cpt_by_save_memory(std::string const& file
     std::unordered_map<vertex_type, std::unordered_map<condition_t, int>> counter;
     for(auto const& node : graph.vertex_list())
     {
-        auto const in_vertex = graph.in_vertexs(node);
+        auto const in_vertex = graph.in_vertexes(node);
         all_combination_pattern(
             in_vertex,
             [&node, &counter, &match_counter](condition_t const& condition)
@@ -157,7 +157,7 @@ bool bayesian_network<NodeType>::load_cpt_by_save_memory(std::string const& file
     // ファイルオープン
     std::ifstream ifs(filename);
     if(!ifs.is_open()) return false;
-    
+
     // 1行ずつサンプリング
     std::string line_str;
     while(std::getline(ifs, line_str))
@@ -169,10 +169,10 @@ bool bayesian_network<NodeType>::load_cpt_by_save_memory(std::string const& file
             std::inserter(sample, sample.begin()),
             [](vertex_type const& node, std::string const& str){ return std::make_pair(node, std::stoi(str)); }
             );
-        
+
         for(auto const& node : graph.vertex_list())
         {
-            auto const in_vertex = graph.in_vertexs(node);
+            auto const in_vertex = graph.in_vertexes(node);
             all_combination_pattern(
                 in_vertex,
                 [&sample, &node, &counter, &match_counter](condition_t const& condition) -> void
@@ -193,7 +193,7 @@ bool bayesian_network<NodeType>::load_cpt_by_save_memory(std::string const& file
 
     for(auto const& node : graph.vertex_list())
     {
-        auto const in_vertex = graph.in_vertexs(node);
+        auto const in_vertex = graph.in_vertexes(node);
         all_combination_pattern(
             in_vertex,
             [&node, &counter, &match_counter](condition_t const& condition)
@@ -247,4 +247,3 @@ void bayesian_network<NodeType>::all_combination_pattern(
 } // namespace bn
 
 #endif // #ifndef BNI_BAYESIAN_NETWORK_HPP
-

@@ -76,13 +76,13 @@ public:
     std::vector<edge_type> out_edges(vertex_type const& from) const;
 
     // 引数の頂点から出て行く隣接頂点を列挙する
-    std::vector<vertex_type> out_vertexs(vertex_type const& from) const;
+    std::vector<vertex_type> out_vertexes(vertex_type const& from) const;
 
     // 引数の頂点へ入っていく辺を列挙する
     std::vector<edge_type> in_edges(vertex_type const& to) const;
 
     // 引数の頂点へ入っていく隣接頂点を列挙する
-    std::vector<vertex_type> in_vertexs(vertex_type const& to) const;
+    std::vector<vertex_type> in_vertexes(vertex_type const& to) const;
 
     // 辺の先を探す
     vertex_type source(edge_type const& edge) const;
@@ -111,4 +111,3 @@ private:
 } // namespace bn
 
 #endif // #ifndef BNI_MATRIX_HPP
-
