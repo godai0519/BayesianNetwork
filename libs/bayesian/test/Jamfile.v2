@@ -7,7 +7,9 @@ project matrix_test :
     requirements
         <include>../../../
         <include>$(BOOST_ROOT)
-        <library>../build//matrix
+        <library>../build//graph
+        <library>../build//cpt
+        <library>../build//utility
     ;
 
 run matrix.cpp /bayesian ;

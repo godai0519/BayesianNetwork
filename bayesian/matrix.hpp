@@ -131,10 +131,31 @@ private:
 
 } // namespace bn
 
-// 行列同士・行列と整数の積(定義)
-template<class T> bn::matrix_type operator*(bn::matrix_type const& rhs, T const& lhs);
-template<class T> bn::matrix_type operator*(T const& lhs, bn::matrix_type const& rhs);
+namespace {
+    using bn::matrix_type;
+}
 
-#include "matrix_impl.hpp"
+// 行列の整数倍
+template<class T>
+matrix_type operator*(matrix_type const& rhs, T const& lhs)
+{
+    // after copy, process all elem
+    auto result = rhs;
+    for(std::size_t i = 0; i < result.height(); ++i)
+    {
+        for(std::size_t j = 0; j < result.width(); ++j)
+        {
+            result[i][j] *= lhs;
+        }
+    }
+    return result;
+}
+
+// delegate "integer * matrix" to "matrix * integer"
+template<class T>
+matrix_type operator*(T const& lhs, matrix_type const& rhs)
+{
+    return rhs * lhs;
+}
 
 #endif // #ifndef BNI_MATRIX_HPP

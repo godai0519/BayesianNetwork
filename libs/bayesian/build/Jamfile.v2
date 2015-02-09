@@ -9,12 +9,11 @@ project bayesian :
     : source-location ../../../
     ;
 
-lib matrix : libs/bayesian/src/matrix.cpp : <link>static ;
 lib graph : libs/bayesian/src/graph.cpp : <link>static ;
 lib cpt : libs/bayesian/src/cpt.cpp : <link>static ;
 lib utility : libs/bayesian/src/utility.cpp : <link>static ;
 
 install build-libs
-    : matrix graph cpt utility
+    : graph cpt utility
     : <location>../../../lib
     ;
