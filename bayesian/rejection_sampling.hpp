@@ -1,5 +1,5 @@
-#ifndef BNI_SAMPLING_HPP
-#define BNI_SAMPLING_HPP
+#ifndef BNI_REJECTION_SAMPLING_HPP
+#define BNI_REJECTION_SAMPLING_HPP
 
 #include <random>
 #include "graph.hpp"
@@ -57,4 +57,4 @@ private:
 
 } // namespace bn
 
-#endif // #ifndef BNI_SAMPLING_HPP
+#endif // #ifndef BNI_REJECTION_SAMPLING_HPP

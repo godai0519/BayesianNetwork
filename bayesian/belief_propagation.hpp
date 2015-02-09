@@ -1,5 +1,5 @@
-#ifndef BNI_BP_HPP
-#define BNI_BP_HPP
+#ifndef BNI_BELIEF_PROPAGATION_HPP
+#define BNI_BELIEF_PROPAGATION_HPP
 
 #include <functional>
 #include "graph.hpp"
@@ -60,4 +60,4 @@ private:
 
 } // namespace bn
 
-#endif // #ifndef BNI_BP_HPP
+#endif // #ifndef BNI_BELIEF_PROPAGATION_HPP
