@@ -9,10 +9,9 @@ project matrix_test :
         <include>$(BOOST_ROOT)
         <library>../build//matrix
     ;
-	
+
 run matrix.cpp /bayesian ;
 run graph.cpp /bayesian ;
 run cpt.cpp /bayesian ;
-run bp.cpp /bayesian ;
+run belief_propagation.cpp /bayesian ;
 run sampling.cpp /bayesian ;
-

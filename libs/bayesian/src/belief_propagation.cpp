@@ -1,17 +1,17 @@
 #include <algorithm>
 #include <functional>
 #include "bayesian/graph.hpp"
-#include "bayesian/bp.hpp"
+#include "bayesian/belief_propagation.hpp"
 #include "bayesian/cpt.hpp" // unordered_mapのネストの解決
 
 namespace bn {
 
-bp::bp(graph_t const& graph)
+belief_propagation::belief_propagation(graph_t const& graph)
     : graph_(graph)
 {
 }
 
-void bp::initialize()
+void belief_propagation::initialize()
 {
     pi_.clear();
     lambda_.clear();
@@ -23,7 +23,7 @@ void bp::initialize()
     new_lambda_k_.clear();
 }
 
-bp::return_type bp::operator()(std::unordered_map<vertex_type, matrix_type> const& precondition, double const epsilon)
+belief_propagation::return_type belief_propagation::operator()(std::unordered_map<vertex_type, matrix_type> const& precondition, double const epsilon)
 {
     initialize();
 
@@ -31,10 +31,10 @@ bp::return_type bp::operator()(std::unordered_map<vertex_type, matrix_type> cons
     {
         // Initialize ∀node's π (すべてのノードのπ=(1,1,...,1))
         pi_[node].resize(1, node->selectable_num, 1.0);
-        
+
         // Initialize ∀node's λ (すべてのノードのλ=(1,1,...,1))
         lambda_[node].resize(1, node->selectable_num, 1.0);
-        
+
         // Initialize π-message (親ノードとのメッセージの初期値)
         for(auto const& parent : graph_.in_vertexs(node))
         {
@@ -58,7 +58,7 @@ bp::return_type bp::operator()(std::unordered_map<vertex_type, matrix_type> cons
             pi.assign(data.cbegin(), data.cend());
         }
     }
-    
+
     // Set preconditions (事前条件の値の割り当て)
     preconditional_node_.clear();
     for(auto const& p : precondition)
@@ -141,7 +141,7 @@ bp::return_type bp::operator()(std::unordered_map<vertex_type, matrix_type> cons
         // 脱出条件に従えばループを脱出する
         if(maximum_difference < epsilon) break;
     }
-        
+
     // すべてのπとλから，返すための値を作っていく
     return_type result;
     for(auto const& node : graph_.vertex_list())
@@ -153,7 +153,7 @@ bp::return_type bp::operator()(std::unordered_map<vertex_type, matrix_type> cons
     return result;
 }
 
-matrix_type bp::normalize(matrix_type target) const
+matrix_type belief_propagation::normalize(matrix_type target) const
 {
     double sum = 0;
 
@@ -168,7 +168,7 @@ matrix_type bp::normalize(matrix_type target) const
     return target;
 }
 
-void bp::calculate_pi(vertex_type const& target)
+void belief_propagation::calculate_pi(vertex_type const& target)
 {
     // 事前条件ノードならば更新をしない
     if(is_preconditional_node(target)) return;
@@ -196,7 +196,7 @@ void bp::calculate_pi(vertex_type const& target)
     new_pi_[target] = normalize(matrix);
 }
 
-void bp::calculate_pi_i(vertex_type const& from, vertex_type const& target)
+void belief_propagation::calculate_pi_i(vertex_type const& from, vertex_type const& target)
 {
     auto out_vertexs = graph_.out_vertexs(target);
     out_vertexs.erase(std::find(out_vertexs.cbegin(), out_vertexs.cend(), from));
@@ -214,7 +214,7 @@ void bp::calculate_pi_i(vertex_type const& from, vertex_type const& target)
     new_pi_i_[from][target] = normalize(matrix);
 }
 
-void bp::calculate_lambda(vertex_type const& target)
+void belief_propagation::calculate_lambda(vertex_type const& target)
 {
     // 事前条件ノードならば更新をしない
     if(is_preconditional_node(target)) return;
@@ -234,10 +234,10 @@ void bp::calculate_lambda(vertex_type const& target)
     new_lambda_[target] = normalize(matrix);
 }
 
-void bp::calculate_lambda_k(vertex_type const& from, vertex_type const& target)
+void belief_propagation::calculate_lambda_k(vertex_type const& from, vertex_type const& target)
 {
     auto const in_vertexs = graph_.in_vertexs(from);
-    
+
     matrix_type matrix(1, target->selectable_num, 0.0);
     for(int i = 0; i < from->selectable_num; ++i)
     {
@@ -263,7 +263,7 @@ void bp::calculate_lambda_k(vertex_type const& from, vertex_type const& target)
 }
 
 // 与えられた確率変数全ての組み合わせに対し，functionを実行するというインターフェースを提供する
-void bp::all_combination_pattern(
+void belief_propagation::all_combination_pattern(
     std::vector<vertex_type> const& combination,
     std::function<void(condition_t const&)> const& function
     ) const
@@ -291,11 +291,10 @@ void bp::all_combination_pattern(
     recursive(combination.cbegin(), combination.cend());
 }
 
-bool bp::is_preconditional_node(vertex_type const& node) const
+bool belief_propagation::is_preconditional_node(vertex_type const& node) const
 {
     auto const it = std::find(preconditional_node_.cbegin(), preconditional_node_.cend(), node);
     return it != preconditional_node_.cend();
 }
 
 } // namespace bn
-
