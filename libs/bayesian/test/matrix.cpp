@@ -30,4 +30,3 @@ BOOST_AUTO_TEST_CASE( operator_product )
         }
     }
 }
-

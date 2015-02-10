@@ -1,0 +1,17 @@
+add_executable(matrix_test matrix.cpp)
+add_executable(cpt_test cpt.cpp)
+add_executable(graph_test graph.cpp)
+add_executable(belief_propagation_test belief_propagation.cpp)
+add_executable(rejection_sampling_test rejection_sampling.cpp)
+
+set_target_properties( matrix_test PROPERTIES OUTPUT_NAME "matrix" )
+set_target_properties( cpt_test PROPERTIES OUTPUT_NAME "cpt" )
+set_target_properties( graph_test PROPERTIES OUTPUT_NAME "graph" )
+set_target_properties( belief_propagation_test PROPERTIES OUTPUT_NAME "belief_propagation" )
+set_target_properties( rejection_sampling_test PROPERTIES OUTPUT_NAME "rejection_sampling" )
+
+add_test( matrix_test matrix )
+add_test( cpt_test cpt )
+add_test( graph_test graph )
+add_test( belief_propagation_test belief_propagation )
+add_test( rejection_sampling_test rejection_sampling )
