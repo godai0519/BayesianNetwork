@@ -1,0 +1,36 @@
+language: cpp
+
+compiler:
+    - gcc
+#    - clang 
+
+before_install:
+    - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
+    - sudo add-apt-repository --yes ppa:h-rayflood/llvm
+    - sudo add-apt-repository --yes ppa:kalakris/cmake
+    - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
+    - sudo add-apt-repository --yes 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise main'
+    - sudo apt-get update -qq
+# update gcc
+    - if [ "$CXX" = "g++" ]; then sudo apt-get install -qq g++-4.8; fi
+    - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+# update clang
+    - if [ "$CXX" = "clang++" ]; then sudo apt-get install -qq clang-3.4; fi
+    - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.4" CC="clang-3.4"; fi
+# update cmake
+    - sudo apt-get install cmake
+    
+install:
+# Boost install
+    - wget http://sourceforge.net/projects/boost/files/boost/1.57.0/boost_1_57_0.tar.gz
+    - tar zxvf boost_1_57_0.tar.gz >> /dev/null
+    - mv boost_1_57_0 $HOME
+    - export BOOST_ROOT="$HOME/boost_1_57_0"
+    - cd $BOOST_ROOT
+    - ./bootstrap.sh
+
+script:
+    - cd $HOME/build/godai0519/BayesianNetwork
+    - $BOOST_ROOT/bjam toolset=$CC debug
+    - $BOOST_ROOT/bjam toolset=$CC release
+    - mkdir -p build && cd build && cmake .. && make -j4
