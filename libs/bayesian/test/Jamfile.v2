@@ -2,17 +2,22 @@ import os ;
 import path ;
 
 local BOOST_ROOT = [ os.environ BOOST_ROOT ] ;
+use-project /boost : $(BOOST_ROOT) ;
 
-project matrix_test :
+project bayesian_test :
     requirements
         <include>../../../
         <include>$(BOOST_ROOT)
-        <library>../build//graph
-        <library>../build//cpt
     ;
-
-run matrix.cpp /bayesian ;
-run graph.cpp /bayesian ;
-run cpt.cpp /bayesian ;
-run belief_propagation.cpp /bayesian ;
-run rejection_sampling.cpp /bayesian ;
+    
+alias bayesian_headers
+    : # no sources
+    : # no build requirements
+    : # no default build
+    : <include> [ path.glob-tree ../../../bayesian : *.hpp *.ipp *.h *.inc *.SUNWCCh ] ;
+    
+unit-test matrix_test : matrix.cpp bayesian_headers ;
+unit-test graph_test : graph.cpp bayesian_headers ;
+unit-test cpt_test : cpt.cpp bayesian_headers ;
+unit-test belief_propagation_test : belief_propagation.cpp bayesian_headers ;
+unit-test rejection_sampling_test : rejection_sampling.cpp bayesian_headers ;

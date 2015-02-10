@@ -1,18 +1,1 @@
-import os ;
-import path ;
 
-local BOOST_ROOT = [ os.environ BOOST_ROOT ] ;
-
-project bayesian :
-    requirements
-        <include>../../../
-    : source-location ../../../
-    ;
-
-lib graph : libs/bayesian/src/graph.cpp : <link>static ;
-lib cpt : libs/bayesian/src/cpt.cpp : <link>static ;
-
-install build-libs
-    : graph cpt
-    : <location>../../../lib
-    ;
