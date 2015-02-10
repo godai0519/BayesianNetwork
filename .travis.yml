@@ -14,6 +14,7 @@ before_install:
     - ./bootstrap.sh
 
 script:
+    - cd godai0519/BayesianNetwork
     - $BOOST_ROOT/bjam toolset=$CC debug
     - $BOOST_ROOT/bjam toolset=$CC release
     - mkdir -p build && cd build && cmake ..
