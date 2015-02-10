@@ -1,10 +1,19 @@
 language: cpp
+
 compiler:
     - gcc
     - clang 
-before_script:
+
+before_install:
     - sudo apt-get update -qq
-    - sudo apt-get install libboost-all-dev
+    - wget http://sourceforge.net/projects/boost/files/boost/1.57.0/boost_1_57_0.tar.gz
+    - tar zxvf boost_1_57_0.tar.gz
+    - mv boost_1_57_0 $HOME
+    - export BOOST_ROOT="$HOME/boost_1_57_0"
+    - cd $BOOST_ROOT
+    - ./bootstrap.sh
+
 script:
-    - bjam
-    
+    - $BOOST_ROOT/bjam toolset=$CC debug
+    - $BOOST_ROOT/bjam toolset=$CC release
+    - mkdir -p build && cd build && cmake ..
