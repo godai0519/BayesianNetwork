@@ -7,6 +7,7 @@ compiler:
 before_install:
     - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
     - sudo add-apt-repository --yes ppa:h-rayflood/llvm
+    - sudo add-apt-repository --yes ppa:kalakris/cmake
     - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
     - sudo add-apt-repository --yes 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise main'
     - sudo apt-get update -qq
@@ -16,6 +17,8 @@ before_install:
 # update clang
     - if [ "$CXX" = "clang++" ]; then sudo apt-get install -qq clang-3.4; fi
     - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.4" CC="clang-3.4"; fi
+# update cmake
+    - sudo apt-get install cmake
     
 install:
 # Boost install
@@ -30,4 +33,4 @@ script:
     - cd $HOME/build/godai0519/BayesianNetwork
     - $BOOST_ROOT/bjam toolset=$CC debug
     - $BOOST_ROOT/bjam toolset=$CC release
-    - mkdir -p build && cd build && cmake ..
+    - mkdir -p build && cd build && cmake .. && make -j4
