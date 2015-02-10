@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <functional>
 #include <bayesian/graph.hpp>
-#include <bayesian/cpt.hpp> // unordered_mapのネストの解決
+#include <bayesian/matrix.hpp>
 
 namespace bn {
 

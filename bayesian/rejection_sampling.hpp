@@ -2,8 +2,10 @@
 #define BNI_REJECTION_SAMPLING_HPP
 
 #include <algorithm>
+#include <cstdint>
 #include <random>
 #include <bayesian/graph.hpp>
+#include <bayesian/matrix.hpp>
 
 namespace bn {
 

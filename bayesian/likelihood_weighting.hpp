@@ -5,6 +5,7 @@
 #include <functional>
 #include <random>
 #include <bayesian/graph.hpp>
+#include <bayesian/matrix.hpp>
 
 namespace bn {
 
