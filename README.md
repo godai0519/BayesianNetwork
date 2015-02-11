@@ -2,7 +2,7 @@
 
 ## What's this
 This software is for Bayesian Network (BN) Library.  
-A implementation of Bayesian Networks Model for pure C++14, included Loopy-BP and Likelihood Weighting.  
+A implementation of Bayesian Networks Model for pure C++11, included Loopy-BP and Likelihood Weighting.  
 Development is not yet finished, but you can already use.
 
 このソフトウェアはベイジアンネットワークのためのライブラリです．  
@@ -19,8 +19,8 @@ header onlyライブラリとして実装してあるので，ディレクトリ
 
 ## Compilers Tested
 * Linux:
-    + GCC, C++14: 4.8.1, 4.9.2
-    + Clang, C++14: 3.5, 3.7.0 (trunk)
+    + GCC, C++11: 4.8.1, 4.9.2, 5.0.0 (experimental)
+    + Clang, C++11: 3.5, 3.7.0 (trunk)
 * Windows:
     + Visual C++: 12.0 (CTP_Nov2013), 13.0
 
