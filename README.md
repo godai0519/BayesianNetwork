@@ -1,8 +1,6 @@
-Bayesian Network [![Build Status](https://travis-ci.org/godai0519/BayesianNetwork.svg?branch=master)](https://travis-ci.org/godai0519/BayesianNetwork)
-===========
+# Bayesian Network [![Build Status](https://travis-ci.org/godai0519/BayesianNetwork.svg?branch=master)](https://travis-ci.org/godai0519/BayesianNetwork)
 
-What's this
------------
+## What's this
 This software is for Bayesian Network (BN) Library.  
 A implementation of Bayesian Networks Model for pure C++14, included Loopy-BP and Likelihood Weighting.  
 Development is not yet finished, but you can already use.
@@ -11,8 +9,7 @@ Development is not yet finished, but you can already use.
 C++14を使用して実装しており，Loopy-BPやLikelihood Weighingといったベイジアンネットワークモデルを提供します．
 
 
-Install
--------
+## Install
 This library is implemented as Header Only Library.  
 Just through the `/path/to/BayesianNetwork` directory. (ex. `-I/path/to/BayesianNetwork`)
 
@@ -20,8 +17,7 @@ header onlyライブラリとして実装してあるので，ディレクトリ
 (ex. `-I/path/to/BayesianNetwork`)
 
 
-Compilers Tested
-----------------
+## Compilers Tested
 * Linux:
     + GCC, C++14: 4.8.1, 4.9.2
     + Clang, C++14: 3.5, 3.7.0 (trunk)
