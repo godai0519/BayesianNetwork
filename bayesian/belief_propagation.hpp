@@ -201,7 +201,7 @@ private:
     void calculate_pi_i(vertex_type const& from, vertex_type const& target)
     {
         auto out_vertexes = graph_.out_vertexes(target);
-        out_vertexes.erase(std::find(out_vertexes.cbegin(), out_vertexes.cend(), from));
+        out_vertexes.erase(std::find(out_vertexes.begin(), out_vertexes.end(), from));
 
         matrix_type matrix = pi_[target];
         for(int i = 0; i < target->selectable_num; ++i)
