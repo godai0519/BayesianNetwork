@@ -2,35 +2,42 @@ language: cpp
 
 compiler:
     - gcc
-#    - clang 
+    - clang 
+
+env:
+    global:
+        - CLANG_VERSION=3.5
+        - LIBSTDC_VERSION=4.8
+        - BOOST_VERSION='1_57_0'
+        - BOOST_SRC_URL='http://downloads.sourceforge.net/project/boost/boost/1.57.0/boost_1_57_0.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fboost%2Ffiles%2Fboost%2F1.57.0%2F&ts=1423615341&use_mirror=jaist'
 
 before_install:
     - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
-    - sudo add-apt-repository --yes ppa:h-rayflood/llvm
     - sudo add-apt-repository --yes ppa:kalakris/cmake
-    - wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | sudo apt-key add -
-    - sudo add-apt-repository --yes 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise main'
+    - echo "deb http://llvm.org/apt/precise/ llvm-toolchain-precise main" | sudo tee -a /etc/apt/sources.list
+    - echo "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.5 main" | sudo tee -a /etc/apt/sources.list
+    - echo "deb http://ppa.launchpad.net/ubuntu-toolchain-r/test/ubuntu precise main" | sudo tee -a /etc/apt/sources.list
     - sudo apt-get update -qq
 # update gcc
-    - if [ "$CXX" = "g++" ]; then sudo apt-get install -qq g++-4.8; fi
-    - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+    - sudo apt-get install -qq g++-4.8
+    - export CXX="g++-4.8" CC="gcc-4.8"
 # update clang
-    - if [ "$CXX" = "clang++" ]; then sudo apt-get install -qq clang-3.4; fi
-    - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.4" CC="clang-3.4"; fi
+    - sudo apt-get -qq --allow-unauthenticated install libstdc++-${LIBSTDC_VERSION}-dev
+    - sudo apt-get -qq --allow-unauthenticated install clang-${CLANG_VERSION}
+    - export CXX="clang++-3.5" CC="clang-3.5"
 # update cmake
     - sudo apt-get install cmake
     
 install:
 # Boost install
-    - wget -O boost_1_57_0.tar.gz "http://downloads.sourceforge.net/project/boost/boost/1.57.0/boost_1_57_0.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fboost%2Ffiles%2Fboost%2F1.57.0%2F&ts=1423615341&use_mirror=jaist"
-    - tar zxvf boost_1_57_0.tar.gz >> /dev/null
-    - mv boost_1_57_0 $HOME
-    - export BOOST_ROOT="$HOME/boost_1_57_0"
+    - wget -O boost_${BOOST_VERSION}.tar.gz "${BOOST_SRC_URL}"
+    - tar zxvf boost_${BOOST_VERSION}.tar.gz >> /dev/null
+    - mv boost_${BOOST_VERSION} $HOME
+    - export BOOST_ROOT="$HOME/boost_${BOOST_VERSION}"
     - cd $BOOST_ROOT
     - ./bootstrap.sh
 
 script:
     - cd $HOME/build/godai0519/BayesianNetwork
-    - $BOOST_ROOT/bjam toolset=$CC debug
     - $BOOST_ROOT/bjam toolset=$CC release
-    - mkdir -p build && cd build && cmake .. && make -j4
+    - mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j4
