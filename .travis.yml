@@ -4,6 +4,11 @@ compiler:
     - gcc
 #    - clang 
 
+env:
+    global:
+        BOOST_VERSION='1_57_0'
+        BOOST_SRC_URL='http://downloads.sourceforge.net/project/boost/boost/1.57.0/boost_1_57_0.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fboost%2Ffiles%2Fboost%2F1.57.0%2F&ts=1423615341&use_mirror=jaist'
+
 before_install:
     - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
     - sudo add-apt-repository --yes ppa:h-rayflood/llvm
@@ -22,10 +27,10 @@ before_install:
     
 install:
 # Boost install
-    - wget -O boost_1_57_0.tar.gz "http://downloads.sourceforge.net/project/boost/boost/1.57.0/boost_1_57_0.tar.gz?r=http%3A%2F%2Fsourceforge.net%2Fprojects%2Fboost%2Ffiles%2Fboost%2F1.57.0%2F&ts=1423615341&use_mirror=jaist"
-    - tar zxvf boost_1_57_0.tar.gz >> /dev/null
-    - mv boost_1_57_0 $HOME
-    - export BOOST_ROOT="$HOME/boost_1_57_0"
+    - wget -O boost_${BOOST_VERSION}.tar.gz "${BOOST_SRC_URL}"
+    - tar zxvf boost_${BOOST_VERSION}.tar.gz >> /dev/null
+    - mv boost_${BOOST_VERSION} $HOME
+    - export BOOST_ROOT="$HOME/boost_${BOOST_VERSION}"
     - cd $BOOST_ROOT
     - ./bootstrap.sh
 
