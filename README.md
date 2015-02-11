@@ -36,3 +36,7 @@ Maybe, return value will be changed from 2-D array to 1-D array.
 
 ダメです．
 確率伝播(BP)法の実装が安定しました．戻り値を1次元に落とすかもしれないです．
+
+
+## Licence
+Code released under [the MIT license](//github.com/godai0519/BayesianNetwork/blob/master/LICENSE).
