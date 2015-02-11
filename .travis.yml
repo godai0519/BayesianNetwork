@@ -2,7 +2,7 @@ language: cpp
 
 compiler:
     - gcc
-    - clang 
+    - clang
 
 env:
     global:
@@ -27,7 +27,7 @@ before_install:
     - export CXX="clang++-3.5" CC="clang-3.5"
 # update cmake
     - sudo apt-get install cmake
-    
+
 install:
 # Boost install
     - wget -O boost_${BOOST_VERSION}.tar.gz "${BOOST_SRC_URL}"
@@ -40,4 +40,4 @@ install:
 script:
     - cd $HOME/build/godai0519/BayesianNetwork
     - $BOOST_ROOT/bjam toolset=$CC release
-    - mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j4
+    - mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make test -j4
