@@ -2,14 +2,14 @@ Bayesian Network [![Build Status](https://travis-ci.org/godai0519/BayesianNetwor
 ===========
 
 What's this
-----------
-This software is for Bayesian Network (BN) Library.
-Development is not yet finished, a detail will be published after stable.
+-----------
+This software is for Bayesian Network (BN) Library.  
+A implementation of Bayesian Networks Model for pure C++14, included Loopy-BP and Likelihood Weighting.  
+Development is not yet finished, but you can already use.
 
-This was once implemented by Boost Graph Library (BGL) .
+このソフトウェアはベイジアンネットワークのためのライブラリです．  
+C++14を使用して実装しており，Loopy-BPやLikelihood Weighingといったベイジアンネットワークモデルを提供します．
 
-このソフトウェアはベイジアンネットワークのためのライブラリです．
-なお作成途中であり，詳細は安定してから公開します．
 
 かつて，Boost Graph Library (BGL) によって実装されていました．
 
