@@ -29,14 +29,21 @@ Compilers Tested
     + Visual C++: 12.0 (CTP_Nov2013), 13.0
 
 
-State of progress (進捗どうですか？)
-------------------------------------
-Implementation of Belief Propagation (BP) become stable.
-Maybe, return value will be changed from 2-D array to 1-D array.
+## Feature
+### Bayesian Network structure learning
+In Next Update, those code commit to.
+Just a moment.
 
-ダメです．
-確率伝播(BP)法の実装が安定しました．戻り値を1次元に落とすかもしれないです．
+近いうちのアップデートでサンプルコードを上げるつもりなので，待っててください．
 
+
+### Inferring unobserved variables
+* Loopy-BP class
+    + high-speed and strong in a loop graph.
+* Rejection Sampling (a.k.a. Logic Sampling) class
+    + very simple, but very slowly.
+* Likelihood Weighting
+    + higher than Rejection Sampling, and extremely accuracy.
 
 ## Author and Contact
 Feel free to contact me ;)  
