@@ -11,7 +11,22 @@ Development is not yet finished, but you can already use.
 C++14を使用して実装しており，Loopy-BPやLikelihood Weighingといったベイジアンネットワークモデルを提供します．
 
 
-かつて，Boost Graph Library (BGL) によって実装されていました．
+Install
+-------
+This library is implemented as Header Only Library.  
+Just through the `/path/to/BayesianNetwork` directory. (ex. `-I/path/to/BayesianNetwork`)
+
+header onlyライブラリとして実装してあるので，ディレクトリへのパスを通すだけで使用可能です．  
+(ex. `-I/path/to/BayesianNetwork`)
+
+
+Compilers Tested
+----------------
+* Linux:
+    + GCC, C++14: 4.8.1, 4.9.2
+    + Clang, C++14: 3.5, 3.7.0 (trunk)
+* Windows:
+    + Visual C++: 12.0 (CTP_Nov2013), 13.0
 
 
 State of progress (進捗どうですか？)
