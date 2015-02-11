@@ -46,4 +46,3 @@ for local l in $(all-libraries)
 }
 
 build-project libs/bayesian/test ;
-

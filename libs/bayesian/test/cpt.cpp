@@ -83,4 +83,3 @@ BOOST_AUTO_TEST_CASE( cpt_other_load_test )
     BOOST_CHECK(cpt[cond_b3].second == std::vector<double>({0.10,0.15,0.75}));
     BOOST_CHECK(cpt[cond_b4].second == std::vector<double>({0.00,0.50,0.50}));
 }
-
