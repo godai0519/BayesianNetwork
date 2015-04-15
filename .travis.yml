@@ -39,5 +39,5 @@ install:
 
 script:
     - cd $HOME/build/godai0519/BayesianNetwork
-    - $BOOST_ROOT/bjam toolset=$CC release
-    - mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j4 && make test -j4
+    - mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j4 && make test -j4 && cd ..
+    - mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=Debug   .. && make -j4 && make test -j4 && cd ..
