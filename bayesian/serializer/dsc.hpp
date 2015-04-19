@@ -1,5 +1,5 @@
-#ifndef BNI_UTILITY_HPP
-#define BNI_UTILITY_HPP
+#ifndef BNI_SERIALIZER_DSC_HPP
+#define BNI_SERIALIZER_DSC_HPP
 
 #include <algorithm>
 #include <cctype>
@@ -10,7 +10,7 @@
 #include <bayesian/graph.hpp>
 
 namespace bn {
-namespace io {
+namespace serializer {
 
 template<class InputStream>
 std::vector<std::string> stream_to_lines(InputStream& is)
@@ -230,8 +230,7 @@ private:
     std::unordered_map<std::string, vertex_type> dictionary_;
 };
 
-
-} // namespace io
+} // namespace serializer
 } // namespace bn
 
-#endif // #ifndef BNI_UTILITY_HPP
+#endif // #ifndef BNI_SERIALIZER_DSC_HPP
