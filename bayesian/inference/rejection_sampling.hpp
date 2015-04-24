@@ -1,5 +1,5 @@
-#ifndef BNI_REJECTION_SAMPLING_HPP
-#define BNI_REJECTION_SAMPLING_HPP
+#ifndef BNI_INFERENCE_REJECTION_SAMPLING_HPP
+#define BNI_INFERENCE_REJECTION_SAMPLING_HPP
 
 #include <algorithm>
 #include <cstdint>
@@ -8,6 +8,7 @@
 #include <bayesian/matrix.hpp>
 
 namespace bn {
+namespace inference {
 
 class rejection_sampling {
 public:
@@ -192,6 +193,7 @@ private:
     probability_generator probability_generator_;
 };
 
+} // namespace inference
 } // namespace bn
 
-#endif // #ifndef BNI_REJECTION_SAMPLING_HPP
+#endif // #ifndef BNI_INFERENCE_REJECTION_SAMPLING_HPP

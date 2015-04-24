@@ -1,7 +1,7 @@
 #define BOOST_TEST_MAIN
 #include <boost/test/included/unit_test.hpp>
 #include "bayesian/graph.hpp"
-#include "bayesian/belief_propagation.hpp"
+#include "bayesian/inference/belief_propagation.hpp"
 
 // Pearl's Belief Propagation Algorithm -> Examples of application of algorithm
 // http://www.cse.unsw.edu.au/~cs9417ml/Bayes/Pages/PearlPropagation.html
@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE( belief_propagation_pearl_part1 )
         { 0.272, 0.728 }
     };
 
-    bn::belief_propagation bp(graph);
+    bn::inference::belief_propagation bp(graph);
     auto const result = bp();
 
     for(std::size_t i = 0; i < vertex.size(); ++i)
@@ -104,7 +104,7 @@ BOOST_AUTO_TEST_CASE( belief_propagation_pearl_part2 )
     precondition[vertex[3]].resize(1, 2, 0);
     precondition[vertex[3]][0][0] = 1;
 
-    bn::belief_propagation bp(graph);
+    bn::inference::belief_propagation bp(graph);
     auto const result = bp(precondition);
 
     for(std::size_t i = 0; i < vertex.size(); ++i)
@@ -194,7 +194,7 @@ BOOST_AUTO_TEST_CASE( belief_propagation_resume_ex )
     precondition[vertex[1]][0] = { 0.0, 0.0, 1.0 };
     precondition[vertex[3]][0] = { 1.0, 0.0, 0.0 };
 
-    bn::belief_propagation func(graph);
+    bn::inference::belief_propagation func(graph);
     auto const result = func(precondition);
 
     auto const data = result.at(vertex[2]);
@@ -217,7 +217,7 @@ BOOST_AUTO_TEST_CASE( belief_propagation_resume_sample1 )
     precondition[vertex[2]].resize(1, 2);
     precondition[vertex[2]][0] = { 0.0, 1.0 };
 
-    bn::belief_propagation func(graph);
+    bn::inference::belief_propagation func(graph);
     auto const result = func(precondition);
 
     auto const data = result.at(vertex[1]);
@@ -242,7 +242,7 @@ BOOST_AUTO_TEST_CASE( belief_propagation_resume_sample2 )
     precondition[vertex[0]][0] = { 0.0, 1.0, 0.0 };
     precondition[vertex[2]][0] = { 0.0, 1.0 };
 
-    bn::belief_propagation func(graph);
+    bn::inference::belief_propagation func(graph);
     auto const result = func(precondition);
 
     auto const data = result.at(vertex[1]);
@@ -265,7 +265,7 @@ BOOST_AUTO_TEST_CASE( belief_propagation_resume_sample3 )
     precondition[vertex[3]].resize(1, 3);
     precondition[vertex[3]][0] = { 0.0, 0.0, 1.0 };
 
-    bn::belief_propagation func(graph);
+    bn::inference::belief_propagation func(graph);
     auto const result = func(precondition);
 
     auto const data = result.at(vertex[0]);
@@ -288,7 +288,7 @@ BOOST_AUTO_TEST_CASE( belief_propagation_resume_sample4 )
     precondition[vertex[0]].resize(1, 3);
     precondition[vertex[0]][0] = { 1.0, 0.0, 0.0 };
 
-    bn::belief_propagation func(graph);
+    bn::inference::belief_propagation func(graph);
     auto const result = func(precondition);
 
     auto const data = result.at(vertex[1]);

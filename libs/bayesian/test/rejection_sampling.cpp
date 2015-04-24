@@ -1,7 +1,7 @@
 #define BOOST_TEST_MAIN
 #include <boost/test/included/unit_test.hpp>
 #include "bayesian/graph.hpp"
-#include "bayesian/rejection_sampling.hpp"
+#include "bayesian/inference/rejection_sampling.hpp"
 
 BOOST_AUTO_TEST_CASE( rejection_sampling_standard )
 {
@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE( rejection_sampling_standard )
         vertex_5->cpt[cond_11].second = {0.4, 0.6};
     }
 
-    bn::rejection_sampling func(graph);
+    bn::inference::rejection_sampling func(graph);
     auto const result = func({{vertex_4,1}, {vertex_1, 0}});
 
     BOOST_CHECK_CLOSE(result.at(vertex_2)[0][0], 0.62, 10);

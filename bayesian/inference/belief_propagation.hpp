@@ -1,5 +1,5 @@
-#ifndef BNI_BELIEF_PROPAGATION_HPP
-#define BNI_BELIEF_PROPAGATION_HPP
+#ifndef BNI_INFERENCE_BELIEF_PROPAGATION_HPP
+#define BNI_INFERENCE_BELIEF_PROPAGATION_HPP
 
 #include <algorithm>
 #include <functional>
@@ -7,6 +7,7 @@
 #include <bayesian/matrix.hpp>
 
 namespace bn {
+namespace inference {
 
 class belief_propagation {
 public:
@@ -332,6 +333,7 @@ private:
     std::unordered_map<vertex_type, std::unordered_map<vertex_type, matrix_type>> new_lambda_k_;
 };
 
+} // namespace inference
 } // namespace bn
 
 #endif // #ifndef BNI_BELIEF_PROPAGATION_HPP
