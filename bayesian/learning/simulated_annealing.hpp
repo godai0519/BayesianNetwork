@@ -1,14 +1,14 @@
-#ifndef BNI_STRUCTURE_LEARNING_SIMULATED_ANNEALING_HPP
-#define BNI_STRUCTURE_LEARNING_SIMULATED_ANNEALING_HPP
+#ifndef BNI_LEARNING_SIMULATED_ANNEALING_HPP
+#define BNI_LEARNING_SIMULATED_ANNEALING_HPP
 
 #include <string>
 #include <random>
 #include <bayesian/graph.hpp>
 #include <bayesian/sampler.hpp>
-#include <bayesian/structure_learning/utility.hpp>
+#include <bayesian/learning/utility.hpp>
 
 namespace bn {
-namespace structure_learning {
+namespace learning {
     
 template<class Eval>
 class simulated_annealing {
@@ -129,7 +129,7 @@ private:
     std::uniform_real_distribution<double> probability_dist_;
 };
 
-} // namespace structure_learning
+} // namespace learning
 } // namespace bn
 
-#endif // BNI_STRUCTURE_LEARNING_SIMULATED_ANNEALING_HPP
+#endif // BNI_LEARNING_SIMULATED_ANNEALING_HPP
