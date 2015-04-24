@@ -165,7 +165,7 @@ bool bayesian_network<NodeType>::load_cpt_by_save_memory(std::string const& file
         condition_t sample;
         std::transform(
             node_list.cbegin(), node_list.cend(),
-            std::istream_iterator<std::string>(std::istringstream(line_str)),
+            std::istream_iterator<std::string>(std::istringstream(line_str) >> std::skipws),
             std::inserter(sample, sample.begin()),
             [](vertex_type const& node, std::string const& str){ return std::make_pair(node, std::stoi(str)); }
             );
