@@ -1,14 +1,14 @@
-#ifndef BNI_STRUCTURE_LEARNING_GREEDY_HPP
-#define BNI_STRUCTURE_LEARNING_GREEDY_HPP
+#ifndef BNI_LEARNING_GREEDY_HPP
+#define BNI_LEARNING_GREEDY_HPP
 
 #include <string>
 #include <random>
 #include <bayesian/graph.hpp>
 #include <bayesian/sampler.hpp>
-#include <bayesian/structure_learning/utility.hpp>
+#include <bayesian/learning/utility.hpp>
 
 namespace bn {
-namespace structure_learning {
+namespace learning {
 
 template<class Eval>
 class greedy {
@@ -66,7 +66,7 @@ private:
     std::mt19937 engine_;
 };
 
-} // namespace structure_learning
+} // namespace learning
 } // namespace bn
 
-#endif // BNI_STRUCTURE_LEARNING_GREEDY_HPP
+#endif // BNI_LEARNING_GREEDY_HPP

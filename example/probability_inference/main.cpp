@@ -1,7 +1,7 @@
 #include <iostream>
 #include <bayesian/bayesian_network.hpp>
-#include <bayesian/bp.hpp>
-#include <bayesian/likelihood_weighting.hpp>
+#include <bayesian/inference/bp.hpp>
+#include <bayesian/inference/likelihood_weighting.hpp>
 
 bn::graph_t make_network()
 {
@@ -55,12 +55,12 @@ bn::graph_t make_network()
     evidence_for_belief_propagation[vertex_list[i]][0][2] = 1;
 
     // Calculate! (Loopy Belief Propagation)
-    bn::belief_propagation bp(graph);
+    bn::inference::belief_propagation bp(graph);
     std::unordered_map<vertex_type, matrix_type> const result_bp =
         bp(evidence_for_belief_propagation, 0.000001/* Radius of convergence */);
 
     // Calculate! (Likelihood Weighting)
-    bn::likelihood_weighting lw(graph);
+    bn::inference::likelihood_weighting lw(graph);
     std::unordered_map<vertex_type, matrix_type> const result_bp =
         func_lw(evidence_for_likelihood_weighting, 1'000'000/* Num of auto sample */);
 }
