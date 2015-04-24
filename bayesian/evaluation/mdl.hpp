@@ -8,6 +8,11 @@ namespace bn {
 namespace evaluation {
     
 struct mdl : basic_info_criteria {
+    mdl(std::string const& file)
+        : basic_info_criteria(file)
+    {
+    }
+
     double operator() (graph_t const& graph) const override
     {
         auto const likelihood = calc_likelihood(graph);
