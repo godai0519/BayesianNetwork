@@ -1,11 +1,11 @@
-#ifndef BNI_STRUCTURE_LEARNING_UTILITY_HPP
-#define BNI_STRUCTURE_LEARNING_UTILITY_HPP
+#ifndef BNI_LEARNING_UTILITY_HPP
+#define BNI_LEARNING_UTILITY_HPP
 
 #include <string>
 #include <random>
 
 namespace bn {
-namespace structure_learning {
+namespace learning {
     
 template<class RandomEngine>
 RandomEngine make_engine()
@@ -19,7 +19,7 @@ RandomEngine make_engine()
     return RandomEngine(seed);
 }
 
-} // namespace structure_learning
+} // namespace learning
 } // namespace bn
 
-#endif // BNI_STRUCTURE_LEARNING_UTILITY_HPP
+#endif // BNI_LEARNING_UTILITY_HPP

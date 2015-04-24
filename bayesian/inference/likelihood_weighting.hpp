@@ -1,5 +1,5 @@
-#ifndef BNI_LIKELIHOOD_WEIGHTING_HPP
-#define BNI_LIKELIHOOD_WEIGHTING_HPP
+#ifndef BNI_INFERENCE_LIKELIHOOD_WEIGHTING_HPP
+#define BNI_INFERENCE_LIKELIHOOD_WEIGHTING_HPP
 
 #include <algorithm>
 #include <functional>
@@ -8,6 +8,7 @@
 #include <bayesian/matrix.hpp>
 
 namespace bn {
+namespace inference {
 
 class likelihood_weighting {
 public:
@@ -235,7 +236,8 @@ private:
     probability_generator probability_generator_;
 };
 
+} // namespace inference
 } // namespace bn
 
-#endif // #ifndef BNI_LIKELIHOOD_WEIGHTING_HPP
+#endif // #ifndef BNI_INFERENCE_LIKELIHOOD_WEIGHTING_HPP
 
