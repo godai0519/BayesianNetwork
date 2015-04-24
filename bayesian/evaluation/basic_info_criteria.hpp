@@ -49,11 +49,10 @@ double basic_info_criteria::calc_likelihood(graph_t const& graph) const
         graph, file_,
         [&likelihood, &graph](condition_t const& sample)
         {
-            condition_t cond = sample;
-
             // äeÉmÅ[ÉhÇ…ëŒÇµ
             for(auto const& node : graph.vertex_list())
             {
+                condition_t cond = sample;
 				for (auto it = cond.begin(); it != cond.end();)
 				{
 					auto const& parent = graph.in_vertexes(node);

@@ -137,7 +137,9 @@ public:
     bool erase_all_edge();
 
     // 引数で指定された辺を逆向きにする
-    bool change_edge_direction(edge_type const& e);
+    // 渡された辺は，成功・失敗に限らずに無効化させられる
+    // 失敗した場合はnullptr，成功した場合は変更された辺を返す
+    edge_type change_edge_direction(edge_type const& e);
 
     // 引数の頂点から出て行く辺を列挙する
     std::vector<edge_type> out_edges(vertex_type const& from) const;
@@ -160,6 +162,10 @@ public:
     // fromの頂点からtoの頂点が辿れるならばtrue，それ以外ならfalseを返す
     // graphはDAGであることを前提とする
     bool is_able_trace(vertex_type const& from, vertex_type const& to) const;
+
+    //トポロジカルソートを使用して，DAG判定
+    // http://ja.wikipedia.org/wiki/トポロジカルソート
+    //bool is_dag();
 
 private:
     // vertex_typeから，vertex_list_内のindexを見つける
@@ -402,21 +408,26 @@ bool graph_t::erase_all_edge()
     return true;
 }
 
-bool graph_t::change_edge_direction(edge_type const& e)
+edge_type graph_t::change_edge_direction(edge_type const& e)
 {
-    auto to   = target(e);
-    auto from = source(e);
+    auto const to   = target(e);
+    auto const from = source(e);
 
-    if (erase_edge(e) == false)
-        return false;
+    // 削除
+    if(!erase_edge(e))
+        return nullptr;
 
-    if (add_edge(to, from) == nullptr)
+    // 追加
+    if(auto const new_edge = add_edge(to, from))
+    {
+        return new_edge;
+    }
+    else
     {
         //ダメだったら戻す
         add_edge(from, to);
-        return false;
+        return nullptr;
     }
-    return true;
 }
 
 std::vector<edge_type> graph_t::out_edges(vertex_type const& from) const
