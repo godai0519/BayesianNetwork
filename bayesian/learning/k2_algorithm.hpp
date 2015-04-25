@@ -15,7 +15,7 @@ template<class Eval>
 class k2_algorithm {
 public:
     k2_algorithm(std::string const& filepath)
-        : filepath_(filepath), engine_(make_engine<std::mt19937>()), eval_(filepath_)
+        : filepath_(filepath), sampling_(filepath_), eval_(sampling_), engine_(make_engine<std::mt19937>())
     {
     }
     
@@ -23,8 +23,10 @@ public:
     {
         // graphの初期化
         graph.erase_all_edge();
-
-        sampling_.load_cpt(graph, filepath_);
+        
+        // bestな構造を保持しておく
+        sampling_.load_sample(graph.vertex_list());
+        sampling_.make_cpt(graph);
         double eval_best = eval_(graph);
 
         // 頂点の順番をランダムに
@@ -43,15 +45,15 @@ public:
                     return 
                         node == target || 
                         (ignore_nodes != preconditon.end() &&
-                         boost::find(ignore_nodes->second, node) != ignore_nodes->second.end());
+                        std::find(ignore_nodes->second.begin(), ignore_nodes->second.end(), node) != ignore_nodes->second.end());
                 });
 
             for(auto const& parent : candidature)
             {
                 if(auto edge = graph.add_edge(parent, target))
                 {
-                    sampling_.load_cpt(graph, filepath_);
-                    double const eval_now = eval_(graph);
+                    sampling_.make_cpt(graph);
+                    auto const eval_now = eval_(graph);
                     
                     if(eval_now < eval_best)
                     {
@@ -68,9 +70,9 @@ public:
 
 private:
     std::string filepath_;
-    std::mt19937 engine_;
-    Eval eval_;
     sampler sampling_;
+    Eval eval_;
+    std::mt19937 engine_;
 };
 
 } // namespace learning
