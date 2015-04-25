@@ -14,7 +14,7 @@ template<class Eval>
 class simulated_annealing {
 public:
     simulated_annealing(std::string const& filepath)
-        : filepath_(filepath), engine_(make_engine<std::mt19937>()), method_dist_(0, 2), probability_dist_(0.0, 1.0)
+        : filepath_(filepath), sampling_(filepath_), eval_(sampling_), engine_(make_engine<std::mt19937>()), method_dist_(0, 2), probability_dist_(0.0, 1.0)
     {
     }
 
@@ -28,13 +28,13 @@ public:
     {
         // graphの初期化
         graph.erase_all_edge();
+        
 
         // bestな構造を保持しておく
-        Eval eval(filepath_);
-        sampler sampling;
-        sampling.load_cpt(graph, filepath_);
+        sampling_.load_sample(graph.vertex_list());
+        sampling_.make_cpt(graph);
         graph_t best_graph = graph;
-        double best_eval  = eval(graph);
+        double best_eval = eval_(graph);
 
         // 情報整理
         auto const vertexes = graph.vertex_list();
@@ -92,8 +92,8 @@ public:
             if(!is_operated) continue;
 
             // 評価
-            sampling.load_cpt(graph, filepath_);
-            double const now_eval = eval(graph);
+            sampling_.make_cpt(graph);
+            double const now_eval = eval_(graph);
             double const diff_eval = now_eval - best_eval;
 
             // 受理されたかどうか
@@ -124,6 +124,8 @@ public:
     
 private:
     std::string filepath_;
+    sampler sampling_;
+    Eval eval_;
     std::mt19937 engine_;
     std::uniform_int_distribution<int> method_dist_;
     std::uniform_real_distribution<double> probability_dist_;

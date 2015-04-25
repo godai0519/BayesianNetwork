@@ -3,7 +3,6 @@
 
 #include <cstdint>
 #include <numeric>
-#include <boost/optional.hpp>
 #include <bayesian/graph.hpp>
 #include <bayesian/sampler.hpp>
 #include <bayesian/evaluation/basic_evaluation.hpp>
@@ -13,7 +12,7 @@ namespace evaluation {
 
 class basic_info_criteria : basic_evaluation{
 public:
-    basic_info_criteria(std::string const& file);
+    basic_info_criteria(sampler& sampling);
 
     // API
     virtual double operator() (graph_t const& graph) const = 0;
@@ -28,15 +27,14 @@ protected:
     double calc_parameters(graph_t const& graph) const;
     
     // Sampling数のgetter
-    boost::optional<std::size_t> const& sampling_size() const;
+    std::size_t const& sampling_size() const;
 
 private:
-    sampler const loader_;
-    std::string const file_;
+    sampler& sampling_;
 };
 
-basic_info_criteria::basic_info_criteria(std::string const& file)
-    : loader_(), file_(file)
+basic_info_criteria::basic_info_criteria(sampler& sampling)
+    : sampling_(sampling)
 {
 }
 
@@ -44,36 +42,37 @@ double basic_info_criteria::calc_likelihood(graph_t const& graph) const
 {
     double likelihood = 0.0;
 
-    // サンプルを1行ずつ読み込む
-    loader_.load_sample(
-        graph, file_,
-        [&likelihood, &graph](condition_t const& sample)
+    for(auto const& sample : sampling_.table())
+    {
+        // 各ノードに対し
+        for(auto const& node : graph.vertex_list())
         {
-            // 各ノードに対し
-            for(auto const& node : graph.vertex_list())
-            {
-                condition_t cond = sample;
-				for (auto it = cond.begin(); it != cond.end();)
+            condition_t cond = sample.first;
+
+            // 親ノード以外を消す
+            auto const& parent = graph.in_vertexes(node);
+			for (auto it = cond.begin(); it != cond.end();)
+			{
+				if(std::find(parent.begin(), parent.end(), it->first) == parent.end())
 				{
-					auto const& parent = graph.in_vertexes(node);
-					if (std::find(parent.begin(), parent.end(), it->first) == parent.end())
-					{
-						it = cond.erase(it);
-					}
-					else
-					{
-						++it;
-					}
+					it = cond.erase(it);
 				}
-				for (int i = 0; i < node->selectable_num; i++)
+				else
+				{
+					++it;
+				}
+			}
+
+            // 全選択について計算
+			for (int i = 0; i < node->selectable_num; i++)
+            {
+				if (node->cpt[cond].second[i] != 0)
                 {
-					if (node->cpt[cond].second[i] != 0)
-                    {
-						likelihood -= std::log2(node->cpt[cond].second[i]);
-					}
+					likelihood -= sample.second * std::log2(node->cpt[cond].second[i]);
 				}
-            }
-        });
+			}
+        }
+    }
 
     return likelihood;
 }
@@ -97,9 +96,9 @@ double basic_info_criteria::calc_parameters(graph_t const& graph) const
     return static_cast<double>(parameters);
 }
 
-boost::optional<std::size_t> const& basic_info_criteria::sampling_size() const
+std::size_t const& basic_info_criteria::sampling_size() const
 {
-    return loader_.sampling_size();
+    return sampling_.sampling_size();
 }
 
 } // namespace evaluation

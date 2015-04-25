@@ -14,7 +14,7 @@ template<class Eval>
 class brute_force {
 public:
     brute_force(std::string const& filepath)
-        : filepath_(filepath), eval_(filepath_)
+        : filepath_(filepath), sampling_(filepath_), eval_(sampling_)
     {
     }
 
@@ -24,9 +24,10 @@ public:
         graph.erase_all_edge();
 
         // bestな構造を保持しておく
-        sampling_.load_cpt(graph, filepath_);
+        sampling_.load_sample(graph.vertex_list());
+        sampling_.make_cpt(graph);
         graph_t best_graph = graph;
-        double best_eval  = eval_(graph);
+        double best_eval  = eval_(graph);;
         
         // 全探索する
         recursive(0, graph, best_graph, best_eval);
@@ -45,7 +46,7 @@ private:
         if(target == vertex_num - 1)
         {
             // 評価
-            sampling_.load_cpt(graph, filepath_);
+            sampling_.make_cpt(graph);
             auto const now_eval = eval_(graph);
             if(now_eval < best_eval)
             {
@@ -76,8 +77,8 @@ private:
     }
 
     std::string filepath_;
-    Eval eval_;
     sampler sampling_;
+    Eval eval_;
 };
 
 
