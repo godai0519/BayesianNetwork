@@ -8,8 +8,8 @@ namespace bn {
 namespace evaluation {
   
 struct aic : basic_info_criteria {
-    aic(std::string const& file)
-        : basic_info_criteria(file)
+    aic(sampler& sampling)
+        : basic_info_criteria(sampling)
     {
     }
 
