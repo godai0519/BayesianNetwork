@@ -67,6 +67,9 @@ public:
     // 条件として使用できるノードリストを返す
     std::vector<vertex_type> condition_node();
 
+    // operator[]でアクセス可能な全てのパターンを返却する
+    std::vector<condition_t> pattern();
+
     // 条件が完全一致した確率vectorを返す
     // std::pairのfirstが検索成功したかをのせる
     // firstがtrueのとき，secondには実体への参照が格納される
@@ -250,6 +253,17 @@ auto cpt_t::filter(condition_t const& cond) -> table_type
 std::vector<vertex_type> cpt_t::condition_node()
 {
     return parents_;
+}
+
+std::vector<condition_t> cpt_t::pattern()
+{
+    std::vector<condition_t> pat;
+    pat.reserve(table_.size());
+
+    for(auto const& elem : table_)
+        pat.push_back(elem.first);
+
+    return pat;
 }
 
 std::pair<bool, std::vector<double>&> cpt_t::operator[] (condition_t const cond)

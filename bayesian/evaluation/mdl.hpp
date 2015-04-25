@@ -8,8 +8,8 @@ namespace bn {
 namespace evaluation {
     
 struct mdl : basic_info_criteria {
-    mdl(std::string const& file)
-        : basic_info_criteria(file)
+    mdl(sampler& sampling)
+        : basic_info_criteria(sampling)
     {
     }
 
@@ -19,7 +19,7 @@ struct mdl : basic_info_criteria {
         auto const parameters = calc_parameters(graph);
         if(auto const sampling_size = this->sampling_size())
         {
-            auto const correction = std::log2(*sampling_size) / 2;
+            auto const correction = std::log2(sampling_size) / 2;
             return likelihood + parameters * correction;
         }
         else

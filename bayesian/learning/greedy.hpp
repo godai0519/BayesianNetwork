@@ -14,7 +14,7 @@ template<class Eval>
 class greedy {
 public:
     greedy(std::string const& filepath)
-        : filepath_(filepath), engine_(make_engine<std::mt19937>())
+        : filepath_(filepath), sampling_(filepath_), eval_(sampling_), engine_(make_engine<std::mt19937>())
     {
     }
     
@@ -26,10 +26,10 @@ public:
         auto vertexes = graph.vertex_list();
         std::shuffle(vertexes.begin(), vertexes.end(), engine_);
 
-        Eval eval(filepath_);
-        sampler sampling;
-        sampling.load_cpt(graph, filepath_);
-        double eval_now = eval(graph);
+        // bestな構造を保持しておく
+        sampling_.load_sample(graph.vertex_list());
+        sampling_.make_cpt(graph);
+        double eval_now = eval_(graph);
 
         for(auto it = vertexes.begin(); it != vertexes.end();)
         {
@@ -41,8 +41,8 @@ public:
                 if(auto edge = graph.add_edge(*parent_iter, *child_iter))
                 {
                     // 辺を貼れたなら調べてみる
-                    sampling.load_cpt(graph, filepath_);
-                    auto const eval_next = eval(graph);
+                    sampling_.make_cpt(graph);
+                    auto const eval_next = eval_(graph);
 
                     if(eval_next < eval_now)
                     {
@@ -63,6 +63,8 @@ public:
 
 private:
     std::string filepath_;
+    sampler sampling_;
+    Eval eval_;
     std::mt19937 engine_;
 };
 
