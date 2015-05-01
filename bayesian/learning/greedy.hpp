@@ -31,7 +31,7 @@ public:
         sampling_.make_cpt(graph);
         double eval_now = eval_(graph);
 
-        for(auto it = vertexes.begin(); it != vertexes.end();)score
+        for(auto it = vertexes.begin(); it != vertexes.end();)
         {
             auto const child_iter = it;
             std::shuffle(++it, vertexes.end(), engine_);
