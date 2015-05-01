@@ -13,34 +13,38 @@ namespace learning {
 template<class Eval>
 class brute_force {
 public:
-    brute_force(std::string const& filepath)
-        : filepath_(filepath), sampling_(filepath_), eval_(sampling_)
+    brute_force(bn::sampler const& sampling)
+        : sampling_(sampling), eval_(sampling_)
     {
     }
 
     double operator()(graph_t& graph)
     {
-        // graphの初期化
-        graph.erase_all_edge();
+        return (*this)(graph, graph.vertex_list());
+    }
 
+    double operator()(graph_t& graph, std::vector<vertex_type> const& vertexes)
+    {
         // bestな構造を保持しておく
-        sampling_.load_sample(graph.vertex_list());
         sampling_.make_cpt(graph);
         graph_t best_graph = graph;
         double best_eval  = eval_(graph);;
         
         // 全探索する
-        recursive(0, graph, best_graph, best_eval);
+        recursive(0, graph, vertexes, best_graph, best_eval);
 
         graph = std::move(best_graph);
         return best_eval;
     }
 
 private:
-    void recursive(std::size_t const& target, graph_t& graph, graph_t& best_graph, double& best_eval)
+    void recursive(
+        std::size_t const& target,
+        graph_t& graph, std::vector<vertex_type> const& vertexes,
+        graph_t& best_graph, double& best_eval
+        )
     {
         // 情報整理
-        auto const vertexes = graph.vertex_list();
         auto const vertex_num = vertexes.size();
 
         if(target == vertex_num - 1)
@@ -59,26 +63,25 @@ private:
             // target <-> i 間に，「張らない」「右向き」「左向き」
             for(std::size_t i = target + 1; i < vertex_num; ++i)
             {
-                recursive(target + 1, graph, best_graph, best_eval);
+                recursive(target + 1, graph, vertexes, best_graph, best_eval);
 
                 if(auto const edge = graph.add_edge(vertexes[target], vertexes[i]))
                 {
-                    recursive(target + 1, graph, best_graph, best_eval);
+                    recursive(target + 1, graph, vertexes, best_graph, best_eval);
                     graph.erase_edge(edge);
                 }
 
                 if(auto const edge = graph.add_edge(vertexes[i], vertexes[target]))
                 {
-                    recursive(target + 1, graph, best_graph, best_eval);
+                    recursive(target + 1, graph, vertexes, best_graph, best_eval);
                     graph.erase_edge(edge);
                 }
             }
         }
     }
 
-    std::string filepath_;
-    sampler sampling_;
-    Eval eval_;
+    sampler const& sampling_;
+    Eval const eval_;
 };
 
 

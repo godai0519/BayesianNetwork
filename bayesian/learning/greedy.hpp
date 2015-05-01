@@ -13,25 +13,25 @@ namespace learning {
 template<class Eval>
 class greedy {
 public:
-    greedy(std::string const& filepath)
-        : filepath_(filepath), sampling_(filepath_), eval_(sampling_), engine_(make_engine<std::mt19937>())
+    greedy(bn::sampler const& sampling)
+        : sampling_(sampling), eval_(sampling_), engine_(make_engine<std::mt19937>())
     {
     }
-    
+
     double operator()(graph_t& graph)
     {
-        // graphの初期化
-        graph.erase_all_edge();
+        return (*this)(graph, graph.vertex_list());
+    }
 
-        auto vertexes = graph.vertex_list();
+    double operator()(graph_t& graph, std::vector<vertex_type> vertexes)
+    {
         std::shuffle(vertexes.begin(), vertexes.end(), engine_);
 
         // bestな構造を保持しておく
-        sampling_.load_sample(graph.vertex_list());
         sampling_.make_cpt(graph);
         double eval_now = eval_(graph);
 
-        for(auto it = vertexes.begin(); it != vertexes.end();)
+        for(auto it = vertexes.begin(); it != vertexes.end();)score
         {
             auto const child_iter = it;
             std::shuffle(++it, vertexes.end(), engine_);
@@ -57,14 +57,51 @@ public:
                 }
             }
         }
-        
+
+        return eval_now;
+    }
+
+    // ヒントを与えた上でgreedy探索を行う
+    // graph: 元となったグラフ構造
+    // parent_nodes, child_nodes: parent_nodesに含まれるnodeからchild_nodeに含まれるnodeにしか辺を張らない
+    double learn_with_hint(graph_t& graph, std::vector<vertex_type> parent_nodes, std::vector<vertex_type> child_nodes)
+    {
+        // 親ノードの出現順序をランダムに
+        std::shuffle(std::begin(parent_nodes), std::end(parent_nodes), engine_);
+
+        // 最高評価値を保存しておく
+        sampling_.make_cpt(graph);
+        double eval_now = eval_(graph);
+
+        // 親候補と子候補を全部回して様子見る
+        for(auto const& parent : parent_nodes)
+        {
+            // 子ノードの出現順序をランダムにscore
+            std::shuffle(std::begin(child_nodes), std::end(child_nodes), engine_);
+            for(auto const& child : child_nodes)
+            {
+                if(auto edge = graph.add_edge(parent, child))
+                {
+                    // 辺が張れたならば，評価をする
+                    sampling_.make_cpt(graph);
+                    auto const eval_next = eval_(graph);
+
+                    if(eval_next < eval_now)
+                        // 良くなってるscore
+                        eval_now = eval_next;
+                    else
+                        // 変わらない or 悪い -> 元に戻す
+                        graph.erase_edge(edge);
+                }
+            }
+        }
+
         return eval_now;
     }
 
 private:
-    std::string filepath_;
-    sampler sampling_;
-    Eval eval_;
+    sampler const& sampling_;
+    Eval const eval_;
     std::mt19937 engine_;
 };
 
