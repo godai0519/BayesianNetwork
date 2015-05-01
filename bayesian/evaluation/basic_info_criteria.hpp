@@ -12,7 +12,7 @@ namespace evaluation {
 
 class basic_info_criteria : basic_evaluation{
 public:
-    basic_info_criteria(sampler& sampling);
+    basic_info_criteria(sampler const& sampling);
 
     // API
     virtual double operator() (graph_t const& graph) const = 0;
@@ -30,10 +30,10 @@ protected:
     std::size_t const& sampling_size() const;
 
 private:
-    sampler& sampling_;
+    sampler const& sampling_;
 };
 
-basic_info_criteria::basic_info_criteria(sampler& sampling)
+basic_info_criteria::basic_info_criteria(sampler const& sampling)
     : sampling_(sampling)
 {
 }
