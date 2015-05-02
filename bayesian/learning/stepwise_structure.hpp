@@ -10,7 +10,7 @@
 namespace bn {
 namespace learning {
 
-template<class Eval>
+template<class Eval, template<class> class InnerLearning, template<class> class BetweenLearning>
 class stepwise_structure {
 public:
     using cluster_type = std::vector<vertex_type>;
@@ -66,7 +66,7 @@ private:
     // クラスタ内学習を行う
     void learning_intercluster(graph_t& graph, std::vector<cluster_type> const& clusters)
     {
-        bn::learning::brute_force<Eval> learning_machine(sampling_);
+        InnerLearning<Eval> learning_machine(sampling_);
 
         for(auto const& cluster : clusters) 
             learning_machine(graph, cluster);
@@ -75,7 +75,7 @@ private:
     // クラスタ間学習を行う(とりあえずGreedy)
     double learning_between_clusters(graph_t& graph, std::vector<cluster_type>& clusters)
     {
-        bn::learning::greedy<Eval> learning_machine(sampling_);
+        BetweenLearning<Eval> learning_machine(sampling_);
         double score = std::numeric_limits<double>::max();
 
         // 2クラスタを無作為に選び，結合
