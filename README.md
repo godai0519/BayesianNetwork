@@ -19,7 +19,7 @@ header onlyライブラリとして実装してあるので，ディレクトリ
 
 ## Compilers Tested
 * Linux:
-    + GCC, C++11: 4.8.1, 4.9.2, 5.0.0 (experimental)
+    + GCC, C++11: 4.8.1, 4.9.2, 5.0.0
     + Clang, C++11: 3.5, 3.7.0 (trunk)
 * Windows:
     + Visual C++: 12.0 (CTP_Nov2013), 13.0
@@ -27,10 +27,24 @@ header onlyライブラリとして実装してあるので，ディレクトリ
 
 ## Feature
 ### Bayesian Network structure learning
-In Next Update, those code commit to.
-Just a moment.
+* Brute Force class
+    + search all patterns, very very slow.
+* Greedy class
+    + some patterns(not become good score) ignore, fast a little.
+* Simulated Annealing class
+    + as if a metal, with spending time, structure is less likely to change.
+* K2 Algorithm class
+    + give information that you already know some relations between nodes.
+* Stepwise Structure
+    + first, make some cluster that include some node, one after another cluster combine two clusters.
 
-近いうちのアップデートでサンプルコードを上げるつもりなので，待っててください．
+##### Available Algorithms in Stepwise Structure
+|                   | Learning in Cluster | Learning between Cluster |
+|------------------:|:-------------------:|:------------------------:|
+|        Brute Force|          OK         |             OK           |
+|             Greedy|          OK         |             OK           |
+|Simulated Annealing|          OK         |            *NG*          |
+|       K2 Algorithm|          OK         |            *NG*          |
 
 
 ### Inferring unobserved variables
