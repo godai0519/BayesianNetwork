@@ -43,7 +43,8 @@ struct entropy {
     // variable: 調べるノード
     double operator() (sampler const& sampling, vertex_type const& variable) const
     {
-        return (*this)(sampling, {variable});
+        std::vector<vertex_type> variables = {variable};
+        return (*this)(sampling, variables);
     }
 };
 
@@ -62,7 +63,7 @@ struct mutual_information {
     // x, y: 調べるノード
     // x_ent, y_ent: 調べるノードのエントロピー
     template<class T>
-    double operator() (sampler const& sampling, vertex_type const& x, T const x_ent, vertex_type const& y, T const y_ent)
+    double operator() (sampler const& sampling, vertex_type const& x, T const x_ent, vertex_type const& y, T const y_ent) const
     {
         entropy ent;
         return x_ent + y_ent - ent(sampling, {x, y});
@@ -72,7 +73,7 @@ struct mutual_information {
     // x_ent, y_ent: 調べるノードのエントロピー
     // xy_ent: 調べるノード2つの同時エントロピー
     template<class T>
-    double operator() (T const x_ent, T const y_ent, T const xy_ent)
+    double operator() (T const x_ent, T const y_ent, T const xy_ent) const
     {
         return x_ent + y_ent - xy_ent;
     }

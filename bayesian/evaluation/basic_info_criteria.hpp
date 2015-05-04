@@ -27,7 +27,7 @@ protected:
     double calc_parameters(graph_t const& graph) const;
     
     // SamplingêîÇÃgetter
-    std::size_t const& sampling_size() const;
+    std::size_t sampling_size() const;
 
 private:
     sampler const& sampling_;
@@ -96,7 +96,7 @@ double basic_info_criteria::calc_parameters(graph_t const& graph) const
     return static_cast<double>(parameters);
 }
 
-std::size_t const& basic_info_criteria::sampling_size() const
+std::size_t basic_info_criteria::sampling_size() const
 {
     return sampling_.sampling_size();
 }
