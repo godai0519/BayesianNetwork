@@ -13,8 +13,8 @@ namespace learning {
 template<class Eval>
 class simulated_annealing {
 public:
-    simulated_annealing(std::string const& filepath)
-        : filepath_(filepath), sampling_(filepath_), eval_(sampling_), engine_(make_engine<std::mt19937>()), method_dist_(0, 2), probability_dist_(0.0, 1.0)
+    simulated_annealing(bn::sampler const& sampling)
+        : sampling_(sampling), eval_(sampling_), engine_(make_engine<std::mt19937>()), method_dist_(0, 2), probability_dist_(0.0, 1.0)
     {
     }
 
@@ -26,12 +26,7 @@ public:
         unsigned int const same_state_max = 100
         )
     {
-        // graphの初期化
-        graph.erase_all_edge();
-        
-
         // bestな構造を保持しておく
-        sampling_.load_sample(graph.vertex_list());
         sampling_.make_cpt(graph);
         graph_t best_graph = graph;
         double best_eval = eval_(graph);
@@ -99,7 +94,7 @@ public:
             // 受理されたかどうか
             bool is_acceptance;
             if(diff_eval <= 0) is_acceptance = true;
-            else              is_acceptance = probability_dist_(engine_) < std::exp(-now_eval / (boltzmann * temperature));
+            else               is_acceptance = probability_dist_(engine_) < std::exp(-now_eval / (boltzmann * temperature));
 
             if(is_acceptance)
             {
@@ -123,9 +118,8 @@ public:
     }
     
 private:
-    std::string filepath_;
-    sampler sampling_;
-    Eval eval_;
+    sampler const& sampling_;
+    Eval const eval_;
     std::mt19937 engine_;
     std::uniform_int_distribution<int> method_dist_;
     std::uniform_real_distribution<double> probability_dist_;
