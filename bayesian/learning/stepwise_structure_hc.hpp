@@ -13,6 +13,8 @@
 namespace bn {
 namespace learning {
 
+// (同時)エントロピーを複数回計算する無駄を省くための辞書ホルダ
+// 相互情報量規準
 class mutual_information_holder {
 public:
     using pair_dictionary_type = std::unordered_map<std::pair<vertex_type, vertex_type>, double, bn::hash<std::pair<vertex_type, vertex_type>>>;
@@ -22,6 +24,8 @@ public:
     {
     }
     
+    // エントロピーを計算して返す
+    // node: 調べるノード
     double calculate_entropy(vertex_type const& node)
     {
         // 存在しているか
@@ -34,6 +38,8 @@ public:
         return value;
     }
     
+    // 同時エントロピーを計算して返す
+    // lhs, rhs: 調べるノード(順不同)
     double calculate_joint_entropy(vertex_type const& lhs, vertex_type const& rhs)
     {
         auto jointed = make_vertex_pair(lhs, rhs);
@@ -47,7 +53,10 @@ public:
         joint_entropy_dic_.emplace(std::move(jointed), value);
         return value;
     }
-
+    
+    // 類似度を計算して返す
+    // 必要ならエントロピーを内部で計算する
+    // lhs, rhs: 調べるノード(順不同)
     double calculate_similarity(vertex_type const& lhs, vertex_type const& rhs)
     {
         auto jointed = make_vertex_pair(lhs, rhs);
@@ -66,31 +75,39 @@ public:
         return value;
     }
 
+    // 登録済みのエントロピーを消す
     void delete_entropy(vertex_type const& node)
     {
         entropy_dic_.erase(node);
     }
     
+    // 登録済みの同時エントロピーを消す
     void delete_joint_entropy(vertex_type const& lhs, vertex_type const& rhs)
     {
         joint_entropy_dic_.erase(make_vertex_pair(lhs, rhs));
     }
 
+    // 登録済みの類似度を消す
     void delete_similarity(vertex_type const& lhs, vertex_type const& rhs)
     {
         similarity_dic_.erase(make_vertex_pair(lhs, rhs));
     }
     
 private:
+    // pairの前半がアドレスの小さいノードになるように正規化する
+    // (順不同性を保証する)
     std::pair<vertex_type, vertex_type> make_vertex_pair(vertex_type const& lhs, vertex_type const& rhs)
     {
         return (lhs < rhs) ? std::make_pair(lhs, rhs)
                            : std::make_pair(rhs, lhs);
     }
 
+    // 学習器
     sampler const& sampling_;
     bn::evaluation::entropy const entropy_machine_;
     bn::evaluation::mutual_information const mutual_machine_;
+
+    // 辞書
     std::unordered_map<vertex_type, double> entropy_dic_;
     pair_dictionary_type joint_entropy_dic_;
     pair_dictionary_type similarity_dic_;
@@ -99,8 +116,8 @@ private:
 template<class Eval, template<class> class BetweenLearning>
 class stepwise_structure_hc {
 public:
-    using cluster_type = std::vector<vertex_type>;
-    using similarity_type = std::tuple<const cluster_type*, const cluster_type*, double>;
+    using cluster_type = std::shared_ptr<std::vector<vertex_type>>;
+    using similarity_type = std::tuple<cluster_type, cluster_type, double>;
     using Similarity = bn::evaluation::mutual_information;
 
     stepwise_structure_hc(bn::sampler const& sampling)
@@ -108,63 +125,120 @@ public:
     {
     }
 
-    double operator()(graph_t& graph)
+    // 階層的クラスタリング及び確率的枝刈りを用いた段階的構造学習法の実行
+    // graph: グラフ構造(どんな構造が入っていたとしても，クリアされる)
+    // alpha: 枝刈りが実行される確率に関する係数
+    double operator()(graph_t& graph, double const alpha)
     {
         // graphの初期化
         graph.erase_all_edge();
 
-        // 初期クラスタと初期類似度を得る
-        auto clusters = initial_clustering(graph.vertex_list()); // 初期クラスタ
-        auto similarities = initial_similarity(clusters);        // 初期類似度
+        // 初期クラスタと初期類似度を初期化
+        initial_clustering(graph.vertex_list()); // 初期クラスタ
+        initial_similarities();                  // 初期類似度
 
         // クラスタ間学習(結合)
-        auto const score = learning_between_clusters(graph, clusters, similarities);
-
+        auto const score = learning_between_clusters(graph, alpha);
         return score;
     }
 
 private:
-    // 初期クラスタリングを行い，クラスタリング結果を返す
+    // 初期クラスタリングを行い，クラスタリング結果をメンバ変数clusters_に格納する
     // 第1引数: クラスタリング対象のノード集合
-    std::vector<cluster_type> initial_clustering(std::vector<vertex_type> const& nodes)
+    void initial_clustering(std::vector<vertex_type> const& nodes)
     {
-        // クラスタ集合
-        std::vector<cluster_type> clusters(nodes.size());
+        // クラスタ集合初期化
+        clusters_.clear();
+        clusters_.reserve(nodes.size());
 
         // 1ノード1クラスタ
-        for(std::size_t i = 0; i < nodes.size(); ++i)
+        for(auto const& node : nodes)
         {
-            clusters[i].push_back(nodes[i]);
+            auto cluster = std::make_shared<cluster_type::element_type>();
+            cluster->push_back(node);
+            clusters_.push_back(std::move(cluster));
         }
-
-        return clusters;
     }
 
-    std::vector<similarity_type> initial_similarity(std::vector<cluster_type> const& clusters)
+    // 初期類似度計算を行い，類似度をメンバ変数similarities_に格納する
+    void initial_similarities()
     {
-        std::vector<similarity_type> similarities;
-        for(std::size_t i = 0; i < clusters.size(); ++i)
+        // 類似度集合初期化
+        similarities_.clear();
+        similarities_.reserve(clusters_.size() * clusters_.size());
+
+        // 全クラスタペアについて，類似度計算
+        for(std::size_t i = 0; i < clusters_.size(); ++i)
         {
-            for(std::size_t j = i + 1; j < clusters.size(); ++j)
+            for(std::size_t j = i + 1; j < clusters_.size(); ++j)
             {
-                auto const& i_cluster = clusters[i];
-                auto const& j_cluster = clusters[j];
-                similarities.push_back(make_similarity_tuple(i_cluster, j_cluster));
+                auto const& i_cluster = clusters_[i];
+                auto const& j_cluster = clusters_[j];
+                similarities_.push_back(make_similarity_tuple(i_cluster, j_cluster));
             }
         }
-        return similarities;
     }
 
+    // 指定したsimilarityにclusterが関与しているか(clusterに関する類似度か)どうかを返す
+    bool is_related(similarity_type const& similarity, cluster_type const& cluster)
+    {
+        return std::get<0>(similarity) == cluster || std::get<1>(similarity) == cluster;
+    }
+    
+    // 指定したsimilarityがlhsとrhsに関する類似度かどうかを返す
+    bool is_connected(similarity_type const& similarity, cluster_type const& lhs, cluster_type const& rhs)
+    {
+        return std::get<0>(similarity) == std::min(lhs, rhs) && std::get<1>(similarity) == std::max(lhs, rhs);
+    }
+
+    // 引数の2つのクラスタを1つのクラスタに結合する
+    // clusters_に追加されていれば，clusters_から削除する(副作用)
+    cluster_type combine_clusters(cluster_type const& lhs, cluster_type const& rhs)
+    {
+        // 合成クラスタ
+        auto new_cluster = std::make_shared<cluster_type::element_type>();
+        new_cluster->reserve(lhs->size() + rhs->size());
+        new_cluster->insert(new_cluster->end(), lhs->cbegin(), lhs->cend());
+        new_cluster->insert(new_cluster->end(), rhs->cbegin(), rhs->cend());
+
+        // 前のクラスタを消す
+        clusters_.erase(std::find(clusters_.begin(), clusters_.end(), lhs));
+        clusters_.erase(std::find(clusters_.begin(), clusters_.end(), rhs));
+
+        return new_cluster;
+    }
+
+    // メンバ変数similarities_から最も順位の高いものを取り出し，無作為に親子を決定する
+    std::tuple<cluster_type, cluster_type, double> most_similarity()
+    {
+        // 最も似ているクラスタ間
+        auto const most_similar = std::max_element(
+            similarities_.begin(), similarities_.end(),
+            [](similarity_type const& lhs, similarity_type const& rhs){ return std::get<2>(lhs) < std::get<2>(rhs); }
+            );
+
+        // コピーして元のクラスタ間を消す
+        auto result = *most_similar;
+        similarities_.erase(most_similar);
+        
+        // most_similarのどちらが親か(一定条件で入れ替え)
+        std::uniform_int_distribution<std::size_t> binary_dist(0, 1);
+        if(binary_dist(engine_)) std::swap(std::get<0>(result), std::get<1>(result));
+
+        return result;
+    }
+
+    // 与えられた2つのクラスタ間の類似度を求め，similarity_typeとして返す
     similarity_type make_similarity_tuple(cluster_type const& lhs, cluster_type const& rhs)
     {
         // 2クラスタ間のノードのそれぞれの組み合わせ数
-        auto const combination_num = lhs.size() * rhs.size();
+        auto const combination_num = lhs->size() * rhs->size();
 
         // 類似度計算
         double value = 0;
-        for(auto const& lhs_nodes : lhs)
+        for(auto const& lhs_nodes : *lhs)
         {
-            for(auto const& rhs_nodes : rhs)
+            for(auto const& rhs_nodes : *rhs)
             {
                 // 数で割って足す(平均)
                 value += info_holder_.calculate_similarity(lhs_nodes, rhs_nodes) / combination_num;
@@ -172,114 +246,117 @@ private:
         }
 
         // アドレスが小さいクラスタを先にして返す
-        return (&lhs < &rhs) ? std::make_tuple(&lhs, &rhs, value)
-                             : std::make_tuple(&rhs, &lhs, value);
+        return (lhs < rhs) ? std::make_tuple(lhs, rhs, value)
+                           : std::make_tuple(rhs, lhs, value);
     }
 
     // クラスタ間学習を行う
-    double learning_between_clusters(
-        graph_t& graph,
-        std::vector<cluster_type>& clusters,
-        std::vector<similarity_type>& similarities
-        )
+    // graph, alpha: operator()参照
+    double learning_between_clusters(graph_t& graph, double const alpha)
     {
         double score = std::numeric_limits<double>::max();
 
-        while(clusters.size() != 1)
+        while(clusters_.size() != 1 && !similarities_.empty())
         {
             //
-            // 階層的構造学習
+            // 階層的構造学習 部分
             //
 
-            // 最も似ているクラスタ間
-            auto const most_similar = std::max_element(
-                similarities.begin(), similarities.end(),
-                [](similarity_type const& lhs, similarity_type const& rhs){ return std::get<2>(lhs) < std::get<2>(rhs); }
-                );
-
-            // most_similarのどちらが親か
-            std::uniform_int_distribution<std::size_t> binary_dist(0, 1);
-            const cluster_type *parent, *child;
-            if(binary_dist(engine_)) std::tie(parent, child, std::ignore) = *most_similar;
-            else                     std::tie(child, parent, std::ignore) = *most_similar;
-
-            // parentとchildのindex
-            std::size_t const parent_index =
-                std::distance(clusters.begin(), std::find(clusters.begin(), clusters.end(), *parent));
-            std::size_t const child_index  =
-                std::distance(clusters.begin(), std::find(clusters.begin(), clusters.end(), *child));
+            // 結合対象を得る
+            similarity_type const combine_target = most_similarity();
+            auto const parent = std::get<0>(combine_target);
+            auto const child  = std::get<1>(combine_target);
             
             // learning
             score = learning_machine_.learn_with_hint(graph, *parent, *child);
+            
+            // クラスタ合成
+            clusters_.push_back(combine_clusters(parent, child));
+            auto const& inserted_cluster = clusters_.back();      // 挿入後のnew_clusterの参照
 
-            // 合成クラスタ
-            cluster_type new_cluster;
-            new_cluster.reserve(parent->size() + child->size());
-            new_cluster.insert(new_cluster.end(), parent->cbegin(), parent->cend());
-            new_cluster.insert(new_cluster.end(), child->cbegin(), child->cend());
-
-            // 前のクラスタに関する類似度を削除
-            similarities.erase(
-                std::remove_if(
-                    similarities.begin(), similarities.end(),
-                    [parent, child](similarity_type const& similarity)
-                    {
-                        // 多分設計ミスってる
-                        return
-                            std::get<0>(similarity) == parent || std::get<0>(similarity) == child  ||
-                            std::get<1>(similarity) == parent || std::get<1>(similarity) == child;
-                    }),
-                similarities.end()
-                );
-
-            // 前のクラスタを消して，挿入
-            clusters.erase(clusters.begin() + parent_index);
-            clusters.erase(clusters.begin() + child_index + (parent_index < child_index ? -1 : 0));
-            clusters.push_back(std::move(new_cluster));
 
             //
-            // 確率的枝刈り (Yet)
+            // 確率的枝刈り 部分
             //
-
-            // 合成クラスタと各クラスタ間の類似度を更新
-            cluster_type const& inserted_cluster = clusters.back(); // 挿入後のnew_clusterの参照
-            std::for_each(
-                clusters.begin(), clusters.end() - 1,
-                [this, &inserted_cluster, &similarities](cluster_type const& cluster)
-                {
-                    similarities.push_back(make_similarity_tuple(inserted_cluster, cluster));
-                });
+            stochastic_pruning(alpha, inserted_cluster, combine_target);
         }
 
         return score;
     }
-
-    double hierarchical_clustering(
-        graph_t& graph,
-        std::vector<cluster_type>& clusters,
-        std::vector<similarity_type>& similarities
+    
+    // 確率的枝刈りを行う
+    // alpha: operator()に準ずる
+    // new_cluster: 結合後のクラスタを示す
+    // old_connection: 結合前の2クラスタ間のsimilarity_typeを示す
+    void stochastic_pruning(
+        double const alpha,
+        cluster_type const& new_cluster, similarity_type const& old_connection
         )
     {
-        // 最も似ているクラスタ間
-        auto const most_similar = std::max_element(
-            similarities.begin(), similarities.end(),
-            [](similarity_type const& lhs, similarity_type const& rhs){ return std::get<2>(lhs) < std::get<2>(rhs); }
-            );
+        // 全クラスタと検索
+        for(auto const cluster : clusters_)
+        {
+            // 自分自身及び結合後のクラスタならばパスする
+            if(cluster == new_cluster) continue;
 
-        // most_similarのどちらが親か
-        std::uniform_int_distribution<std::size_t> binary_dist(0, 1);
-        const cluster_type *parent, *child;
-        if(binary_dist(engine_)) std::tie(parent, child, std::ignore) = *most_similar;
-        else                     std::tie(child, parent, std::ignore) = *most_similar;
+            // 探索中クラスタが元のクラスタと幾つ接続されていたか調べる
+            std::vector<similarity_type> connection;
+            for(auto it = similarities_.begin(); it != similarities_.end(); )
+            {
+                if(is_connected(*it, cluster, std::get<0>(old_connection)) || is_connected(*it, cluster, std::get<1>(old_connection)))
+                {
+                    connection.push_back(*it);
+                    it = similarities_.erase(it);
+                }
+                else ++it;
+            }
 
-        // parentとchildのindex
-        std::size_t const parent_index =
-            std::distance(clusters.begin(), std::find(clusters.begin(), clusters.end(), *parent));
-        std::size_t const child_index  =
-            std::distance(clusters.begin(), std::find(clusters.begin(), clusters.end(), *child));
-            
-        // learning
-        return learning_machine_.learn_with_hint(graph, *parent, *child);
+            // 類似度を計算しておく
+            auto new_similarity = make_similarity_tuple(new_cluster, cluster);
+
+            // 枝刈り条件
+            double probability;
+            if(connection.size() == 2)
+            {
+                // 類似度の平均を求める
+                double const average_similar = std::accumulate(
+                    similarities_.begin(), similarities_.end(), 0.0,
+                    [this](double val, similarity_type const& similarity) -> double
+                    {
+                        return val + std::get<2>(similarity) / similarities_.size();
+                    });
+
+                probability = std::pow(alpha, std::get<2>(new_similarity) / average_similar);
+            }
+            else if(connection.size() == 1)
+            {
+                probability = std::pow(alpha, std::get<2>(old_connection) / std::get<2>(connection[0]));
+            }
+            else if(connection.size() == 0)
+            {
+                // 張らない
+                continue;
+            }
+            else throw std::runtime_error("too connection");
+
+            // 確率により，probabilityの確率で枝刈り
+            std::uniform_real_distribution<double> probability_dist(0.0, 1.0);
+            if(probability_dist(engine_) < probability) continue; // 枝刈り
+
+            // 刈らない
+            similarities_.push_back(std::move(new_similarity));
+        }
+
+        // 消えたノードに関する類似度をすべて消す(ゴリ押し)
+        for(auto it = similarities_.begin(); it != similarities_.end(); )
+        {
+            // 消えたノードに関係しているかどうか
+            if(is_related(*it, std::get<0>(old_connection)) || is_related(*it, std::get<1>(old_connection)))
+            {
+                it = similarities_.erase(it);
+            }
+            else ++it;
+        }
     }
 
     sampler sampling_;
@@ -287,6 +364,9 @@ private:
     BetweenLearning<Eval> learning_machine_;
     std::mt19937 engine_;
     mutual_information_holder info_holder_;
+
+    std::vector<cluster_type> clusters_;
+    std::vector<similarity_type> similarities_;
 };
 
 } // namespace learning
