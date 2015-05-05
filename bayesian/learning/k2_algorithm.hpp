@@ -14,18 +14,14 @@ namespace learning {
 template<class Eval>
 class k2_algorithm {
 public:
-    k2_algorithm(std::string const& filepath)
-        : filepath_(filepath), sampling_(filepath_), eval_(sampling_), engine_(make_engine<std::mt19937>())
+    k2_algorithm(bn::sampler const& sampling)
+        : sampling_(sampling), eval_(sampling_), engine_(make_engine<std::mt19937>())
     {
     }
     
     double operator()(graph_t& graph, std::unordered_map<vertex_type, std::vector<vertex_type>> preconditon)
-    {
-        // graphの初期化
-        graph.erase_all_edge();
-        
+    {   
         // bestな構造を保持しておく
-        sampling_.load_sample(graph.vertex_list());
         sampling_.make_cpt(graph);
         double eval_best = eval_(graph);
 
@@ -69,9 +65,8 @@ public:
     }
 
 private:
-    std::string filepath_;
-    sampler sampling_;
-    Eval eval_;
+    sampler const& sampling_;
+    Eval const eval_;
     std::mt19937 engine_;
 };
 

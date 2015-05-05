@@ -19,6 +19,16 @@ public:
     }
 };
 
+// For std::unordered_map<std::pair<vertex_type, vertex_type>, double>
+template <>
+class hash<std::pair<vertex_type, vertex_type>> {
+public:
+    size_t operator()(std::pair<vertex_type, vertex_type> const& key) const
+    {
+        return std::hash<vertex_type>()(key.first) ^ std::hash<vertex_type>()(key.second);
+    }
+};
+
 }
 
 #endif // #ifndef BNI_HASH_HPP
