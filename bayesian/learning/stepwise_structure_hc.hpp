@@ -167,6 +167,10 @@ private:
         similarities_.clear();
         similarities_.reserve(clusters_.size() * clusters_.size());
 
+        // 類似度平均初期化
+        average_similar_ = 0.0;
+        auto const max_edge_num = clusters_.size() * (clusters_.size() - 1) / 2;
+
         // 全クラスタペアについて，類似度計算
         for(std::size_t i = 0; i < clusters_.size(); ++i)
         {
@@ -174,7 +178,11 @@ private:
             {
                 auto const& i_cluster = clusters_[i];
                 auto const& j_cluster = clusters_[j];
-                similarities_.push_back(make_similarity_tuple(i_cluster, j_cluster));
+                assert(i_cluster->size() == 1 && j_cluster->size() == 1); // 初期状態は1ノードであるはずだから
+
+                auto&& similarity = make_similarity_tuple(i_cluster, j_cluster);
+                average_similar_ += std::get<2>(similarity) / max_edge_num;
+                similarities_.push_back(std::move(similarity));
             }
         }
     }
@@ -318,15 +326,7 @@ private:
             double probability;
             if(connection.size() == 2)
             {
-                // 類似度の平均を求める
-                double const average_similar = std::accumulate(
-                    similarities_.begin(), similarities_.end(), 0.0,
-                    [this](double val, similarity_type const& similarity) -> double
-                    {
-                        return val + std::get<2>(similarity) / similarities_.size();
-                    });
-
-                probability = std::pow(alpha, std::get<2>(new_similarity) / average_similar);
+                probability = std::pow(alpha, std::get<2>(new_similarity) / average_similar_);
             }
             else if(connection.size() == 1)
             {
@@ -367,6 +367,7 @@ private:
 
     std::vector<cluster_type> clusters_;
     std::vector<similarity_type> similarities_;
+    double average_similar_;
 };
 
 } // namespace learning
