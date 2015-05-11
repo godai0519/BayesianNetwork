@@ -38,7 +38,7 @@ public:
 
         unsigned int no_changed_num = 0;
         double temperature = initial_temp;
-        while(temperature >= final_temp && no_changed_num < same_state_max)
+        while(temperature > final_temp && no_changed_num < same_state_max)
         {
             bool is_operated = false;
             auto const method = method_dist_(engine_);
