@@ -42,35 +42,36 @@ double basic_info_criteria::calc_likelihood(graph_t const& graph) const
 {
     double likelihood = 0.0;
 
-    for(auto const& sample : sampling_.table())
+    // 各ノードに対し尤度の計算
+    for(auto const& node : graph.vertex_list())
     {
-        // 各ノードに対し
-        for(auto const& node : graph.vertex_list())
+        // 親ノード
+        auto const& parent = graph.in_vertexes(node);
+
+        // 各サンプル回して統計を取る(条件が同じものをまとめ上げる感覚)
+        std::unordered_map<condition_t, std::size_t> statistics;
+        for(auto const& sample : sampling_.table())
         {
+            // 自ノードと親ノード以外を消した条件
             condition_t cond = sample.first;
-
-            // 親ノード以外を消す
-            auto const& parent = graph.in_vertexes(node);
-			for (auto it = cond.begin(); it != cond.end();)
-			{
-				if(std::find(parent.begin(), parent.end(), it->first) == parent.end())
-				{
-					it = cond.erase(it);
-				}
-				else
-				{
-					++it;
-				}
-			}
-
-            // 全選択について計算
-			for (int i = 0; i < node->selectable_num; i++)
+            for(auto it = cond.begin(); it != cond.end();)
             {
-				if (node->cpt[cond].second[i] != 0)
-                {
-					likelihood -= sample.second * std::log2(node->cpt[cond].second[i]);
-				}
-			}
+                if(it->first != node && std::find(parent.begin(), parent.end(), it->first) == parent.end())
+                    it = cond.erase(it);
+                else
+                    ++it;
+            }
+
+            statistics[cond] += sample.second;
+        }
+
+        // 統計より本命の計算
+        for(auto data : statistics)
+        {
+            auto cond = data.first;
+            auto const select = cond.at(node);
+            cond.erase(node);
+            likelihood -= data.second * std::log(node->cpt[cond].second[select]/*static_cast<double>(data.second) / sampling_.sampling_size()*/);
         }
     }
 
@@ -89,7 +90,7 @@ double basic_info_criteria::calc_parameters(graph_t const& graph) const
             parents.begin(), parents.end(), node->selectable_num - 1,
             [](int64_t const& init, bn::vertex_type const& parent_node) -> int64_t
             {
-                return init * (parent_node->selectable_num - 1);
+                return init * parent_node->selectable_num;
             });
     }
 
