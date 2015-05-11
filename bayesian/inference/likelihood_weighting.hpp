@@ -70,7 +70,6 @@ public:
         return_type probabilities;
 
         // Initialize
-        patterns.reserve(unit_size);
         for(auto const& node : graph_.vertex_list())
         {
             w_list[node].resize(1, node->selectable_num, 0.0);
@@ -80,6 +79,7 @@ public:
         while(true)
         {
             // Generate one unit
+            patterns.reserve(unit_size + patterns.capacity());
             for(std::uint64_t i = 0; i < unit_size; ++i)
             {
                 auto const sample = weighted_sample(evidence);
