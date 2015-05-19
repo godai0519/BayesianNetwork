@@ -120,6 +120,12 @@ private:
         std::function<std::pair<std::vector<std::string>, std::vector<double>>(std::vector<double>)> nonconditional;
 
         //
+        // Characters
+        //
+        qi::rule<Iterator, char(), qi::ascii::space_type> usable_char;
+        qi::rule<Iterator, std::string(), qi::ascii::space_type> usable_string;
+
+        //
         // Rule of "variable" Section
         //
         qi::rule<Iterator, std::vector<std::string>(), qi::ascii::space_type> enumeration_rule;
@@ -166,19 +172,25 @@ private:
                 };
 
             //
+            // Characters
+            //
+            usable_char = qi::alnum | qi::char_("-_");
+            usable_string = +usable_char;
+
+            //
             // Rule of "variable" Section
             //
             enumeration_rule =
                 qi::lit("{")
-                >> +qi::alnum % qi::lit(",")
+                >> usable_string % qi::lit(",")
                 >> qi::lit("}");
             array_size_rule =
                 qi::lit("[") >> qi::uint_ >> qi::lit("]");
             variable_rule =
                 qi::lit("variable")
-                >> +qi::alnum
+                >> usable_string
                 >> qi::lit("{")
-                >> qi::lit("type") >> qi::lit("discrete")>> array_size_rule >> enumeration_rule >> qi::lit(";")
+                >> qi::lit("type") >> qi::lit("discrete") >> array_size_rule >> enumeration_rule >> qi::lit(";")
                 >> qi::lit("}");
 
             //
@@ -186,7 +198,7 @@ private:
             //
             network_rule =
                 qi::lit("network")
-                >> +qi::alnum
+                >> usable_string
                 >> qi::lit("{") >> qi::lit("}");
 
             //
@@ -194,13 +206,13 @@ private:
             //
             rv_enum_rule =
                 qi::lit("(")
-                >> (+qi::alnum)
+                >> usable_string
                 >>-( +qi::lit("|")
-                >> (+qi::alnum) % qi::lit(",") )
+                >> usable_string % qi::lit(",") )
                 >> qi::lit(")");
             condition_enum_rule =
                 qi::lit("(")
-                >> +qi::alnum % qi::lit(",")
+                >> usable_string % qi::lit(",")
                 >> qi::lit(")");
             probability_enum_rule =
                 qi::double_ % qi::lit(",");
