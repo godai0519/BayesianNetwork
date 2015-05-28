@@ -68,7 +68,7 @@ private:
     {
         InnerLearning<Eval> learning_machine(sampling_);
 
-        for(auto const& cluster : clusters) 
+        for(auto const& cluster : clusters)
             learning_machine(graph, cluster);
     }
 

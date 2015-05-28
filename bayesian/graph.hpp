@@ -127,7 +127,7 @@ public:
             return std::pair<bool, std::vector<double>&>(true, std::ref(result->second));
         }
     }
-    
+
     // 条件が完全一致した確率vectorを返す (const版)
     // std::pairのfirstが検索成功したかをのせる
     // firstがtrueのとき，secondには実体への参照が格納される
@@ -186,7 +186,7 @@ public:
         rhs.swap(*this);
         return *this;
     }
-    
+
 #if defined(_MSC_VER) && _MSC_VER < 1900
     inline void swap(graph_t& other)
 #else

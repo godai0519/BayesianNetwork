@@ -23,7 +23,7 @@ public:
         : sampling_(sampling), entropy_machine_(), mutual_machine_()
     {
     }
-    
+
     // エントロピーを計算して返す
     // node: 調べるノード
     double calculate_entropy(vertex_type const& node)
@@ -37,7 +37,7 @@ public:
         entropy_dic_.emplace(node, value);
         return value;
     }
-    
+
     // 同時エントロピーを計算して返す
     // lhs, rhs: 調べるノード(順不同)
     double calculate_joint_entropy(vertex_type const& lhs, vertex_type const& rhs)
@@ -53,7 +53,7 @@ public:
         joint_entropy_dic_.emplace(std::move(jointed), value);
         return value;
     }
-    
+
     // 類似度を計算して返す
     // 必要ならエントロピーを内部で計算する
     // lhs, rhs: 調べるノード(順不同)
@@ -80,7 +80,7 @@ public:
     {
         entropy_dic_.erase(node);
     }
-    
+
     // 登録済みの同時エントロピーを消す
     void delete_joint_entropy(vertex_type const& lhs, vertex_type const& rhs)
     {
@@ -92,7 +92,7 @@ public:
     {
         similarity_dic_.erase(make_vertex_pair(lhs, rhs));
     }
-    
+
 private:
     // pairの前半がアドレスの小さいノードになるように正規化する
     // (順不同性を保証する)
@@ -192,7 +192,7 @@ private:
     {
         return std::get<0>(similarity) == cluster || std::get<1>(similarity) == cluster;
     }
-    
+
     // 指定したsimilarityがlhsとrhsに関する類似度かどうかを返す
     bool is_connected(similarity_type const& similarity, cluster_type const& lhs, cluster_type const& rhs)
     {
@@ -228,7 +228,7 @@ private:
         // コピーして元のクラスタ間を消す
         auto result = *most_similar;
         similarities_.erase(most_similar);
-        
+
         // most_similarのどちらが親か(一定条件で入れ替え)
         std::uniform_int_distribution<std::size_t> binary_dist(0, 1);
         if(binary_dist(engine_)) std::swap(std::get<0>(result), std::get<1>(result));
@@ -274,10 +274,10 @@ private:
             similarity_type const combine_target = most_similarity();
             auto const parent = std::get<0>(combine_target);
             auto const child  = std::get<1>(combine_target);
-            
+
             // learning
             score = learning_machine_.learn_with_hint(graph, *parent, *child);
-            
+
             // クラスタ合成
             clusters_.push_back(combine_clusters(parent, child));
             auto const& inserted_cluster = clusters_.back();      // 挿入後のnew_clusterの参照
@@ -291,7 +291,7 @@ private:
 
         return score;
     }
-    
+
     // 確率的枝刈りを行う
     // alpha: operator()に準ずる
     // new_cluster: 結合後のクラスタを示す

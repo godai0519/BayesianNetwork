@@ -3,10 +3,13 @@
 
 #include <string>
 #include <random>
+#include <vector>
+#include <algorithm>
+#include <cstdint>
 
 namespace bn {
 namespace learning {
-    
+
 template<class RandomEngine>
 RandomEngine make_engine()
 {

@@ -15,11 +15,11 @@ public:
     typedef std::unordered_map<vertex_type, matrix_type> return_type;
     typedef std::vector<std::unordered_map<vertex_type, int>> pattern_list;
 
-    explicit rejection_sampling(graph_t const& graph)    
+    explicit rejection_sampling(graph_t const& graph)
         : graph_(graph)
     {
     }
-    
+
     virtual ~rejection_sampling() = default;
 
     // By-pass
@@ -178,12 +178,12 @@ private:
             std::seed_seq seed(vec.begin(), vec.end());
             engine_.reset(new std::mt19937(seed));
         }
-        
+
         double operator() ()
         {
             return distribution_(*engine_);
         }
-        
+
     private:
         std::unique_ptr<std::mt19937> engine_;
         std::uniform_real_distribution<double> distribution_;

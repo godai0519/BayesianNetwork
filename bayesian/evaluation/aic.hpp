@@ -6,7 +6,7 @@
 
 namespace bn {
 namespace evaluation {
-  
+
 struct aic : basic_info_criteria {
     aic(sampler const& sampling)
         : basic_info_criteria(sampling)

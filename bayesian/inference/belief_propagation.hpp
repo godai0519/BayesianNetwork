@@ -198,7 +198,7 @@ private:
         // 計算された値でπを更新させる
         new_pi_[target] = normalize(matrix);
     }
-    
+
     void calculate_pi_i(vertex_type const& from, vertex_type const& target)
     {
         auto out_vertexes = graph_.out_vertexes(target);
@@ -236,7 +236,7 @@ private:
         // 計算された値でλを更新させる
         new_lambda_[target] = normalize(matrix);
     }
-    
+
     void calculate_lambda_k(vertex_type const& from, vertex_type const& target)
     {
         auto const in_vertexes = graph_.in_vertexes(from);

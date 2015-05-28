@@ -5,7 +5,7 @@
 
 namespace bn {
 namespace evaluation {
-    
+
 struct basic_evaluation {
     // API
     virtual double operator() (graph_t const& graph) const = 0;
