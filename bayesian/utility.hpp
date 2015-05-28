@@ -1,5 +1,5 @@
-#ifndef BNI_LEARNING_UTILITY_HPP
-#define BNI_LEARNING_UTILITY_HPP
+#ifndef BNI_UTILITY_HPP
+#define BNI_UTILITY_HPP
 
 #include <string>
 #include <random>
@@ -8,7 +8,6 @@
 #include <cstdint>
 
 namespace bn {
-namespace learning {
 
 template<class RandomEngine>
 RandomEngine make_engine()
@@ -22,7 +21,6 @@ RandomEngine make_engine()
     return RandomEngine(seed);
 }
 
-} // namespace learning
 } // namespace bn
 
 #endif // BNI_LEARNING_UTILITY_HPP
