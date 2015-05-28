@@ -113,7 +113,7 @@ public:
             if(max_difference < epsilon) break;
         }
 
-        return std::make_pair(patterns, probabilities);
+        return std::make_pair(std::move(patterns), std::move(probabilities));
     }
 
     // Make: accurate sample
