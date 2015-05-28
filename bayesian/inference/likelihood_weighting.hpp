@@ -14,7 +14,7 @@ class likelihood_weighting {
 public:
     typedef std::unordered_map<vertex_type, int> evidence_list;
     typedef std::unordered_map<vertex_type, int> pattern_list;
-    typedef std::unordered_map<bn::condition_t, std::size_t> newer_pattern_list;
+    typedef std::unordered_map<bn::condition_t, std::size_t> sample_list;
     typedef std::unordered_map<vertex_type, matrix_type> return_type;
 
     explicit likelihood_weighting(graph_t const& graph)
@@ -59,13 +59,13 @@ public:
     }
 
     // Make: accurate sample
-    std::pair<newer_pattern_list, return_type> make_samples_min(
+    std::pair<sample_list, return_type> make_samples(
         evidence_list const& evidence,
-        std::uint64_t const unit_size/* = 1000000/* 1'000'000 */,
-        double const epsilon/* = 0.001*/
+        std::uint64_t const unit_size = 1000000/* 1'000'000 */,
+        double const epsilon = 0.001
         )
     {
-        newer_pattern_list patterns;
+        sample_list patterns;
 
         return_type w_list;
         return_type probabilities;
@@ -114,66 +114,6 @@ public:
         }
 
         return std::make_pair(std::move(patterns), std::move(probabilities));
-    }
-
-    // Make: accurate sample
-    // 非推奨化する
-    std::pair<std::vector<pattern_list>, return_type> make_samples(
-        evidence_list const& evidence,
-        std::uint64_t const unit_size/* = 1000000/* 1'000'000 */,
-        double const epsilon/* = 0.001*/,
-        std::function<void(std::vector<pattern_list>&)> handler
-        )
-    {
-        std::vector<pattern_list> patterns;
-        return_type w_list;
-        return_type probabilities;
-
-        // Initialize
-        for(auto const& node : graph_.vertex_list())
-        {
-            w_list[node].resize(1, node->selectable_num, 0.0);
-            probabilities[node].resize(1, node->selectable_num, 0.0);
-        }
-
-        while(true)
-        {
-            // Generate one unit
-            patterns.reserve(unit_size + patterns.capacity());
-            for(std::uint64_t i = 0; i < unit_size; ++i)
-            {
-                auto const sample = weighted_sample(evidence);
-                pattern_list const& pattern = sample.first;
-                double const& w = sample.second;
-
-                for(auto const& node : graph_.vertex_list())
-                {
-                    auto const node_select = pattern.at(node);
-                    w_list[node][0][node_select] += w;
-                }
-
-                patterns.push_back(pattern);
-            }
-
-            handler(patterns);
-
-            double max_difference = std::numeric_limits<double>::min();
-            for(auto const& node : graph_.vertex_list())
-            {
-                auto& old_probability = probabilities[node];
-                auto next_probability = normalize(w_list[node]);
-                for(std::size_t i = 0; i < next_probability.width(); ++i)
-                {
-                    max_difference = std::max(max_difference, std::abs(old_probability[0][i] - next_probability[0][i]));
-                }
-
-                old_probability = std::move(next_probability);
-            }
-
-            if(max_difference < epsilon) break;
-        }
-
-        return std::make_pair(patterns, probabilities);
     }
 
 private:
