@@ -16,15 +16,15 @@ struct entropy {
         // 元データから厳密な確率を出す(条件付き確率ではない)
         // CPTを親ノードを行列乗算して算出することも可能だが，どうだろうか
         std::unordered_map<condition_t, std::size_t> table;
+        condition_t cond;
         for(auto const& sample : sampling.table())
         {
-            condition_t cond;
             for(auto const& variable : variables)
                 cond[variable] = sample.first.at(variable);
 
             // 有れば加算，なければ作成
             auto it = table.find(cond);
-            if(it == table.end()) table.emplace(cond, sample.second);
+            if(it == table.end()) table[cond] = sample.second;
             else                  it->second += sample.second;
         }
 

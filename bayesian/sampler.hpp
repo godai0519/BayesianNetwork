@@ -51,23 +51,23 @@ public:
 
         // 1行ずつサンプリング
         std::string line_str;
+        condition_t sample;
         while(std::getline(ifs, line_str))
         {
             std::vector<std::string> line;
             boost::algorithm::split(line, line_str, boost::is_space(), boost::algorithm::token_compress_on);
 
-            condition_t sample;
-            std::transform(
-                node_list.cbegin(), node_list.cend(), line.cbegin(),
-                std::inserter(sample, sample.begin()),
-                [](vertex_type const& node, std::string const& str){ return std::make_pair(node, std::stoi(str)); }
-                );
+            auto select_it = line.cbegin() + 1;
+            for(auto it = node_list.cbegin(); it != node_list.cend();)
+                sample[*it++] = std::stoi(*select_it++);
+
+            auto const sample_num = std::stoi(line[0]);
 
             auto const it = table.find(sample);
-            if(it == table.cend()) table[sample] = 1;
-            else ++(it->second);
+            if(it == table.cend()) table[sample] = sample_num;
+            else (it->second) += sample_num;
 
-            ++sampling_size;
+            sampling_size += sample_num;
         }
 
         sampling_size_ = sampling_size;
