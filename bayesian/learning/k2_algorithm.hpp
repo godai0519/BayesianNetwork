@@ -6,7 +6,7 @@
 #include <boost/range/algorithm_ext/erase.hpp>
 #include <bayesian/graph.hpp>
 #include <bayesian/sampler.hpp>
-#include <bayesian/learning/utility.hpp>
+#include <bayesian/utility.hpp>
 
 namespace bn {
 namespace learning {

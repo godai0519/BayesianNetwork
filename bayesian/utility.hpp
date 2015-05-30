@@ -20,6 +20,35 @@ RandomEngine make_engine()
     std::seed_seq seed(seed_vector.begin(), seed_vector.end());
     return RandomEngine(seed);
 }
+/*
+void all_combination_pattern(
+    std::vector<bn::vertex_type> const& combination,
+    std::function<void(bn::condition_t const&)> const& function
+    )
+{
+    typedef std::vector<bn::vertex_type>::const_iterator iterator_type;
+    std::function<void(iterator_type const, iterator_type const&)> recursive;
+
+    bn::condition_t condition;
+    recursive = [&](iterator_type const it, iterator_type const& end)
+    {
+        if(it == end)
+        {
+            function(condition);
+        }
+        else
+        {
+            for(int i = 0; i < (*it)->selectable_num; ++i)
+            {
+                condition[*it] = i;
+                recursive(it + 1, end);
+            }
+        }
+    };
+
+    recursive(combination.cbegin(), combination.cend());
+}
+*/
 
 } // namespace bn
 
