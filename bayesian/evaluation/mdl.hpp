@@ -6,7 +6,7 @@
 
 namespace bn {
 namespace evaluation {
-    
+
 struct mdl : basic_info_criteria {
     mdl(sampler const& sampling)
         : basic_info_criteria(sampling)

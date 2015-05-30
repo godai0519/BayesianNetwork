@@ -16,9 +16,24 @@ namespace bn {
 
 class sampler {
 public:
+    sampler()
+        : filename_(), table_(), sampling_size_(0)
+    {
+    }
+
     sampler(std::string const& filename)
         : filename_(filename), table_(), sampling_size_(0)
     {
+    }
+
+    bool load_sample(std::unordered_map<condition_t, std::size_t> const& table)
+    {
+        table_ = table;
+
+        sampling_size_ = 0;
+        for(auto const& p : table) sampling_size_ += p.second;
+
+        return true;
     }
 
     // 事前に設定したファイルからCSVデータを読み込み，一般化したテーブルを作る
@@ -29,37 +44,37 @@ public:
         // ファイルオープン
         std::ifstream ifs(filename_);
         if(!ifs.is_open()) return false;
-    
+
         // 読み込み先
         std::size_t sampling_size = 0;
         std::unordered_map<condition_t, std::size_t> table;
 
         // 1行ずつサンプリング
         std::string line_str;
+        condition_t sample;
         while(std::getline(ifs, line_str))
         {
             std::vector<std::string> line;
             boost::algorithm::split(line, line_str, boost::is_space(), boost::algorithm::token_compress_on);
 
-            condition_t sample;
-            std::transform(
-                node_list.cbegin(), node_list.cend(), line.cbegin(),
-                std::inserter(sample, sample.begin()),
-                [](vertex_type const& node, std::string const& str){ return std::make_pair(node, std::stoi(str)); }
-                );
+            auto select_it = line.cbegin() + 1;
+            for(auto it = node_list.cbegin(); it != node_list.cend();)
+                sample[*it++] = std::stoi(*select_it++);
+
+            auto const sample_num = std::stoi(line[0]);
 
             auto const it = table.find(sample);
-            if(it == table.cend()) table[sample] = 1;
-            else ++(it->second);
+            if(it == table.cend()) table[sample] = sample_num;
+            else (it->second) += sample_num;
 
-            ++sampling_size;
+            sampling_size += sample_num;
         }
 
         sampling_size_ = sampling_size;
         table_ = std::move(table);
         return true;
     }
-	
+
 	// load_sampleによって生成したテーブルから，CPTを計算し，graphに格納する
 	// 引数: graph: 読み込みしたCPTを保存するグラフ構造
 	// 戻り値: 成功した場合のみ true
@@ -67,7 +82,7 @@ public:
     {
         // sampleが読み込まれているかどうか
         if(sampling_size() == 0) return false;
-    
+
         // CPTの初期化
         for(auto const& node : graph.vertex_list())
         {
@@ -88,7 +103,7 @@ public:
             for(auto const& node : graph.vertex_list())
             {
                 auto const parents = graph.in_vertexes(node);
-            
+
                 // 条件を畳み込む
                 condition_t conditional;
                 for(auto const& parent : parents) conditional[parent] = sample.first.at(parent);
@@ -136,7 +151,7 @@ public:
 
         return true;
     }
-    
+
     // 読み込み対象のファイルを指定するgetter
     std::string filename() const
     {
@@ -167,7 +182,7 @@ private:
     std::string filename_;
     std::unordered_map<condition_t, std::size_t> table_;
     std::size_t sampling_size_;
-    
+
     // 与えられた確率変数全ての組み合わせに対し，functionを実行するというインターフェースを提供する
     // TODO: class bpの中と重複しているので，後で整理する
     void all_combination_pattern(

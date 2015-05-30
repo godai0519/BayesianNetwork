@@ -67,14 +67,14 @@ public:
 
         return graph_;
     }
-    
+
     graph_t from_file(std::string const& filename)
     {
         std::ifstream ifs(filename);
         auto raw_lines = stream_to_lines(ifs);
         return parse(raw_lines);
     }
-    
+
     graph_t from_data(std::string const& data)
     {
         std::istringstream iss(data);
@@ -84,7 +84,7 @@ public:
 
 private:
     typedef std::vector<std::string>::iterator LineIterator;
-    
+
     static std::vector<std::string> spirit(std::string const& str, std::string const& delim)
     {
         std::vector<std::string> res;
@@ -98,7 +98,7 @@ private:
         }
         return res;
     }
-    
+
     void parse_header(LineIterator& it, LineIterator const& end)
     {
         assert(it->substr(0, 14) == "belief network");
@@ -110,7 +110,7 @@ private:
 
         ++it;
     }
-    
+
     void parse_node(LineIterator& it, LineIterator const& end)
     {
         // 1行目
@@ -147,7 +147,7 @@ private:
 
         ++it;
     }
-    
+
     void parse_cpt(LineIterator& it, LineIterator const& end)
     {
         // 1行目
@@ -158,7 +158,7 @@ private:
 
         std::string const node_str = condition_str.substr(0, condition_str.find(" | "));
         std::string const cond_str = (condition_str.size() == node_str.size()) ? "" : condition_str.substr(node_str.size() + 3);
-        
+
         vertex_type const target_node = dictionary_[node_str];
         std::vector<vertex_type> cond_nodes;
         for(auto const& str : spirit(cond_str, ", "))
@@ -175,7 +175,7 @@ private:
 
         // 2行目
         ++it;
-        
+
         // 3行目以降
         condition_t cond;
         if(cond_nodes.empty())
@@ -187,7 +187,7 @@ private:
             {
                 data.push_back(std::stod(str));
             }
-            
+
             target_node->cpt[cond].second = data;
             ++it;
         }

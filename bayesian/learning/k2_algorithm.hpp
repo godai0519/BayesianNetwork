@@ -6,11 +6,11 @@
 #include <boost/range/algorithm_ext/erase.hpp>
 #include <bayesian/graph.hpp>
 #include <bayesian/sampler.hpp>
-#include <bayesian/learning/utility.hpp>
+#include <bayesian/utility.hpp>
 
 namespace bn {
 namespace learning {
-    
+
 template<class Eval>
 class k2_algorithm {
 public:
@@ -18,9 +18,9 @@ public:
         : sampling_(sampling), eval_(sampling_), engine_(make_engine<std::mt19937>())
     {
     }
-    
+
     double operator()(graph_t& graph, std::unordered_map<vertex_type, std::vector<vertex_type>> preconditon)
-    {   
+    {
         // bestな構造を保持しておく
         sampling_.make_cpt(graph);
         double eval_best = eval_(graph);
@@ -38,8 +38,8 @@ public:
                 {
                     // C言語でいう副作用完了点を悪用
                     auto ignore_nodes = preconditon.find(target);
-                    return 
-                        node == target || 
+                    return
+                        node == target ||
                         (ignore_nodes != preconditon.end() &&
                         std::find(ignore_nodes->second.begin(), ignore_nodes->second.end(), node) != ignore_nodes->second.end());
                 });
@@ -50,7 +50,7 @@ public:
                 {
                     sampling_.make_cpt(graph);
                     auto const eval_now = eval_(graph);
-                    
+
                     if(eval_now < eval_best)
                     {
                         eval_best = eval_now;

@@ -127,7 +127,7 @@ public:
             return std::pair<bool, std::vector<double>&>(true, std::ref(result->second));
         }
     }
-    
+
     // 条件が完全一致した確率vectorを返す (const版)
     // std::pairのfirstが検索成功したかをのせる
     // firstがtrueのとき，secondには実体への参照が格納される
@@ -186,7 +186,7 @@ public:
         rhs.swap(*this);
         return *this;
     }
-    
+
 #if defined(_MSC_VER) && _MSC_VER < 1900
     inline void swap(graph_t& other)
 #else
@@ -213,6 +213,31 @@ public:
     std::vector<edge_type> const& edge_list() const
     {
         return edge_list_;
+    }
+
+    graph_t clone() const
+    {
+        graph_t cloned_graph;
+
+        auto const& vertex_list = this->vertex_list();
+        auto const& cloned_vertex_list = cloned_graph.vertex_list();
+
+        // 頂点のコピー
+        for(auto const& vertex : vertex_list)
+        {
+            auto cloned_vertex = cloned_graph.add_vertex();
+            *cloned_vertex = *vertex;
+        }
+
+        // 辺のコピー
+        for(auto const& edge : this->edge_list())
+        {
+            auto const source = this->index_search(this->source(edge));
+            auto const target = this->index_search(this->target(edge));
+            cloned_graph.add_edge(cloned_vertex_list[source], cloned_vertex_list[target]);
+        }
+
+        return cloned_graph;
     }
 
     // 頂点を生成し，そのshared_ptrを返す

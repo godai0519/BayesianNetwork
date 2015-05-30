@@ -25,7 +25,7 @@ protected:
     // AIC/MDL情報基準共通: ネットワーク構造の複雑さに関する項
     // + d
     double calc_parameters(graph_t const& graph) const;
-    
+
     // Sampling数のgetter
     std::size_t sampling_size() const;
 
