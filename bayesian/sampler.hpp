@@ -142,8 +142,18 @@ public:
 
                 // 本題のCPT作成
                 std::vector<double> cpt(node->selectable_num);
-                for(std::size_t i = 0; i < node->selectable_num; ++i)
-                    cpt[i] = static_cast<double>(select_counter.at(i)) / parameter;
+                if(parameter == 0)
+                {
+                    // 同じ値を与える
+                    for(std::size_t i = 0; i < node->selectable_num; ++i)
+                        cpt[i] = /*0.0;*/static_cast<double>(1.0) / node->selectable_num;
+                }
+                else
+                {
+                    // CPTを正規化する
+                    for(std::size_t i = 0; i < node->selectable_num; ++i)
+                        cpt[i] = static_cast<double>(select_counter.at(i)) / parameter;
+                }
 
                 node->cpt[conditional].second = std::move(cpt);
             }
