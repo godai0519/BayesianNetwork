@@ -13,9 +13,9 @@ struct mdl : basic_info_criteria {
     {
     }
 
-    double operator() (graph_t const& graph) const override
+    double operator() (graph_t const& graph, std::vector<bn::vertex_type> const& vertex_list) const override
     {
-        auto const likelihood = calc_likelihood(graph);
+        auto const likelihood = calc_likelihood(graph, vertex_list);
         auto const parameters = calc_parameters(graph);
         if(auto const sampling_size = this->sampling_size())
         {

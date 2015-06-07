@@ -15,12 +15,17 @@ public:
     basic_info_criteria(sampler const& sampling);
 
     // API
-    virtual double operator() (graph_t const& graph) const = 0;
+    virtual double operator() (graph_t const& graph) const
+    {
+        return (*this)(graph, graph.vertex_list());
+    }
+    virtual double operator() (graph_t const& graph, std::vector<bn::vertex_type> const& vertex_list) const = 0;
 
 protected:
     // AIC/MDL情報基準共通: ネットワーク構造の適切さに関する項
     // - log P_theta^N(D)
     double calc_likelihood(graph_t const& graph) const;
+    double calc_likelihood(graph_t const& graph, std::vector<bn::vertex_type> const& vertex_list) const;
 
     // AIC/MDL情報基準共通: ネットワーク構造の複雑さに関する項
     // + d
@@ -40,10 +45,15 @@ basic_info_criteria::basic_info_criteria(sampler const& sampling)
 
 double basic_info_criteria::calc_likelihood(graph_t const& graph) const
 {
+    return calc_likelihood(graph, graph.vertex_list());
+}
+
+double basic_info_criteria::calc_likelihood(graph_t const& graph, std::vector<bn::vertex_type> const& vertex_list) const
+{
     double likelihood = 0.0;
 
     // 各ノードに対し尤度の計算
-    for(auto const& node : graph.vertex_list())
+    for(auto const& node : vertex_list)
     {
         // 親ノード
         auto const& parent = graph.in_vertexes(node);
@@ -71,7 +81,7 @@ double basic_info_criteria::calc_likelihood(graph_t const& graph) const
             auto cond = data.first;
             auto const select = cond.at(node);
             cond.erase(node);
-            likelihood -= data.second * std::log(node->cpt[cond].second[select]/*static_cast<double>(data.second) / sampling_.sampling_size()*/);
+            likelihood -= data.second * std::log(node->cpt[cond].second[select]);
         }
     }
 
