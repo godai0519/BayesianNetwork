@@ -5,7 +5,7 @@
 #include <random>
 #include <bayesian/graph.hpp>
 #include <bayesian/sampler.hpp>
-#include <bayesian/learning/utility.hpp>
+#include <bayesian/utility.hpp>
 
 namespace bn {
 namespace learning {
@@ -66,19 +66,20 @@ public:
     // parent_nodes, child_nodes: parent_nodesに含まれるnodeからchild_nodeに含まれるnodeにしか辺を張らない
     double learn_with_hint(graph_t& graph, std::vector<vertex_type> parent_nodes, std::vector<vertex_type> child_nodes)
     {
-        // 親ノードの出現順序をランダムに
-        std::shuffle(std::begin(parent_nodes), std::end(parent_nodes), engine_);
+        // 子ノードの出現順序をランダムに
+        std::shuffle(std::begin(child_nodes), std::end(child_nodes), engine_);
 
         // 最高評価値を保存しておく
         sampling_.make_cpt(graph);
         double eval_now = eval_(graph);
 
         // 親候補と子候補を全部回して様子見る
-        for(auto const& parent : parent_nodes)
+        for(auto const& child : child_nodes)
         {
-            // 子ノードの出現順序をランダムにscore
-            std::shuffle(std::begin(child_nodes), std::end(child_nodes), engine_);
-            for(auto const& child : child_nodes)
+            // 親ノードの出現順序をランダムに
+            std::shuffle(std::begin(parent_nodes), std::end(parent_nodes), engine_);
+
+            for(auto const& parent : parent_nodes)
             {
                 if(auto edge = graph.add_edge(parent, child))
                 {

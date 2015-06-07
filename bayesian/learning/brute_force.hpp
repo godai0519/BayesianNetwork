@@ -5,7 +5,7 @@
 #include <random>
 #include <bayesian/graph.hpp>
 #include <bayesian/sampler.hpp>
-#include <bayesian/learning/utility.hpp>
+#include <bayesian/utility.hpp>
 
 namespace bn {
 namespace learning {
@@ -34,7 +34,7 @@ public:
         // bestな構造を保持しておく
         sampling_.make_cpt(graph);
         graph_t best_graph = graph;
-        double best_eval  = eval_(graph);
+        double best_eval  = eval_(graph, vertexes);
 
         // 全探索する
         recursive(0, graph, vertexes, best_graph, best_eval);
@@ -126,7 +126,7 @@ private:
         {
             // 評価
             sampling_.make_cpt(graph);
-            auto const now_eval = eval_(graph);
+            auto const now_eval = eval_(graph, vertexes);
             if(now_eval < best_eval)
             {
                 best_eval = now_eval;

@@ -5,7 +5,7 @@
 #include <random>
 #include <bayesian/graph.hpp>
 #include <bayesian/sampler.hpp>
-#include <bayesian/learning/utility.hpp>
+#include <bayesian/utility.hpp>
 
 namespace bn {
 namespace learning {
@@ -68,7 +68,7 @@ private:
     {
         InnerLearning<Eval> learning_machine(sampling_);
 
-        for(auto const& cluster : clusters) 
+        for(auto const& cluster : clusters)
             learning_machine(graph, cluster);
     }
 
