@@ -20,7 +20,7 @@ RandomEngine make_engine()
     std::seed_seq seed(seed_vector.begin(), seed_vector.end());
     return RandomEngine(seed);
 }
-/*
+
 void all_combination_pattern(
     std::vector<bn::vertex_type> const& combination,
     std::function<void(bn::condition_t const&)> const& function
@@ -48,7 +48,6 @@ void all_combination_pattern(
 
     recursive(combination.cbegin(), combination.cend());
 }
-*/
 
 } // namespace bn
 
