@@ -23,9 +23,11 @@ struct entropy {
                 cond[variable] = sample.first.at(variable);
 
             // 有れば加算，なければ作成
-            auto it = table.find(cond);
-            if(it == table.end()) table[cond] = sample.second;
-            else                  it->second += sample.second;
+            auto it = table.lower_bound(cond);
+            if(it != table.end() && !(table.key_comp()(cond, it->first)))
+                it->second += sample.second;
+            else
+                table.insert(it, std::make_pair(cond, sample.second));
         }
 
         // すべての確率に底2のエントロピー計算を行う
