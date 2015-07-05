@@ -6,6 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include <cstdint>
+#include "graph.hpp" // templateで回避するか？
 
 namespace bn {
 
@@ -21,7 +22,8 @@ RandomEngine make_engine()
     return RandomEngine(seed);
 }
 
-void all_combination_pattern(
+// 与えられた確率変数全ての組み合わせに対し，functionを実行するというインターフェースを提供する
+inline void all_combination_pattern(
     std::vector<bn::vertex_type> const& combination,
     std::function<void(bn::condition_t const&)> const& function
     )

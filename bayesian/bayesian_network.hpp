@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <string>
 #include "graph.hpp"
+#include "utility.hpp"
 
 namespace bn {
 
@@ -34,13 +35,6 @@ public:
 
     // load_cptされたrawデータ系列を返す
     std::vector<condition_t> data() const;
-
-    // 与えられた確率変数全ての組み合わせに対し，functionを実行するというインターフェースを提供する
-    // TODO: class bpの中と重複しているので，後で整理する
-    void all_combination_pattern(
-        std::vector<vertex_type> const& combination,
-        std::function<void(condition_t const&)> const& function
-        );
 
 private:
     std::vector<condition_t> data_;
@@ -213,35 +207,6 @@ template<class NodeType>
 std::vector<condition_t> bayesian_network<NodeType>::data() const
 {
     return data_;
-}
-
-template<class NodeType>
-void bayesian_network<NodeType>::all_combination_pattern(
-    std::vector<vertex_type> const& combination,
-    std::function<void(condition_t const&)> const& function
-    )
-{
-    typedef std::vector<vertex_type>::const_iterator iterator_type;
-    std::function<void(iterator_type const, iterator_type const&)> recursive;
-
-    condition_t condition;
-    recursive = [&](iterator_type const it, iterator_type const& end)
-    {
-        if(it == end)
-        {
-            function(condition);
-        }
-        else
-        {
-            for(int i = 0; i < (*it)->selectable_num; ++i)
-            {
-                condition[*it] = i;
-                recursive(it + 1, end);
-            }
-        }
-    };
-
-    recursive(combination.cbegin(), combination.cend());
 }
 
 } // namespace bn

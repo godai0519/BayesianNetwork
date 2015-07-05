@@ -10,6 +10,7 @@
 #include <boost/optional.hpp>
 #include <boost/algorithm/string.hpp>
 #include <bayesian/graph.hpp>
+#include <bayesian/utility.hpp>
 #include <bayesian/hash.hpp>
 
 namespace bn {
@@ -192,36 +193,6 @@ private:
     std::string filename_;
     std::unordered_map<condition_t, std::size_t> table_;
     std::size_t sampling_size_;
-
-    // 与えられた確率変数全ての組み合わせに対し，functionを実行するというインターフェースを提供する
-    // TODO: class bpの中と重複しているので，後で整理する
-    void all_combination_pattern(
-        std::vector<vertex_type> const& combination,
-        std::function<void(condition_t const&)> const& function
-        )
-    {
-        typedef std::vector<vertex_type>::const_iterator iterator_type;
-        std::function<void(iterator_type const, iterator_type const&)> recursive;
-
-        condition_t condition;
-        recursive = [&](iterator_type const it, iterator_type const& end)
-        {
-            if(it == end)
-            {
-                function(condition);
-            }
-            else
-            {
-                for(int i = 0; i < (*it)->selectable_num; ++i)
-                {
-                    condition[*it] = i;
-                    recursive(it + 1, end);
-                }
-            }
-        };
-
-        recursive(combination.cbegin(), combination.cend());
-    }
 };
 
 } // namespace bn
