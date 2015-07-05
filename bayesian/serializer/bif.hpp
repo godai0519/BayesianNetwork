@@ -38,7 +38,7 @@ public:
     };
 
     template<class Iterator>
-    bn::graph_t parse(Iterator const& begin, Iterator const& end)
+    std::tuple<bn::graph_t, bn::database_t> parse(Iterator const& begin, Iterator const& end)
     {
         parse_grammar<Iterator> grammar;
 
@@ -55,14 +55,36 @@ public:
         // 木構造をグラフとして作成していく
         //
         bn::graph_t graph;
+        bn::database_t database;
         std::unordered_map<std::string, std::pair<bn::vertex_type, variable_holder>> dictionary;
+
+        // グラフ全体についての設定
+        if(grammar.networks.size() > 1)
+        {
+            // networkセクションは1つまで
+            throw std::runtime_error("too many network section in bif");
+        }
+        else if(grammar.networks.size() == 1)
+        {
+            database.graph_name = grammar.networks[0].network_name;
+        }
 
         // ノードについての作成・辞書作成
         for(auto const& node : grammar.variables)
         {
             auto vertex = graph.add_vertex();
+            auto const id = database.node_name.size();
+
+            // IDの割当と，ノードネームの保存
+            vertex->id = id;
+            database.node_name[id] = node.variable_name;
+
+            // 選択可能(パラメータ)数を保存
             vertex->selectable_num = node.possible_value;
+            database.options_name[id] = node.possible_value_name;
+
             dictionary[node.variable_name] = std::pair<bn::vertex_type, variable_holder>(vertex, node);
+
         }
 
         // CPTの読み取り
@@ -108,7 +130,7 @@ public:
             }
         }
 
-        return graph;
+        return std::forward_as_tuple(std::move(graph), std::move(database));
     }
 
 private:
