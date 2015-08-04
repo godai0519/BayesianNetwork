@@ -2,6 +2,7 @@
 #define BNI_UTILITY_HPP
 
 #include <string>
+#include <functional>
 #include <random>
 #include <vector>
 #include <algorithm>
