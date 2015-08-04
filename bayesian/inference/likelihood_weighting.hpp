@@ -24,96 +24,102 @@ public:
 
     virtual ~likelihood_weighting() = default;
 
-    // Run: Likelihood Weighting
-    return_type operator() (evidence_list const& evidence, std::uint64_t const sample_num = 10000)
+
+    // Probability Inference with Likelihood Weighting. P(Q|E)
+    // evidence:  evidence node(E) list
+    // unit_size: {n * unit_size} samples are used (n = 1,2,...)
+    // epsilon:   an acceptable error range
+    return_type operator() (
+        evidence_list const& evidence,
+        std::size_t const unit_size = 1000000/* 1'000'000 */,
+        double const epsilon = 0.001
+        )
     {
-        return_type ret;
+        auto const& node_list = graph_.vertex_list();
 
         // Initialize
+        return_type ret;
         for(auto const& node : graph_.vertex_list())
-        {
-            ret[node].resize(1, node->selectable_num, 0.0);
-        }
+            ret[node].resize(1, node->selectable_num, 1.0 / node->selectable_num);
 
-        // Generate Sample
-        for(std::uint64_t i = 0; i < sample_num; ++i)
+        // Patterns per Unit
+        while(true)
         {
-            auto const sample = weighted_sample(evidence);
-            pattern_list const& pattern = sample.first;
-            double const& w = sample.second;
+            // Copy Previous Unit
+            return_type next = ret;
 
-            for(auto const& node : graph_.vertex_list())
+            // Generate Unit
+            for(std::size_t i = 0; i < unit_size; ++i)
             {
-                auto const node_select = pattern.at(node);
-                ret[node][0][node_select] += w;
-            }
-        }
+                auto const sample = weighted_sample(evidence);
+                auto const& pattern = sample.first;
+                auto const& w = sample.second;
 
-        // Normalization
-        for(auto const& node : graph_.vertex_list())
-        {
-            ret[node] = normalize(ret[node]);
+                for(auto const& node : node_list)
+                {
+                    auto const node_select = pattern.at(node);
+                    next[node][0][node_select] += w;
+                }
+            }
+
+            // Normalization and Max Difference
+            double difference = std::numeric_limits<double>::min();
+            for(auto const& node : node_list)
+            {
+                auto& now_probabilities = ret[node];
+                auto& next_probabilities = next[node];
+                next_probabilities = this->normalize(next_probabilities);
+
+                for(std::size_t i = 0; i < node->selectable_num; ++i)
+                {
+                    difference = std::max(
+                        difference,
+                        std::abs(next_probabilities[0][i] - now_probabilities[0][i])
+                        );
+                }
+            }
+
+            // Next Unit ?
+            ret = std::move(next);
+            if(difference <= epsilon) break;
         }
 
         return ret;
     }
 
-    // Make: accurate sample
-    std::pair<sample_list, return_type> make_samples(
+    // Make samples with Likelihood Weighting. P(Q|E)
+    // evidence:   evidence node(E) list
+    // sample_num: {unit_size} samples are used
+    sample_list make_samples(
         evidence_list const& evidence,
-        std::uint64_t const unit_size = 1000000/* 1'000'000 */,
-        double const epsilon = 0.001
+        std::size_t const sample_num = 1000000/* 1'000'000 */
         )
     {
-        sample_list patterns;
+        sample_list samples;
 
-        return_type w_list;
-        return_type probabilities;
-
-        // Initialize
-        for(auto const& node : graph_.vertex_list())
+        for(std::size_t i = 0; i < sample_num; ++i)
         {
-            w_list[node].resize(1, node->selectable_num, 0.0);
-            probabilities[node].resize(1, node->selectable_num, 0.0);
+            // Generate One
+            auto const& sample = weighted_sample(evidence).first;
+
+            // Find and Count up
+            auto const it = samples.lower_bound(sample);
+            if(it == samples.end() || it->first != sample)
+            {
+                samples.emplace_hint(
+                    it,
+                    std::piecewise_construct,
+                    std::forward_as_tuple(sample),
+                    std::forward_as_tuple(1)
+                    );
+            }
+            else
+            {
+                ++(it->second);
+            }
         }
 
-        while(true)
-        {
-            // Generate one unit
-            for(std::uint64_t i = 0; i < unit_size; ++i)
-            {
-                auto const sample = weighted_sample(evidence);
-                pattern_list const& pattern = sample.first;
-                double const& w = sample.second;
-
-                for(auto const& node : graph_.vertex_list())
-                {
-                    auto const node_select = pattern.at(node);
-                    w_list[node][0][node_select] += w;
-                }
-
-                auto it = patterns.find(pattern);
-                if(it != patterns.cend()) ++(it->second);
-                else                      patterns[pattern] = 1;
-            }
-
-            double max_difference = std::numeric_limits<double>::min();
-            for(auto const& node : graph_.vertex_list())
-            {
-                auto& old_probability = probabilities[node];
-                auto next_probability = normalize(w_list[node]);
-                for(std::size_t i = 0; i < next_probability.width(); ++i)
-                {
-                    max_difference = std::max(max_difference, std::abs(old_probability[0][i] - next_probability[0][i]));
-                }
-
-                old_probability = std::move(next_probability);
-            }
-
-            if(max_difference < epsilon) break;
-        }
-
-        return std::make_pair(std::move(patterns), std::move(probabilities));
+        return samples;
     }
 
 private:
