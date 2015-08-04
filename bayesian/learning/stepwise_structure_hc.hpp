@@ -29,13 +29,24 @@ public:
     double calculate_entropy(vertex_type const& node)
     {
         // 存在しているか
-        auto it = entropy_dic_.find(node);
-        if(it != entropy_dic_.end()) return it->second;
+        auto const it = entropy_dic_.lower_bound(node);
+        if(it == entropy_dic_.end() || it->first != node)
+        {
+            // 新たに計算して返す
+            auto const value = entropy_machine_(sampling_, node);
+            entropy_dic_.emplace_hint(
+                    it,
+                    std::piecewise_construct,
+                    std::forward_as_tuple(node),
+                    std::forward_as_tuple(value)
+                );
 
-        // 新たに計算して返す
-        auto value = entropy_machine_(sampling_, node);
-        entropy_dic_.emplace(node, value);
-        return value;
+            return value;
+        }
+        else
+        {
+            return it->second;
+        }
     }
 
     // 同時エントロピーを計算して返す
@@ -45,13 +56,24 @@ public:
         auto jointed = make_vertex_pair(lhs, rhs);
 
         // 存在しているか
-        auto it = joint_entropy_dic_.find(jointed);
-        if(it != joint_entropy_dic_.end()) return it->second;
+        auto const it = joint_entropy_dic_.lower_bound(jointed);
+        if(it == joint_entropy_dic_.end() || it->first != jointed)
+        {
+            // 新たに計算して返す
+            auto const value = entropy_machine_(sampling_, {jointed.first, jointed.second});
+            joint_entropy_dic_.emplace_hint(
+                    it,
+                    std::piecewise_construct,
+                    std::forward_as_tuple(jointed),
+                    std::forward_as_tuple(value)
+                );
 
-        // 新たに計算して返す
-        auto value = entropy_machine_(sampling_, {jointed.first, jointed.second});
-        joint_entropy_dic_.emplace(std::move(jointed), value);
-        return value;
+            return value;
+        }
+        else
+        {
+            return it->second;
+        }
     }
 
     // 類似度を計算して返す
@@ -61,18 +83,24 @@ public:
     {
         auto jointed = make_vertex_pair(lhs, rhs);
 
-        // 存在しているか
-        auto it = similarity_dic_.find(jointed);
-        if(it != similarity_dic_.end()) return it->second;
+        auto const it = similarity_dic_.lower_bound(jointed);
+        if(it == similarity_dic_.end() || it->first != jointed)
+        {
+            // 新たに計算して返す
+            auto const value = mutual_machine_(calculate_entropy(lhs), calculate_entropy(rhs), calculate_joint_entropy(lhs, rhs));
+            similarity_dic_.emplace_hint(
+                    it,
+                    std::piecewise_construct,
+                    std::forward_as_tuple(jointed),
+                    std::forward_as_tuple(value)
+                );
 
-        // 新たに計算して返す
-        auto value = mutual_machine_(
-            calculate_entropy(lhs),
-            calculate_entropy(rhs),
-            calculate_joint_entropy(lhs, rhs)
-            );
-        similarity_dic_.emplace(std::move(jointed), value);
-        return value;
+            return value;
+        }
+        else
+        {
+            return it->second;
+        }
     }
 
     // 登録済みのエントロピーを消す
