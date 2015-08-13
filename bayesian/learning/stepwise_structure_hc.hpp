@@ -10,13 +10,6 @@
 #include <bayesian/evaluation/transinformation.hpp>
 #include <bayesian/utility.hpp>
 
-#include <iostream>
-void PressEnterToContinue()
-{
-    std::cout << "Press ENTER to continue... " << std::flush;
-    std::cin.ignore( std::numeric_limits <std::streamsize> ::max(), '\n' );
-}
-
 namespace bn {
 namespace learning {
 
@@ -244,7 +237,6 @@ private:
             next_similarity[cluster] = std::make_tuple(0.0, std::vector<similarity_type>());
 
         // 旧クラスタ類似度より新クラスタ類似度を算出し，消去する
-        //std::cout << "Similarities " << similarities_.size();
         for(auto it = similarities_.begin(); it != similarities_.end();)
         {
             auto const& connection = std::get<0>(*it);
@@ -275,13 +267,6 @@ private:
             }
             else ++it;
         }
-        //std::cout << " -> " << similarities_.size() << std::endl;
-        //for(auto const& n : next_similarity)
-        //{
-        //    auto const& tuple = n.second;
-        //    std::cout << std::get<0>(tuple) << " " << std::get<1>(tuple).size() << " " << std::get<2>(std::get<1>(tuple)[0]) << " " << std::get<2>(std::get<1>(tuple)[1]) << std::endl;
-        //}
-        //PressEnterToContinue();
 
         // 新クラスタ類似度より枝刈りを実行する
         for(std::size_t i = 0, end = clusters_.size(); i < end; ++i)
