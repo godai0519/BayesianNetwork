@@ -81,15 +81,17 @@ public:
 	// 戻り値: 成功した場合のみ true
     bool make_cpt(graph_t const& graph) const
     {
+        return make_cpt(graph, graph.vertex_list());
+    }
+
+	// load_sampleによって生成したテーブルから，CPTを計算し，graphに格納する
+	// 引数: graph: 読み込みしたCPTを保存するグラフ構造
+    //       target_nodes: 読み込みするノード群
+	// 戻り値: 成功した場合のみ true
+    bool make_cpt(graph_t const& graph, std::vector<vertex_type> const& target_nodes) const
+    {
         // sampleが読み込まれているかどうか
         if(sampling_size() == 0) return false;
-
-        // CPTの初期化
-        for(auto const& node : graph.vertex_list())
-        {
-            auto const in_vertex = graph.in_vertexes(node);
-            node->cpt.assign(in_vertex, node);
-        }
 
         // カウンタ
         std::unordered_map<
@@ -99,9 +101,9 @@ public:
         > counter;
 
         // カウント
-        for(auto const& sample : table())
+        for(auto const& sample : table_)
         {
-            for(auto const& node : graph.vertex_list())
+            for(auto const& node : target_nodes)
             {
                 auto const parents = graph.in_vertexes(node);
 
@@ -110,26 +112,29 @@ public:
                 for(auto const& parent : parents) conditional[parent] = sample.first.at(parent);
 
                 // counterのカウントアップ
-                auto container_first = std::make_pair(node, conditional);
-                auto const it = counter.find(container_first);
-                if(it == counter.end())
+                auto container_first = std::make_pair(node, std::move(conditional));
+                auto it = counter.lower_bound(container_first);
+                if(it == counter.end() || it->first != container_first)
                 {
-                    // 作ってcounterに要素を追加
-                    std::vector<std::size_t> local_counter(node->selectable_num, 0);
-                    local_counter[sample.first.at(node)] = sample.second;
-                    counter.insert(std::make_pair(std::move(container_first), std::move(local_counter)));
+                    // counterに要素を追加
+                    it = counter.emplace_hint(
+                        it, std::piecewise_construct,
+                        std::forward_as_tuple(container_first),
+                        std::forward_as_tuple(node->selectable_num, 0));
                 }
-                else
-                {
-                    // 足しあわせ
-                    it->second[sample.first.at(node)] += sample.second;
-                }
+                
+                // 足しあわせ
+                it->second[sample.first.at(node)] += sample.second;
             }
         }
 
         // カウント値を用い，CPTを算出
-        for(auto const& node : graph.vertex_list())
+        for(auto const& node : target_nodes)
         {
+            // CPTの初期化
+            auto const in_vertex = graph.in_vertexes(node);
+            node->cpt.assign(in_vertex, node);
+
             for(auto const& conditional : node->cpt.pattern())
             {
                 // カウンタからデータを引きずりだし，確率1にすべき母数を算出
@@ -147,7 +152,7 @@ public:
                 {
                     // 同じ値を与える
                     for(std::size_t i = 0; i < node->selectable_num; ++i)
-                        cpt[i] = /*0.0;*/static_cast<double>(1.0) / node->selectable_num;
+                        cpt[i] = static_cast<double>(1.0) / node->selectable_num;
                 }
                 else
                 {
@@ -158,6 +163,78 @@ public:
 
                 node->cpt[conditional].second = std::move(cpt);
             }
+        }
+
+        return true;
+    }
+
+	// load_sampleによって生成したテーブルから，CPTを計算し，graphに格納する
+	// 引数: graph: 読み込みしたCPTを保存するグラフ構造
+    //       target_node: 読み込みするノード
+	// 戻り値: 成功した場合のみ true
+    bool make_cpt(graph_t const& graph, vertex_type const& target_node) const
+    {
+        // sampleが読み込まれているかどうか
+        if(sampling_size() == 0) return false;
+
+        // カウンタ
+        std::unordered_map<
+            condition_t,
+            std::vector<std::size_t>
+        > counter;
+        
+        // CPTの初期化
+        auto const parents = graph.in_vertexes(target_node);
+        target_node->cpt.assign(parents, target_node);
+
+        // カウント
+        for(auto const& sample : table_)
+        {
+
+            // 条件を畳み込む
+            condition_t conditional;
+            for(auto const& parent : parents) conditional[parent] = sample.first.at(parent);
+
+            // counterのカウントアップ
+            auto it = counter.lower_bound(conditional);
+            if(it == counter.end() || it->first != conditional)
+            {
+                // counterに要素を追加
+                it = counter.emplace_hint(
+                    it, std::piecewise_construct,
+                    std::forward_as_tuple(conditional),
+                    std::forward_as_tuple(target_node->selectable_num, 0));
+            }
+                
+            // 足しあわせ
+            it->second[sample.first.at(target_node)] += sample.second;
+        }
+
+        for(auto const& conditional : target_node->cpt.pattern())
+        {
+            // カウンタからデータを引きずりだし，確率1にすべき母数を算出
+            auto const it = counter.find(conditional);
+            auto const select_counter =
+                (it != counter.end()) ? it->second
+                                      : std::vector<std::size_t>(target_node->selectable_num, 0);
+            auto const parameter = static_cast<double>(std::accumulate(select_counter.begin(), select_counter.end(), static_cast<std::size_t>(0)));
+
+            // 本題のCPT作成
+            std::vector<double> cpt(target_node->selectable_num);
+            if(parameter == 0)
+            {
+                // 同じ値を与える
+                for(std::size_t i = 0; i < target_node->selectable_num; ++i)
+                    cpt[i] = static_cast<double>(1.0) / target_node->selectable_num;
+            }
+            else
+            {
+                // CPTを正規化する
+                for(std::size_t i = 0; i < target_node->selectable_num; ++i)
+                    cpt[i] = static_cast<double>(select_counter.at(i)) / parameter;
+            }
+
+            target_node->cpt[conditional].second = std::move(cpt);
         }
 
         return true;
