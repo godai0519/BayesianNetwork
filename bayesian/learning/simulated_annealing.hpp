@@ -27,7 +27,6 @@ public:
         )
     {
         // bestな構造を保持しておく
-        sampling_.make_cpt(graph);
         graph_t best_graph = graph;
         double best_eval = eval_(graph);
 
@@ -51,7 +50,6 @@ public:
                 auto const from = vertexes[vertex_dist(engine_)];
                 auto const to   = vertexes[vertex_dist(engine_)];
 
-                // Operate!
                 if(graph.add_edge(from, to)) is_operated = true;
             }
             else if(method == 1)
@@ -64,7 +62,6 @@ public:
                 if(edges.size() < 1) continue;
                 std::uniform_int<std::size_t> edge_dist(0, edges.size() - 1);
 
-                // Operate!
                 auto const target_edge = edges[edge_dist(engine_)];
                 if(graph.erase_edge(target_edge)) is_operated = true;
             }
@@ -78,7 +75,6 @@ public:
                 if(edges.size() < 1) continue;
                 std::uniform_int<std::size_t> edge_dist(0, edges.size() - 1);
 
-                // Operate!
                 auto const target_edge = edges[edge_dist(engine_)];
                 if(graph.change_edge_direction(target_edge)) is_operated = true;
             }
@@ -87,14 +83,13 @@ public:
             if(!is_operated) continue;
 
             // 評価
-            sampling_.make_cpt(graph);
             double const now_eval = eval_(graph);
             double const diff_eval = now_eval - best_eval;
 
             // 受理されたかどうか
             bool is_acceptance;
             if(diff_eval <= 0) is_acceptance = true;
-            else               is_acceptance = probability_dist_(engine_) < std::exp(-now_eval / (boltzmann * temperature));
+            else               is_acceptance = probability_dist_(engine_) < std::exp(-diff_eval / (boltzmann * temperature));
 
             if(is_acceptance)
             {
