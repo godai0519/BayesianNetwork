@@ -12,8 +12,8 @@ namespace inference {
 
 class likelihood_weighting {
 public:
-    typedef std::unordered_map<vertex_type, int> evidence_list;
-    typedef std::unordered_map<vertex_type, int> pattern_list;
+    typedef std::unordered_map<vertex_type, std::size_t> evidence_list;
+    typedef std::unordered_map<vertex_type, std::size_t> pattern_list;
     typedef std::unordered_map<bn::condition_t, std::size_t> sample_list;
     typedef std::unordered_map<vertex_type, matrix_type> return_type;
 
@@ -180,12 +180,12 @@ private:
 
     // Using weight, select from random value
     // weightを使って，ランダム値からそれがどの選択値になるか判断する
-    int make_random_by_weight(double const value, std::vector<double> const& weight) const
+    std::size_t make_random_by_weight(double const value, std::vector<double> const& weight) const
     {
         assert(0.0 <= value && value < 1.0);
 
         double total = 0.0;
-        for(int i = 0; i < weight.size(); ++i)
+        for(std::size_t i = 0; i < weight.size(); ++i)
         {
             auto const old_total = total;
             total += weight.at(i);

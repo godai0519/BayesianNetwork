@@ -15,7 +15,7 @@ struct vertex_t;
 struct edge_t;
 typedef std::shared_ptr<vertex_t> vertex_type;
 typedef std::shared_ptr<edge_t>   edge_type;
-typedef std::unordered_map<vertex_type, int> condition_t;
+typedef std::unordered_map<vertex_type, std::size_t> condition_t;
 
 } // namespace bn
 
@@ -155,7 +155,7 @@ private:
 
 // 頂点を示す(note_tに変更することを検討)
 struct vertex_t {
-    int id;
+    std::size_t id;
     std::size_t selectable_num = 0; // 取りうる値の数
     cpt_t cpt;
 };
