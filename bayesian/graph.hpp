@@ -452,6 +452,47 @@ public:
     // http://ja.wikipedia.org/wiki/トポロジカルソート
     //bool is_dag();
 
+    // グラフについてトポロジカルソートを行う
+    // 親ノードより子ノードが必ず下位に入った配列を返す
+    std::vector<vertex_type> topological_sort() const
+    {
+        auto graph = *this;
+
+        // ソート結果を保持するコンテナ
+        std::vector<vertex_type> result;
+        result.reserve(graph.vertex_list_.size());
+
+        // 入力辺のないノードを列挙
+        auto searchable = graph.vertex_list_;
+        for(auto it = searchable.cbegin(); it != searchable.cend();)
+        {
+            if(graph.in_edges(*it).empty())
+                ++it;
+            else
+                it = searchable.erase(it);
+        }
+
+        while(!searchable.empty())
+        {
+            auto target = searchable.back();
+            searchable.pop_back();
+
+            result.push_back(target);
+
+            for(auto const& edge : graph.out_edges(target))
+            {
+                auto const& node = graph.target(edge);
+                graph.erase_edge(edge);
+
+                if(graph.in_edges(node).empty())
+                    searchable.push_back(node);
+            }
+        }
+
+        if(!graph.edge_list_.empty()) throw std::runtime_error("Not DAG");
+        return result;
+    }
+
 private:
     // vertex_typeから，vertex_list_内のindexを見つける
     std::size_t index_search(vertex_type const& vertex) const
