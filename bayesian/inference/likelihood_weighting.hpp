@@ -24,7 +24,6 @@ public:
 
     virtual ~likelihood_weighting() = default;
 
-
     // Probability Inference with Likelihood Weighting. P(Q|E)
     // evidence:  evidence node(E) list
     // unit_size: {n * unit_size} samples are used (n = 1,2,...)
@@ -36,11 +35,12 @@ public:
         )
     {
         auto const& node_list = graph_.vertex_list();
+        auto const topological = graph_.topological_sort();
 
         // Initialize
         return_type ret;
         for(auto const& node : graph_.vertex_list())
-            ret[node].resize(1, node->selectable_num, 1.0 / node->selectable_num);
+            ret[node].resize(1, node->selectable_num, 0.0);
 
         // Patterns per Unit
         while(true)
@@ -51,7 +51,7 @@ public:
             // Generate Unit
             for(std::size_t i = 0; i < unit_size; ++i)
             {
-                auto const sample = weighted_sample(evidence);
+                auto const sample = weighted_sample(topological, evidence);
                 auto const& pattern = sample.first;
                 auto const& w = sample.second;
 
@@ -66,9 +66,8 @@ public:
             double difference = std::numeric_limits<double>::min();
             for(auto const& node : node_list)
             {
-                auto& now_probabilities = ret[node];
-                auto& next_probabilities = next[node];
-                next_probabilities = this->normalize(next_probabilities);
+                auto const now_probabilities = normalize(ret[node]);
+                auto const next_probabilities = normalize(next[node]);
 
                 for(std::size_t i = 0; i < node->selectable_num; ++i)
                 {
@@ -83,6 +82,10 @@ public:
             ret = std::move(next);
             if(difference <= epsilon) break;
         }
+        
+        // Normalize
+        for(auto const& node : node_list)
+            ret[node] = normalize(ret[node]);
 
         return ret;
     }
@@ -96,11 +99,12 @@ public:
         )
     {
         sample_list samples;
+        auto const topological = graph_.topological_sort();
 
         for(std::size_t i = 0; i < sample_num; ++i)
         {
             // Generate One
-            auto const& sample = weighted_sample(evidence).first;
+            auto const& sample = weighted_sample(topological, evidence).first;
 
             // Find and Count up
             auto const it = samples.lower_bound(sample);
@@ -125,54 +129,31 @@ public:
 private:
     // Make a sample according to evidence node
     // evidenceノードに従って，1サンプルを作成する
-    std::pair<pattern_list, double> weighted_sample(evidence_list const& evidence)
+    std::pair<pattern_list, double> weighted_sample(std::vector<vertex_type> const& topological, evidence_list const& evidence)
     {
         double w = 1.0;
         pattern_list pattern;
 
-        // 再帰関数
-        std::function<void(graph_t const&, vertex_type const&, std::vector<vertex_type>&)> recursion;
-        recursion = [this, &recursion, &w, &pattern, &evidence](graph_t const& graph_, vertex_type const& target, std::vector<vertex_type>& remain_node)
-            {
-                condition_t parent_cond;
-
-                for(auto const& parent : graph_.in_vertexes(target))
-                {
-                    // 親がまだ設定されていなければ再帰
-                    auto const it = std::find(remain_node.cbegin(), remain_node.cend(), parent);
-                    if(it != remain_node.cend())
-                    {
-                        remain_node.erase(it);
-                        recursion(graph_, parent, remain_node);
-                    }
-
-                    // 条件追加
-                    parent_cond[parent] = pattern[parent];
-                }
-
-                // evidenceに含まれれば or 含まれなければ乱数
-                auto const evidence_it = evidence.find(target);
-                if(evidence_it != evidence.end())
-                {
-                    w *= target->cpt[parent_cond].second.at(evidence_it->second);
-                    pattern[target] = evidence_it->second;
-                }
-                else
-                {
-                    int const select = make_random_by_weight(probability_generator_(), target->cpt[parent_cond].second);
-                    pattern[target] = select;
-                }
-            };
-
-        // ノードがなくなるまで再帰関数を回す
-        auto node_list = graph_.vertex_list();
-        while(!node_list.empty())
+        for(auto const& node : topological)
         {
-            // 最後尾のノードを対象とする
-            auto const node = node_list.back();
-            node_list.pop_back();
+            // Make CPT's condition
+            condition_t conditions;
+            for(auto const& parent : node->cpt.condition_node())
+                conditions[parent] = pattern[parent];
 
-            recursion(graph_, node, node_list);
+            auto it = evidence.find(node);
+            if(it == evidence.end())
+            {
+                // node is 'not' evidence
+                auto const select = make_random_by_weight(probability_generator_(), node->cpt[conditions].second);
+                pattern[node] = select;
+            }
+            else
+            {
+                // node is evidence
+                w *= node->cpt[conditions].second[it->second];
+                pattern[node] = it->second;
+            }
         }
 
         return std::make_pair(pattern, w);
