@@ -60,7 +60,7 @@ double basic_info_criteria::calc_likelihood(graph_t const& graph, std::vector<bn
         {
             condition_t cond;
             for(auto const& parent : graph.in_vertexes(node))
-                cond[parent] = sample.first.at(parent);
+                cond[parent] = sample.select[sampling_.index_node(parent)];
 
             auto& table = statistics[node];
             auto it = table.lower_bound(cond);
@@ -72,8 +72,8 @@ double basic_info_criteria::calc_likelihood(graph_t const& graph, std::vector<bn
                     std::forward_as_tuple(node->selectable_num, 0)
                     );
             }
-
-            it->second[sample.first.at(node)] += sample.second;
+            
+            it->second[sample.select[sampling_.index_node(node)]] += sample.num;
         }
     }
 

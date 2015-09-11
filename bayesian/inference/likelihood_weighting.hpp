@@ -12,9 +12,21 @@ namespace inference {
 
 class likelihood_weighting {
 public:
+    struct element_type {
+        // TODO:
+        element_type() = default;
+        element_type(std::vector<std::size_t> select, std::size_t num)
+            : select(std::move(select)), num(num)
+        {
+        }
+
+        std::vector<std::size_t> select;
+        std::size_t              num;
+    };
+
     typedef std::unordered_map<vertex_type, std::size_t> evidence_list;
-    typedef std::unordered_map<vertex_type, std::size_t> pattern_list;
-    typedef std::unordered_map<bn::condition_t, std::size_t> sample_list;
+    typedef std::vector<std::size_t>  pattern_list;
+    typedef std::vector<element_type> sample_list;
     typedef std::unordered_map<vertex_type, matrix_type> return_type;
 
     explicit likelihood_weighting(graph_t const& graph)
@@ -57,7 +69,7 @@ public:
 
                 for(auto const& node : node_list)
                 {
-                    auto const node_select = pattern.at(node);
+                    auto const node_select = pattern.at(index_node_in_graph(node));
                     next[node][0][node_select] += w;
                 }
             }
@@ -107,20 +119,15 @@ public:
             auto const& sample = weighted_sample(topological, evidence).first;
 
             // Find and Count up
-            auto const it = samples.lower_bound(sample);
-            if(it == samples.end() || it->first != sample)
-            {
-                samples.emplace_hint(
-                    it,
-                    std::piecewise_construct,
-                    std::forward_as_tuple(sample),
-                    std::forward_as_tuple(1)
-                    );
-            }
+            auto const it = std::find_if(
+                samples.begin(), samples.end(),
+                [&sample](element_type const& elem){ return elem.select == sample; }
+                );
+
+            if(it == samples.end())
+                samples.emplace_back(sample, 1);
             else
-            {
-                ++(it->second);
-            }
+                it->num += 1;
         }
 
         return samples;
@@ -132,31 +139,41 @@ private:
     std::pair<pattern_list, double> weighted_sample(std::vector<vertex_type> const& topological, evidence_list const& evidence)
     {
         double w = 1.0;
-        pattern_list pattern;
+        pattern_list pattern(topological.size());
 
         for(auto const& node : topological)
         {
             // Make CPT's condition
             condition_t conditions;
             for(auto const& parent : node->cpt.condition_node())
-                conditions[parent] = pattern[parent];
+                conditions[parent] = pattern[index_node_in_graph(parent)];
 
             auto it = evidence.find(node);
             if(it == evidence.end())
             {
                 // node is 'not' evidence
                 auto const select = make_random_by_weight(probability_generator_(), node->cpt[conditions].second);
-                pattern[node] = select;
+                pattern[index_node_in_graph(node)] = select;
             }
             else
             {
                 // node is evidence
                 w *= node->cpt[conditions].second[it->second];
-                pattern[node] = it->second;
+                pattern[index_node_in_graph(node)] = it->second;
             }
         }
 
         return std::make_pair(pattern, w);
+    }
+
+    std::size_t index_node_in_graph(vertex_type const& node)
+    {
+        auto const& node_list = graph_.vertex_list();
+
+        for(std::size_t i = 0; i < node_list.size(); ++i)
+            if(node_list[i] == node) return i;
+
+        throw std::runtime_error("");
     }
 
     // Using weight, select from random value

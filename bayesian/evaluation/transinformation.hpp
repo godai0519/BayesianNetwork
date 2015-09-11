@@ -20,14 +20,14 @@ struct entropy {
         for(auto const& sample : sampling.table())
         {
             for(auto const& variable : variables)
-                cond[variable] = sample.first.at(variable);
+                cond[variable] = sample.select[sampling.index_node(variable)];
 
             // 有れば加算，なければ作成
             auto it = table.lower_bound(cond);
             if(it != table.end() && !(table.key_comp()(cond, it->first)))
-                it->second += sample.second;
+                it->second += sample.num;
             else
-                table.insert(it, std::make_pair(cond, sample.second));
+                table.insert(it, std::make_pair(cond, sample.num));
         }
 
         // すべての確率に底2のエントロピー計算を行う
@@ -66,9 +66,9 @@ struct mutual_information {
         // Count up
         for(auto const& sample : sampling.table())
         {
-            auto const x_value = sample.first.at(x);
-            auto const y_value = sample.first.at(y);
-            auto const probability = static_cast<double>(sample.second) / sampling.sampling_size();
+            auto const x_value = sample.select[sampling.index_node(x)];
+            auto const y_value = sample.select[sampling.index_node(y)];
+            auto const probability = static_cast<double>(sample.num) / sampling.sampling_size();
             x_counter[x_value] += probability;
             y_counter[y_value] += probability;
             joint_counter[x_value][y_value] += probability;
