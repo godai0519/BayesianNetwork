@@ -53,6 +53,10 @@ private:
     // 第1引数: クラスタリング対象のノード集合
     void initial_clustering(std::vector<vertex_type> const& nodes)
     {
+#if DEBUG_LOG_
+        std::cout << "initial_clustering" << std::endl; 
+#endif
+
         // クラスタ集合初期化
         clusters_.clear();
         clusters_.reserve(nodes.size());
@@ -69,6 +73,9 @@ private:
     // 初期類似度計算を行い，類似度をメンバ変数similarities_に格納する
     void initial_similarities()
     {
+#if DEBUG_LOG_
+        std::cout << "initial_similarities" << std::endl; 
+#endif
         // 類似度集合初期化
         similarities_.clear();
         similarities_.reserve(clusters_.size() * clusters_.size());
@@ -90,7 +97,13 @@ private:
                 average_similar_ += std::get<1>(similarity) / max_edge_num;
                 similarities_.push_back(std::move(similarity));
             }
+#if DEBUG_LOG_
+            std::cout << i << std::endl; 
+#endif
         }
+#if DEBUG_LOG_
+        std::cout << "initial_similarities end" << std::endl; 
+#endif
     }
 
     // 指定したsimilarityにclusterが関与しているか(clusterに関する類似度か)どうかを返す
@@ -188,6 +201,9 @@ private:
     // graph, alpha: operator()参照
     double learning_between_clusters(graph_t& graph, double const alpha)
     {
+#if DEBUG_LOG_
+            std::cout << "learning_between_clusters" << std::endl; 
+#endif
         double score = std::numeric_limits<double>::max();
 
         while(clusters_.size() != 1 && !similarities_.empty())
@@ -195,6 +211,9 @@ private:
             //
             // 階層的構造学習 部分
             //
+#if DEBUG_LOG_
+            std::cout << "Remain: " << clusters_.size() << std::endl; 
+#endif
 
             // 結合対象を得る
             auto const similarity_target = most_similarity();
@@ -202,12 +221,18 @@ private:
             if(std::get<2>(similarity_target) != 1) break;
 #endif
             
+#if DEBUG_LOG_
+            std::cout << "Greedy "; 
+#endif
             // learning
             auto const combine_target = std::get<0>(similarity_target);
             auto const parent = std::get<0>(combine_target);
             auto const child  = std::get<1>(combine_target);
             score = learning_machine_.learn_with_hint(graph, *parent, *child);
-
+              
+#if DEBUG_LOG_
+            std::cout << "end " << std::endl; 
+#endif
             // クラスタ合成
             auto combined_cluster = combine_clusters(parent, child);
 
@@ -216,6 +241,9 @@ private:
             //
             stochastic_pruning(alpha, combined_cluster, similarity_target);
             clusters_.push_back(combined_cluster);
+#if DEBUG_LOG_
+            std::cout << "Prunned\n " << std::endl; 
+#endif
         }
 
         return score;
