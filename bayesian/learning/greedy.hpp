@@ -25,29 +25,27 @@ public:
 
     double operator()(graph_t& graph, std::vector<vertex_type> vertexes)
     {
-        std::shuffle(vertexes.begin(), vertexes.end(), engine_);
-
-        // bestな構造を保持しておく
-        sampling_.make_cpt(graph);
-        double eval_now = eval_(graph);
-
+        // 子候補とし全て回す
+        std::shuffle(vertexes.begin(), vertexes.end(), engine_); // 子ノードの出現順序をランダムに
         for(auto it = vertexes.begin(); it != vertexes.end();)
         {
+            // 子ノードの評価値を得る（親ノードは評価値は変化しない）
             auto const child_iter = it;
-            std::shuffle(++it, vertexes.end(), engine_);
+            double evaluation_value = eval_(graph, {*child_iter});
 
+            // 親ノードすべてに結合テストを行う
+            std::shuffle(++it, vertexes.end(), engine_); // 親ノードの出現順序をランダムに
             for(auto parent_iter = it; parent_iter != vertexes.end(); ++parent_iter)
             {
                 if(auto edge = graph.add_edge(*parent_iter, *child_iter))
                 {
-                    // 辺を貼れたなら調べてみる
-                    sampling_.make_cpt(graph);
-                    auto const eval_next = eval_(graph);
+                    // 辺が張れたならば，評価をする
+                    double const next_evaluation_value = eval_(graph, {*child_iter});
 
-                    if(eval_next < eval_now)
+                    if(next_evaluation_value < evaluation_value)
                     {
                         // 良くなってる
-                        eval_now = eval_next;
+                        evaluation_value = next_evaluation_value;
                     }
                     else
                     {
@@ -66,38 +64,37 @@ public:
     // parent_nodes, child_nodes: parent_nodesに含まれるnodeからchild_nodeに含まれるnodeにしか辺を張らない
     double learn_with_hint(graph_t& graph, std::vector<vertex_type> parent_nodes, std::vector<vertex_type> child_nodes)
     {
-        // 子ノードの出現順序をランダムに
-        std::shuffle(std::begin(child_nodes), std::end(child_nodes), engine_);
-
-        // 最高評価値を保存しておく
-        sampling_.make_cpt(graph);
-        double eval_now = eval_(graph);
-
         // 親候補と子候補を全部回して様子見る
+        std::shuffle(std::begin(child_nodes), std::end(child_nodes), engine_); // 子ノードの出現順序をランダムに
         for(auto const& child : child_nodes)
         {
-            // 親ノードの出現順序をランダムに
-            std::shuffle(std::begin(parent_nodes), std::end(parent_nodes), engine_);
+            // 子ノードの評価値を得る（親ノードは評価値は変化しない）
+            double evaluation_value = eval_(graph, {child});
 
+            // 親ノードすべてに結合テストを行う
+            std::shuffle(std::begin(parent_nodes), std::end(parent_nodes), engine_); // 親ノードの出現順序をランダムに
             for(auto const& parent : parent_nodes)
             {
                 if(auto edge = graph.add_edge(parent, child))
                 {
                     // 辺が張れたならば，評価をする
-                    sampling_.make_cpt(graph);
-                    auto const eval_next = eval_(graph);
+                    double const next_evaluation_value = eval_(graph, {child});
 
-                    if(eval_next < eval_now)
+                    if(next_evaluation_value < evaluation_value)
+                    {
                         // 良くなってるscore
-                        eval_now = eval_next;
+                        evaluation_value = next_evaluation_value;
+                    }
                     else
+                    {
                         // 変わらない or 悪い -> 元に戻す
                         graph.erase_edge(edge);
+                    }
                 }
             }
         }
 
-        return eval_now;
+        return std::numeric_limits<double>::quiet_NaN();
     }
 
 private:

@@ -52,36 +52,43 @@ double basic_info_criteria::calc_likelihood(graph_t const& graph, std::vector<bn
 {
     double likelihood = 0.0;
 
-    // 各ノードに対し尤度の計算
-    for(auto const& node : vertex_list)
+    // collect sample data to statistics
+    std::unordered_map<vertex_type, std::unordered_map<condition_t, std::vector<std::size_t>>> statistics;
+    for(auto const& sample : sampling_.table())
     {
-        // 親ノード
-        auto const& parent = graph.in_vertexes(node);
-
-        // 各サンプル回して統計を取る(条件が同じものをまとめ上げる感覚)
-        std::unordered_map<condition_t, std::size_t> statistics;
-        for(auto const& sample : sampling_.table())
+        for(auto const& node : vertex_list)
         {
-            // 自ノードと親ノード以外を消した条件
-            condition_t cond = sample.first;
-            for(auto it = cond.begin(); it != cond.end();)
+            condition_t cond;
+            for(auto const& parent : graph.in_vertexes(node))
+                cond[parent] = sample.select[sampling_.index_node(parent)];
+
+            auto& table = statistics[node];
+            auto it = table.lower_bound(cond);
+            if(it == table.end() || it->first != cond)
             {
-                if(it->first != node && std::find(parent.begin(), parent.end(), it->first) == parent.end())
-                    it = cond.erase(it);
-                else
-                    ++it;
+                it = table.emplace_hint(
+                    it, std::piecewise_construct,
+                    std::forward_as_tuple(cond),
+                    std::forward_as_tuple(node->selectable_num, 0)
+                    );
             }
-
-            statistics[cond] += sample.second;
+            
+            it->second[sample.select[sampling_.index_node(node)]] += sample.num;
         }
+    }
 
-        // 統計より本命の計算
-        for(auto data : statistics)
+    // from statistics, calculating log-likelihood 
+    for(auto const& node_statistics : statistics)
+    {
+        for(auto it = node_statistics.second.begin(); it != node_statistics.second.end(); ++it)
         {
-            auto cond = data.first;
-            auto const select = cond.at(node);
-            cond.erase(node);
-            likelihood -= data.second * std::log(node->cpt[cond].second[select]);
+            std::size_t const sum = std::accumulate(it->second.begin(), it->second.end(), 0);
+            for(std::size_t i = 0; i < node_statistics.first->selectable_num; ++i)
+            {
+                auto const score = std::log2(static_cast<double>(it->second[i]) / sum);
+                if(!std::isinf(score))
+                    likelihood -= it->second[i] * score;
+            }
         }
     }
 

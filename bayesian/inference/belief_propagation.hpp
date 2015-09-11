@@ -5,6 +5,7 @@
 #include <functional>
 #include <bayesian/graph.hpp>
 #include <bayesian/matrix.hpp>
+#include <bayesian/utility.hpp>
 
 namespace bn {
 namespace inference {
@@ -263,35 +264,6 @@ private:
 
         // 計算された値でλkを更新させる
         new_lambda_k_[from][target] = normalize(matrix);
-    }
-
-    // 与えられた確率変数全ての組み合わせに対し，functionを実行するというインターフェースを提供する
-    void all_combination_pattern(
-        std::vector<vertex_type> const& combination,
-        std::function<void(condition_t const&)> const& function
-        ) const
-    {
-        typedef std::vector<vertex_type>::const_iterator iterator_type;
-        std::function<void(iterator_type const, iterator_type const&)> recursive;
-
-        condition_t condition;
-        recursive = [&](iterator_type const it, iterator_type const& end)
-        {
-            if(it == end)
-            {
-                function(condition);
-            }
-            else
-            {
-                for(int i = 0; i < (*it)->selectable_num; ++i)
-                {
-                    condition[*it] = i;
-                    recursive(it + 1, end);
-                }
-            }
-        };
-
-        recursive(combination.cbegin(), combination.cend());
     }
 
     // matrixに存在するすべての数の和が1になるように正規化する

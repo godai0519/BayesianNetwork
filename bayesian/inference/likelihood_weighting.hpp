@@ -12,9 +12,21 @@ namespace inference {
 
 class likelihood_weighting {
 public:
-    typedef std::unordered_map<vertex_type, int> evidence_list;
-    typedef std::unordered_map<vertex_type, int> pattern_list;
-    typedef std::unordered_map<bn::condition_t, std::size_t> sample_list;
+    struct element_type {
+        // TODO:
+        element_type() = default;
+        element_type(std::vector<std::size_t> select, std::size_t num)
+            : select(std::move(select)), num(num)
+        {
+        }
+
+        std::vector<std::size_t> select;
+        std::size_t              num;
+    };
+
+    typedef std::unordered_map<vertex_type, std::size_t> evidence_list;
+    typedef std::vector<std::size_t>  pattern_list;
+    typedef std::vector<element_type> sample_list;
     typedef std::unordered_map<vertex_type, matrix_type> return_type;
 
     explicit likelihood_weighting(graph_t const& graph)
@@ -24,162 +36,154 @@ public:
 
     virtual ~likelihood_weighting() = default;
 
-    // Run: Likelihood Weighting
-    return_type operator() (evidence_list const& evidence, std::uint64_t const sample_num = 10000)
+    // Probability Inference with Likelihood Weighting. P(Q|E)
+    // evidence:  evidence node(E) list
+    // unit_size: {n * unit_size} samples are used (n = 1,2,...)
+    // epsilon:   an acceptable error range
+    return_type operator() (
+        evidence_list const& evidence,
+        std::size_t const unit_size = 1000000/* 1'000'000 */,
+        double const epsilon = 0.001
+        )
     {
-        return_type ret;
+        auto const& node_list = graph_.vertex_list();
+        auto const topological = graph_.topological_sort();
 
         // Initialize
+        return_type ret;
         for(auto const& node : graph_.vertex_list())
-        {
             ret[node].resize(1, node->selectable_num, 0.0);
-        }
 
-        // Generate Sample
-        for(std::uint64_t i = 0; i < sample_num; ++i)
+        // Patterns per Unit
+        while(true)
         {
-            auto const sample = weighted_sample(evidence);
-            pattern_list const& pattern = sample.first;
-            double const& w = sample.second;
+            // Copy Previous Unit
+            return_type next = ret;
 
-            for(auto const& node : graph_.vertex_list())
+            // Generate Unit
+            for(std::size_t i = 0; i < unit_size; ++i)
             {
-                auto const node_select = pattern.at(node);
-                ret[node][0][node_select] += w;
-            }
-        }
+                auto const sample = weighted_sample(topological, evidence);
+                auto const& pattern = sample.first;
+                auto const& w = sample.second;
 
-        // Normalization
-        for(auto const& node : graph_.vertex_list())
-        {
-            ret[node] = normalize(ret[node]);
+                for(auto const& node : node_list)
+                {
+                    auto const node_select = pattern.at(index_node_in_graph(node));
+                    next[node][0][node_select] += w;
+                }
+            }
+
+            // Normalization and Max Difference
+            double difference = std::numeric_limits<double>::min();
+            for(auto const& node : node_list)
+            {
+                auto const now_probabilities = normalize(ret[node]);
+                auto const next_probabilities = normalize(next[node]);
+
+                for(std::size_t i = 0; i < node->selectable_num; ++i)
+                {
+                    difference = std::max(
+                        difference,
+                        std::abs(next_probabilities[0][i] - now_probabilities[0][i])
+                        );
+                }
+            }
+
+            // Next Unit ?
+            ret = std::move(next);
+            if(difference <= epsilon) break;
         }
+        
+        // Normalize
+        for(auto const& node : node_list)
+            ret[node] = normalize(ret[node]);
 
         return ret;
     }
 
-    // Make: accurate sample
-    std::pair<sample_list, return_type> make_samples(
+    // Make samples with Likelihood Weighting. P(Q|E)
+    // evidence:   evidence node(E) list
+    // sample_num: {unit_size} samples are used
+    sample_list make_samples(
         evidence_list const& evidence,
-        std::uint64_t const unit_size = 1000000/* 1'000'000 */,
-        double const epsilon = 0.001
+        std::size_t const sample_num = 1000000/* 1'000'000 */
         )
     {
-        sample_list patterns;
+        sample_list samples;
+        auto const topological = graph_.topological_sort();
 
-        return_type w_list;
-        return_type probabilities;
-
-        // Initialize
-        for(auto const& node : graph_.vertex_list())
+        for(std::size_t i = 0; i < sample_num; ++i)
         {
-            w_list[node].resize(1, node->selectable_num, 0.0);
-            probabilities[node].resize(1, node->selectable_num, 0.0);
+            // Generate One
+            auto const& sample = weighted_sample(topological, evidence).first;
+
+            // Find and Count up
+            auto const it = std::find_if(
+                samples.begin(), samples.end(),
+                [&sample](element_type const& elem){ return elem.select == sample; }
+                );
+
+            if(it == samples.end())
+                samples.emplace_back(sample, 1);
+            else
+                it->num += 1;
         }
 
-        while(true)
-        {
-            // Generate one unit
-            for(std::uint64_t i = 0; i < unit_size; ++i)
-            {
-                auto const sample = weighted_sample(evidence);
-                pattern_list const& pattern = sample.first;
-                double const& w = sample.second;
-
-                for(auto const& node : graph_.vertex_list())
-                {
-                    auto const node_select = pattern.at(node);
-                    w_list[node][0][node_select] += w;
-                }
-
-                auto it = patterns.find(pattern);
-                if(it != patterns.cend()) ++(it->second);
-                else                      patterns[pattern] = 1;
-            }
-
-            double max_difference = std::numeric_limits<double>::min();
-            for(auto const& node : graph_.vertex_list())
-            {
-                auto& old_probability = probabilities[node];
-                auto next_probability = normalize(w_list[node]);
-                for(std::size_t i = 0; i < next_probability.width(); ++i)
-                {
-                    max_difference = std::max(max_difference, std::abs(old_probability[0][i] - next_probability[0][i]));
-                }
-
-                old_probability = std::move(next_probability);
-            }
-
-            if(max_difference < epsilon) break;
-        }
-
-        return std::make_pair(std::move(patterns), std::move(probabilities));
+        return samples;
     }
 
 private:
     // Make a sample according to evidence node
     // evidenceノードに従って，1サンプルを作成する
-    std::pair<pattern_list, double> weighted_sample(evidence_list const& evidence)
+    std::pair<pattern_list, double> weighted_sample(std::vector<vertex_type> const& topological, evidence_list const& evidence)
     {
         double w = 1.0;
-        pattern_list pattern;
+        pattern_list pattern(topological.size());
 
-        // 再帰関数
-        std::function<void(graph_t const&, vertex_type const&, std::vector<vertex_type>&)> recursion;
-        recursion = [this, &recursion, &w, &pattern, &evidence](graph_t const& graph_, vertex_type const& target, std::vector<vertex_type>& remain_node)
-            {
-                condition_t parent_cond;
-
-                for(auto const& parent : graph_.in_vertexes(target))
-                {
-                    // 親がまだ設定されていなければ再帰
-                    auto const it = std::find(remain_node.cbegin(), remain_node.cend(), parent);
-                    if(it != remain_node.cend())
-                    {
-                        remain_node.erase(it);
-                        recursion(graph_, parent, remain_node);
-                    }
-
-                    // 条件追加
-                    parent_cond[parent] = pattern[parent];
-                }
-
-                // evidenceに含まれれば or 含まれなければ乱数
-                auto const evidence_it = evidence.find(target);
-                if(evidence_it != evidence.end())
-                {
-                    w *= target->cpt[parent_cond].second.at(evidence_it->second);
-                    pattern[target] = evidence_it->second;
-                }
-                else
-                {
-                    int const select = make_random_by_weight(probability_generator_(), target->cpt[parent_cond].second);
-                    pattern[target] = select;
-                }
-            };
-
-        // ノードがなくなるまで再帰関数を回す
-        auto node_list = graph_.vertex_list();
-        while(!node_list.empty())
+        for(auto const& node : topological)
         {
-            // 最後尾のノードを対象とする
-            auto const node = node_list.back();
-            node_list.pop_back();
+            // Make CPT's condition
+            condition_t conditions;
+            for(auto const& parent : node->cpt.condition_node())
+                conditions[parent] = pattern[index_node_in_graph(parent)];
 
-            recursion(graph_, node, node_list);
+            auto it = evidence.find(node);
+            if(it == evidence.end())
+            {
+                // node is 'not' evidence
+                auto const select = make_random_by_weight(probability_generator_(), node->cpt[conditions].second);
+                pattern[index_node_in_graph(node)] = select;
+            }
+            else
+            {
+                // node is evidence
+                w *= node->cpt[conditions].second[it->second];
+                pattern[index_node_in_graph(node)] = it->second;
+            }
         }
 
         return std::make_pair(pattern, w);
     }
 
+    std::size_t index_node_in_graph(vertex_type const& node)
+    {
+        auto const& node_list = graph_.vertex_list();
+
+        for(std::size_t i = 0; i < node_list.size(); ++i)
+            if(node_list[i] == node) return i;
+
+        throw std::runtime_error("");
+    }
+
     // Using weight, select from random value
     // weightを使って，ランダム値からそれがどの選択値になるか判断する
-    int make_random_by_weight(double const value, std::vector<double> const& weight) const
+    std::size_t make_random_by_weight(double const value, std::vector<double> const& weight) const
     {
         assert(0.0 <= value && value < 1.0);
 
         double total = 0.0;
-        for(int i = 0; i < weight.size(); ++i)
+        for(std::size_t i = 0; i < weight.size(); ++i)
         {
             auto const old_total = total;
             total += weight.at(i);

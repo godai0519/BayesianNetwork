@@ -20,14 +20,14 @@ struct entropy {
         for(auto const& sample : sampling.table())
         {
             for(auto const& variable : variables)
-                cond[variable] = sample.first.at(variable);
+                cond[variable] = sample.select[sampling.index_node(variable)];
 
             // 有れば加算，なければ作成
             auto it = table.lower_bound(cond);
             if(it != table.end() && !(table.key_comp()(cond, it->first)))
-                it->second += sample.second;
+                it->second += sample.num;
             else
-                table.insert(it, std::make_pair(cond, sample.second));
+                table.insert(it, std::make_pair(cond, sample.num));
         }
 
         // すべての確率に底2のエントロピー計算を行う
@@ -56,28 +56,39 @@ struct mutual_information {
     // x, y: 調べるノード
     double operator() (sampler const& sampling, vertex_type const& x, vertex_type const& y) const
     {
-        entropy ent;
-        return ent(sampling, x) + ent(sampling, y) - ent(sampling, {x, y});
-    }
+        // Initialize table
+        std::vector<double> x_counter(x->selectable_num, 0.0);
+        std::vector<double> y_counter(y->selectable_num, 0.0);
+        std::vector<std::vector<double>> joint_counter(
+            x->selectable_num, std::vector<double>(y->selectable_num, 0.0)
+            );
 
-    // samplingから得られるテーブルを用いて，xとyの間の相互情報量を計算する(xとy単体のentropyが計算済の場合)
-    // sampling: load_sample済のsampler
-    // x, y: 調べるノード
-    // x_ent, y_ent: 調べるノードのエントロピー
-    template<class T>
-    double operator() (sampler const& sampling, vertex_type const& x, T const x_ent, vertex_type const& y, T const y_ent) const
-    {
-        entropy ent;
-        return x_ent + y_ent - ent(sampling, {x, y});
-    }
+        // Count up
+        for(auto const& sample : sampling.table())
+        {
+            auto const x_value = sample.select[sampling.index_node(x)];
+            auto const y_value = sample.select[sampling.index_node(y)];
+            auto const probability = static_cast<double>(sample.num) / sampling.sampling_size();
+            x_counter[x_value] += probability;
+            y_counter[y_value] += probability;
+            joint_counter[x_value][y_value] += probability;
+        }
 
-    // samplingから得られるテーブルを用いて，xとyの間の相互情報量を計算する(xとyとxyのentropyが計算済の場合)
-    // x_ent, y_ent: 調べるノードのエントロピー
-    // xy_ent: 調べるノード2つの同時エントロピー
-    template<class T>
-    double operator() (T const x_ent, T const y_ent, T const xy_ent) const
-    {
-        return x_ent + y_ent - xy_ent;
+        // Calculate
+        double mi_value = 0.0;
+        for(std::size_t x_value = 0; x_value < x->selectable_num; ++x_value)
+        {
+            for(std::size_t y_value = 0; y_value < y->selectable_num; ++y_value)
+            {
+                auto const multiply_probability = x_counter[x_value] * y_counter[y_value];
+                auto const joint_probability = joint_counter[x_value][y_value];
+
+                if(joint_probability == 0) break; // 0 * log0 -> 0
+                else mi_value += joint_probability * std::log2(joint_probability / multiply_probability);
+            }
+        }
+
+        return mi_value;
     }
 };
 

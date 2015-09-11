@@ -15,7 +15,7 @@ struct vertex_t;
 struct edge_t;
 typedef std::shared_ptr<vertex_t> vertex_type;
 typedef std::shared_ptr<edge_t>   edge_type;
-typedef std::unordered_map<vertex_type, int> condition_t;
+typedef std::unordered_map<vertex_type, std::size_t> condition_t;
 
 } // namespace bn
 
@@ -155,7 +155,7 @@ private:
 
 // 頂点を示す(note_tに変更することを検討)
 struct vertex_t {
-    int id;
+    std::size_t id;
     std::size_t selectable_num = 0; // 取りうる値の数
     cpt_t cpt;
 };
@@ -451,6 +451,47 @@ public:
     //トポロジカルソートを使用して，DAG判定
     // http://ja.wikipedia.org/wiki/トポロジカルソート
     //bool is_dag();
+
+    // グラフについてトポロジカルソートを行う
+    // 親ノードより子ノードが必ず下位に入った配列を返す
+    std::vector<vertex_type> topological_sort() const
+    {
+        auto graph = *this;
+
+        // ソート結果を保持するコンテナ
+        std::vector<vertex_type> result;
+        result.reserve(graph.vertex_list_.size());
+
+        // 入力辺のないノードを列挙
+        auto searchable = graph.vertex_list_;
+        for(auto it = searchable.cbegin(); it != searchable.cend();)
+        {
+            if(graph.in_edges(*it).empty())
+                ++it;
+            else
+                it = searchable.erase(it);
+        }
+
+        while(!searchable.empty())
+        {
+            auto target = searchable.back();
+            searchable.pop_back();
+
+            result.push_back(target);
+
+            for(auto const& edge : graph.out_edges(target))
+            {
+                auto const& node = graph.target(edge);
+                graph.erase_edge(edge);
+
+                if(graph.in_edges(node).empty())
+                    searchable.push_back(node);
+            }
+        }
+
+        if(!graph.edge_list_.empty()) throw std::runtime_error("Not DAG");
+        return result;
+    }
 
 private:
     // vertex_typeから，vertex_list_内のindexを見つける
