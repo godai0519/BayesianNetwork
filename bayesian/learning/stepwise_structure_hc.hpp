@@ -16,15 +16,9 @@ namespace learning {
 template<class Eval, template<class> class BetweenLearning>
 class stepwise_structure_hc {
 public:
-#ifdef EXPERIMENT_NEW
     using cluster_type = std::shared_ptr<std::vector<vertex_type>>;
     using similarity_type = std::tuple<std::tuple<cluster_type, cluster_type>, double, int>;
     using Similarity = bn::evaluation::mutual_information;
-#else
-    using cluster_type = std::shared_ptr<std::vector<vertex_type>>;
-    using similarity_type = std::tuple<std::tuple<cluster_type, cluster_type>, double>;
-    using Similarity = bn::evaluation::mutual_information;
-#endif
 
     stepwise_structure_hc(bn::sampler const& sampling)
         : sampling_(sampling), eval_(sampling), learning_machine_(sampling_), mutual_information_machine_(), engine_(make_engine<std::mt19937>())
@@ -130,16 +124,11 @@ private:
         // 最も似ているクラスタ間
         auto const most_similar = std::max_element(
             similarities_.begin(), similarities_.end(),
-#ifdef EXPERIMENT_NEW
             [](similarity_type const& lhs, similarity_type const& rhs)
             {
                 return std::get<2>(lhs) < std::get<2>(rhs)
                     || !(std::get<2>(rhs) < std::get<2>(lhs)) && std::get<1>(lhs) < std::get<1>(rhs);
-            }
-#else
-            [](similarity_type const& lhs, similarity_type const& rhs){ return std::get<1>(lhs) < std::get<1>(rhs); }
-#endif
-            );
+            });
 
         // コピーして元のクラスタ間を消す
         auto result = *most_similar;
@@ -177,11 +166,7 @@ private:
             }
         }
 
-#ifdef EXPERIMENT_NEW
         return std::make_tuple(make_cluster_tuple(lhs, rhs), value, 1);
-#else
-        return std::make_tuple(make_cluster_tuple(lhs, rhs), value);
-#endif
     }
 
     // クラスタ間学習を行う
@@ -198,9 +183,7 @@ private:
 
             // 結合対象を得る
             auto const similarity_target = most_similarity();
-#ifdef EXPERIMENT_NEW
             if(std::get<2>(similarity_target) != 1) break;
-#endif
             
             // learning
             auto const combine_target = std::get<0>(similarity_target);
@@ -230,7 +213,6 @@ private:
         cluster_type const& new_cluster, similarity_type const& old_similarity
         )
     {
-#ifdef EXPERIMENT_NEW
         // Initialize
         std::unordered_map<cluster_type, std::tuple<double, std::vector<similarity_type>>> next_similarity;
         for(auto const& cluster : clusters_)
@@ -289,54 +271,6 @@ private:
             
             similarities_.emplace_back(make_cluster_tuple(clusters_[i], new_cluster), std::get<0>(prunning_target), is_connection);
         }
-        
-#else // #ifdef EXPERIMENT_NEW
-        std::unordered_map<cluster_type, std::vector<similarity_type>> merger_potential;
-        
-        // 旧クラスタ類似度より関係する類似度を抜き出し，消去する
-        for(auto it = similarities_.begin(); it != similarities_.end();)
-        {
-            auto const& connection = std::get<0>(*it);
-            auto const& old_connection = std::get<0>(old_similarity);
-            if(std::get<0>(connection) == std::get<0>(old_connection) || std::get<0>(connection) == std::get<1>(old_connection))
-            {
-                auto const& old_cluster = std::get<0>(connection);
-                auto const& target_cluster = std::get<1>(connection);
-                
-                // 格納と削除
-                merger_potential[target_cluster].push_back(*it);
-                it = similarities_.erase(it);
-            }
-            else if(std::get<1>(connection) == std::get<0>(old_connection) || std::get<1>(connection) == std::get<1>(old_connection))
-            {
-                auto const& old_cluster = std::get<1>(connection);
-                auto const& target_cluster = std::get<0>(connection);
-                
-                // 格納と削除
-                merger_potential[target_cluster].push_back(*it);
-                it = similarities_.erase(it);
-            }
-            else ++it;
-        }
-        
-        // 新クラスタ類似度より枝刈りを実行する
-        for(auto const& cluster : clusters_)
-        {
-            auto const& prunning_target = merger_potential[cluster];
-            auto new_similarity = make_similarity_tuple(new_cluster, cluster);
-
-            double const prunning_probability =
-                (prunning_target.size() == 2) ? std::pow(alpha, std::get<1>(new_similarity) / average_similar_) :
-                (prunning_target.size() == 1) ? std::pow(alpha, std::get<1>(prunning_target[0]) / std::get<1>(old_similarity)) :
-                1.0;
-            
-            // 確率により，probabilityの確率で枝刈り
-            std::uniform_real_distribution<double> probability_dist(0.0, 1.0);
-            bool const is_connection = !(probability_dist(engine_) < prunning_probability);
-
-            if(is_connection) similarities_.push_back(std::move(new_similarity));
-        }
-#endif // #ifdef EXPERIMENT_NEW
     }
 
     sampler const& sampling_;
