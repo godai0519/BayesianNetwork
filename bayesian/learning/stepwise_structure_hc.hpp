@@ -13,7 +13,7 @@
 namespace bn {
 namespace learning {
 
-template<class Eval, template<class> class BetweenLearning>
+template<class Eval, template<class> class BetweenLearning, class PruningProbExpr>
 class stepwise_structure_hc {
 public:
     using cluster_type = std::shared_ptr<std::vector<vertex_type>>;
@@ -21,7 +21,7 @@ public:
     using Similarity = bn::evaluation::mutual_information;
 
     stepwise_structure_hc(bn::sampler const& sampling)
-        : sampling_(sampling), eval_(sampling), learning_machine_(sampling_), mutual_information_machine_(), engine_(make_engine<std::mt19937>())
+        : sampling_(sampling), learning_machine_(sampling_), mutual_information_machine_(), engine_(make_engine<std::mt19937>())
     {
     }
 
@@ -260,10 +260,10 @@ private:
             flag |= std::get<2>(std::get<1>(prunning_target)[1]) * 2;
 
             double const prunning_probability =
-                (flag == 3) ? std::pow(alpha, std::get<0>(prunning_target) / average_similar_) :
-                (flag == 2) ? std::pow(alpha, std::get<1>(std::get<1>(prunning_target)[1]) / std::get<1>(old_similarity)) :
-                (flag == 1) ? std::pow(alpha, std::get<1>(std::get<1>(prunning_target)[0]) / std::get<1>(old_similarity)) :
-                1.0;
+                (flag == 3) ? pruning_probability_.p1(alpha, average_similar_, std::get<1>(old_similarity), std::get<0>(prunning_target), std::get<1>(std::get<1>(prunning_target)[0]), std::get<1>(std::get<1>(prunning_target)[1])) :
+                (flag == 2) ? pruning_probability_.p2(alpha, average_similar_, std::get<1>(old_similarity), std::get<0>(prunning_target), std::get<1>(std::get<1>(prunning_target)[1]), std::get<1>(std::get<1>(prunning_target)[0])) :
+                (flag == 1) ? pruning_probability_.p2(alpha, average_similar_, std::get<1>(old_similarity), std::get<0>(prunning_target), std::get<1>(std::get<1>(prunning_target)[0]), std::get<1>(std::get<1>(prunning_target)[1])) :
+                              pruning_probability_.p3(alpha, average_similar_, std::get<1>(old_similarity), std::get<0>(prunning_target), std::get<1>(std::get<1>(prunning_target)[0]), std::get<1>(std::get<1>(prunning_target)[1]));
 
             // 確率により，probabilityの確率で枝刈り
             std::uniform_real_distribution<double> probability_dist(0.0, 1.0);
@@ -274,10 +274,11 @@ private:
     }
 
     sampler const& sampling_;
-    Eval eval_;
     BetweenLearning<Eval> learning_machine_;
     bn::evaluation::mutual_information mutual_information_machine_;
     std::mt19937 engine_;
+
+    PruningProbExpr pruning_probability_;
 
     std::vector<cluster_type> clusters_;
     std::vector<similarity_type> similarities_;
