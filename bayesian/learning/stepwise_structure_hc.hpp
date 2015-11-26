@@ -20,6 +20,10 @@ public:
     using similarity_type = std::tuple<std::tuple<cluster_type, cluster_type>, double, int>;
     using Similarity = bn::evaluation::mutual_information;
 
+#if DEBUG_LOG_
+    std::size_t pruning_num_;
+#endif
+
     stepwise_structure_hc(bn::sampler const& sampling)
         : sampling_(sampling), learning_machine_(sampling_), mutual_information_machine_(), engine_(make_engine<std::mt19937>())
     {
@@ -38,7 +42,13 @@ public:
         initial_similarities();                  // 初期類似度
 
         // クラスタ間学習(結合)
+#if DEBUG_LOG_
+        pruning_num_ = 0;
+#endif
         auto const score = learning_between_clusters(graph, alpha);
+#if DEBUG_LOG_
+        std::cout << pruning_num_ << "\n" << std::endl;
+#endif
         return score;
     }
 
@@ -141,7 +151,7 @@ private:
 
         return result;
     }
-    
+
     std::tuple<cluster_type, cluster_type> make_cluster_tuple(cluster_type const& lhs, cluster_type const& rhs)
     {
         // アドレスが小さいクラスタを先にして返す
@@ -184,7 +194,7 @@ private:
             // 結合対象を得る
             auto const similarity_target = most_similarity();
             if(std::get<2>(similarity_target) != 1) break;
-            
+
             // learning
             auto const combine_target = std::get<0>(similarity_target);
             auto const parent = std::get<0>(combine_target);
@@ -228,7 +238,7 @@ private:
                 auto const& old_cluster = std::get<0>(connection);
                 auto const& target_cluster = std::get<1>(connection);
                 auto const similarity = std::get<1>(*it);
-                
+
                 // 格納と削除
                 auto& container = next_similarity[target_cluster];
                 std::get<0>(container) += similarity * old_cluster->size() / new_cluster->size();
@@ -240,7 +250,7 @@ private:
                 auto const& old_cluster = std::get<1>(connection);
                 auto const& target_cluster = std::get<0>(connection);
                 auto const similarity = std::get<1>(*it);
-                
+
                 // 格納と削除
                 auto& container = next_similarity[target_cluster];
                 std::get<0>(container) += similarity * old_cluster->size() / new_cluster->size();
@@ -268,7 +278,19 @@ private:
             // 確率により，probabilityの確率で枝刈り
             std::uniform_real_distribution<double> probability_dist(0.0, 1.0);
             int const is_connection = (probability_dist(engine_) < prunning_probability) ? 0 : 1; // 枝刈りed = 0
-            
+
+#if DEBUG_LOG_
+            if(flag & 1) std::cout << "[" << std::get<1>(std::get<1>(prunning_target)[0]) << "]" << " ";
+            else         std::cout << " " << std::get<1>(std::get<1>(prunning_target)[0]) << " " << " ";
+
+            if(flag & 2) std::cout << "[" << std::get<1>(std::get<1>(prunning_target)[1]) << "]" << " ";
+            else         std::cout << " " << std::get<1>(std::get<1>(prunning_target)[1]) << " " << " ";
+
+            std::cout << prunning_probability << " " << (!is_connection ? "=> Pruned" : "") << std::endl;
+
+            if(!is_connection) ++pruning_num_;
+#endif
+
             similarities_.emplace_back(make_cluster_tuple(clusters_[i], new_cluster), std::get<0>(prunning_target), is_connection);
         }
     }
