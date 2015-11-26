@@ -26,7 +26,7 @@ public:
         : filename_(filename), node_list_(), table_(), sampling_size_(0)
     {
     }
-    
+
     struct element_type {
         // TODO:
         element_type() = default;
@@ -89,7 +89,7 @@ public:
             table.emplace_back(std::move(select), num);
             sampling_size += num;
         }
-        
+
         node_list_ = node_list;
         table_.swap(table);
         sampling_size_ = sampling_size;
@@ -122,7 +122,7 @@ public:
 
             auto joint_node = parents;
             joint_node.push_back(node);
-            
+
             std::unordered_map<condition_t, std::vector<std::size_t>> counter;
             for(auto const& sample : jointed_table(joint_node))
             {
@@ -141,7 +141,7 @@ public:
                         std::forward_as_tuple(conditional),
                         std::forward_as_tuple(node->selectable_num, 0));
                 }
-                
+
                 // 足しあわせ
                 it->second[sample.select.back()] += sample.num;
             }
