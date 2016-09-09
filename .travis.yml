@@ -1,24 +1,30 @@
-sudo: false
+sudo: true
 language: cpp
 compiler:
     - clang++
     - g++
 
+env:
+    global:
+        - BOOST_VERSION=1.59.0
+    
 addons:
     apt:
         sources:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.7
             - llvm-toolchain-precise
-            - boost-latest
         packages:
             - clang-3.7
             - g++-5
             - gcc-5
-            - libboost1.55-all-dev
             - cmake
 
 install:
+    - ./scripts/install_boost.sh
+    - sudo ln -s /tmp/boost_${BOOST_VERSION//[.]/_}/boost /usr/local/include/boost
+    - sudo ln -s /tmp/boost_${BOOST_VERSION//[.]/_}/stage/lib/* /usr/local/lib/
+    - sudo ldconfig
     - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.7" CC="clang-3.7"; fi
     - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
 
