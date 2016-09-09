@@ -2,9 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(bayesian_network)
 enable_testing()
 
-find_package( Boost REQUIRED )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
-include_directories( ${Boost_INCLUDE_DIRS} )
 
 if( MSVC OR MSVC_IDE )
     # MSVC
