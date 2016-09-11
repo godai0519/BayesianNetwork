@@ -1,6 +1,6 @@
 /**
-* @file network.hpp
-* @brief aaaaa
+* @file adjacency_list.hpp
+* @brief Implementation of Adjacency List using in network class
 * @author godai_0519
 * @date 09/09/2016
 */
@@ -17,7 +17,7 @@
 
 namespace bn {
 
-//! @brief Implement class of adjacency list for bn::network.
+//! Implement class of adjacency list for bn::network.
 class adjacency_list {
 public:
     using this_type = adjacency_list;
@@ -52,28 +52,28 @@ public:
     adjacency_list(this_type const&) = default;
 
     //! (Move ctor) Initialize nodes and arcs by moving a parameter.
-    /*!        The parameter will be destroyed (still valid). */
+    /*!        The parameter will be destroyed. */
     adjacency_list(this_type&&) = default;
 
-    //! @brief (Default dtor)
+    //! (Default dtor)
     virtual ~adjacency_list() = default;
 
-    //! @brief (Copy operator=) Initialize nodes and arcs by copying a parameter.
-    /*!        The parameter will "not" be destroyed (still valid). */
+    //! (Copy operator=) Initialize nodes and arcs by copying a parameter.
+    /*! The parameter will "not" be destroyed (still valid). */
     this_type& operator=(this_type const& rhs)
     {
         *this = adjacency_list{ rhs };
         return *this;
     }
 
-    //! @brief (Move operator=) Initialize nodes and arcs by copying a parameter.
-    /*!        The parameter will be destroyed (still valid). */
+    //! (Move operator=) Initialize nodes and arcs by copying a parameter.
+    /*! The parameter will be destroyed. */
     this_type& operator=(this_type&&) = default;
 
-    //! @brief Register a node into network.
-    /*!        Strong guarantee: if an exception is thrown, there are no changes in the network.
+    //! Register a node into network.
+    /*! Strong guarantee: if an exception is thrown, there are no changes in the network.
 
-        @param[in]   Target node
+        @param[in]   node: Target node.
         @return      The node which is identical with the parameter.
     **/
     node_ptr add_node(node_ptr const& node)
@@ -92,7 +92,12 @@ public:
         return node;
     }
 
-    // reverse
+    //! Remove the argument node from network.
+    /*! Strong guarantee: if an exception is thrown, there are no changes in the network.
+
+        @param[in]   node: Target node.
+        @return      true if the node was successfully removed; otherwise false.
+    **/
     bool remove_node(node_ptr const& node) noexcept
     {
         auto it = std::find(stored_node_.crbegin(), stored_node_.crend(), node);
@@ -138,6 +143,14 @@ public:
         return true;
     }
 
+    //! Register an arc into network.
+    /*! Strong guarantee: if an exception is thrown, there are no changes in the network.
+
+        @param[in]   arc: an arc.
+        @param[in]   from: a node which is a start point of the arc.
+        @param[in]   to: a node which is an end point of the arc.
+        @return      The arc which is identical with the parameter.
+    **/
     arc_ptr add_arc(arc_ptr const& arc, node_ptr const& from, node_ptr const& to)
     {
         auto node_pair = std::make_pair(from, to);
@@ -166,6 +179,12 @@ public:
         return arc;
     }
 
+    //! Remove the argument arc from network.
+    /*! Strong guarantee: if an exception is thrown, there are no changes in the network.
+
+        @param[in]   arc: Target arc.
+        @return      true if the node was successfully removed; otherwise false.
+    **/
     bool remove_arc(arc_ptr const& arc) noexcept
     {
         auto it = endpoint_dic_.find(arc);
@@ -174,6 +193,13 @@ public:
         return remove_arc(arc, it->second.first, it->second.second);
     }
 
+    //! Remove the argument arc from network.
+    /*! Strong guarantee: if an exception is thrown, there are no changes in the network.
+
+        @param[in]   from: a node which is a start point of the arc wanted to remove.
+        @param[in]   to: a node which is an end point of the arc wanted to remove.
+        @return      true if the node was successfully removed; otherwise false.
+    **/
     bool remove_arc(node_ptr const& from, node_ptr const& to) noexcept
     {
         auto endpoint_it = std::find_if(
@@ -186,6 +212,13 @@ public:
         return remove_arc(std::const_pointer_cast<component::arc>(endpoint_it->first), from, to);
     }
 
+    //! Check whether two nodes are adjacent by a arc in the network.
+    /*! No-throw guarantee: never throws exceptions.
+
+        @param[in]   from: a node which is a start point.
+        @param[in]   to: a node which is an end point.
+        @return      true if from and to are adjacent; otherwise false.
+    **/
     arc_ptr is_adjacent(node_ptr const& from, node_ptr const& to) const noexcept
     {
         auto const endpoint_it = std::find_if(
@@ -198,9 +231,15 @@ public:
         return std::const_pointer_cast<component::arc>(endpoint_it->first);
     }
 
-    // > 0: node is a parent
-    // < 0: node is a child
-    // = 0: node does not connect
+    //! Check whether a node and an arc are connected in the network.
+    /*! No-throw guarantee: never throws exceptions.
+
+        @param[in]   node: a node which is a start or end point.
+        @param[in]   arc: an arc.
+        @return      > 0 : the node is a start (parent) node of the arc;
+                     < 0 : the node is an end (child) node of the arc;
+                     = 0 : the node does not connect to the arc.
+    **/
     int is_connect(node_ptr const& node, arc_ptr const& arc) const noexcept
     {
         auto const endpoint_it = endpoint_dic_.find(arc);
@@ -211,6 +250,12 @@ public:
                                                      0 ;
     }
 
+    //! Obtain a source (parent) node of an arc.
+    /*! No-throw guarantee: never throws exceptions.
+
+        @param[in]   arc: an arc
+        @return      a source node pointer if it is exist; otherwise false
+    **/
     node_ptr source(arc_ptr const& arc) const noexcept
     {
         auto it = endpoint_dic_.find(arc);
@@ -219,6 +264,12 @@ public:
         return std::const_pointer_cast<component::node>(it->second.first);
     }
 
+    //! Obtain a target (child) node of an arc.
+    /*! No-throw guarantee: never throws exceptions.
+
+        @param[in]   arc: an arc.
+        @return      a target node pointer if it is exist; otherwise false.
+    **/
     node_ptr target(arc_ptr const& arc) const noexcept
     {
         auto it = endpoint_dic_.find(arc);
@@ -227,6 +278,12 @@ public:
         return std::const_pointer_cast<component::node>(it->second.second);
     }
 
+    //! Obtain a list of all nodes which are parent of the child (argument).
+    /*! Strong guarantee: if an exception is thrown, there are no changes in the network.
+
+        @param[in]   child: a node which is an end point.
+        @return      a list of all nodes.
+    **/
     std::vector<node_ptr> parent_nodes(node_ptr const& child) const
     {
         std::vector<node_ptr> nodes;
@@ -242,6 +299,12 @@ public:
         return nodes;
     }
 
+    //! Obtain a list of all nodes which are child of the parent (argument).
+    /*! Strong guarantee: if an exception is thrown, there are no changes in the network.
+
+        @param[in]   parent: a node which is an start point.
+        @return      a list of all nodes.
+    **/
     std::vector<node_ptr> child_nodes(node_ptr const& parent) const
     {
         std::vector<node_ptr> nodes;
@@ -254,18 +317,19 @@ public:
         return nodes;
     }
 
+    //! Obtain all node pointers.
     std::vector<node_ptr> all_node() const
     {
         return std::vector<node_ptr>(stored_node_.cbegin(), stored_node_.cend());
     }
 
+    //! Obtain all arc pointers.
     std::vector<arc_ptr> all_arc() const
     {
         return std::vector<arc_ptr>(stored_arc_.cbegin(), stored_arc_.cend());
     }
 
 private:
-    //TODO: pimpl pattern
     bool remove_arc(arc_ptr const& arc, node_const_ptr const& from, node_const_ptr const& to) noexcept
     {
         auto arc_it = std::find(stored_arc_.crbegin(), stored_arc_.crend(), arc);

@@ -1,6 +1,6 @@
 /**
 * @file component.hpp
-* @brief aaaaa
+* @brief Implementations of important elements of bn::network.
 * @author godai_0519
 * @date 09/09/2016
 */
@@ -24,22 +24,22 @@ public:
     std::size_t max_value = 0;
 };
 
-//! @brief A class representing a node in network.
-/*!        Each node has a corresponding random variable.
+//! A class representing a node in network.
+/*! Each node has a corresponding random variable.
 **/
 class node {
 public:
     using random_variable_ptr = std::shared_ptr<random_variable>;
 
-    //! @brief Constructor unique to this class.
-    /*! @param[in]   random_variable which is correnponding to this node. */
+    //! (Constructor).
+    /*! @param[in]   random_variable: correnponding to this node. */
     explicit node(random_variable_ptr const& random_variable)
         : random_variable_(random_variable)
     {
     }
 
-    //! @brief get the registered random variable.
-    /*! @return registered random variable */
+    //! Obtain the registered random variable.
+    /*! @return registered random variable. */
     random_variable_ptr get() const noexcept { return random_variable_; }
 
 private:
@@ -47,8 +47,8 @@ private:
 };
 
 
-//! @brief A class representing a arc in network.
-/*!        An arc cannot have any data. */
+//! A class representing a arc in network.
+/*! An arc cannot have any data. */
 class arc {};
 
 using random_variable_ptr = std::shared_ptr<random_variable>;
