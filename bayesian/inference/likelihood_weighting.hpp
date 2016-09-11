@@ -202,10 +202,21 @@ private:
             for(std::size_t j = 0; j < target.width(); ++j)
                 sum += target[i][j];
 
-        for(std::size_t i = 0; i < target.height(); ++i)
-            for(std::size_t j = 0; j < target.width(); ++j)
-                target[i][j] /= sum;
-
+        if(sum < 1.0e-20)
+        {
+            // 正規化出来ないレベルならば，一様にする
+            auto const elem_num = target.height() * target.width();
+            for(std::size_t i = 0; i < target.height(); ++i)
+                for(std::size_t j = 0; j < target.width(); ++j)
+                    target[i][j] = 1.00 / elem_num;
+        }
+        else
+        {
+            // 正規化できるならば，正規化する
+            for(std::size_t i = 0; i < target.height(); ++i)
+                for(std::size_t j = 0; j < target.width(); ++j)
+                    target[i][j] /= sum;
+        }
         return target;
     }
 

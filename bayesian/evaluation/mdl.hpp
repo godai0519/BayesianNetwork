@@ -13,6 +13,11 @@ struct mdl : basic_info_criteria {
     {
     }
 
+    double operator() (graph_t const& graph) const override
+    {
+        return (*this)(graph, graph.vertex_list());
+    }
+
     double operator() (graph_t const& graph, std::vector<bn::vertex_type> const& vertex_list) const override
     {
         auto const likelihood = calc_likelihood(graph, vertex_list);

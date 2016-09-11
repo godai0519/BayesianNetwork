@@ -162,6 +162,12 @@ struct vertex_t {
 
 struct edge_t {}; // tag
 
+struct database_t {
+    std::string graph_name;
+    std::unordered_map<std::size_t, std::string> node_name;
+    std::unordered_map<std::size_t, std::vector<std::string>> options_name;
+};
+
 // ネットワーク構造を表現する
 // 頂点・辺オブジェクトを入力とし，対応するオブジェクトを返却する
 class graph_t {
