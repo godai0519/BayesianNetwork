@@ -2,9 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(bayesian_network)
 enable_testing()
 
-find_package( Boost REQUIRED )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
-include_directories( ${Boost_INCLUDE_DIRS} )
 
 if( MSVC OR MSVC_IDE )
     # MSVC
@@ -22,7 +20,7 @@ if( MSVC OR MSVC_IDE )
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
 else()
     # Linux etc.
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -std=c++14")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2")
 endif()
