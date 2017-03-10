@@ -248,14 +248,14 @@ BOOST_AUTO_TEST_CASE(shrink_to_fit)
 
     BOOST_CHECK(mat_original.dims() == mat_shrink.dims());
     BOOST_CHECK(mat_original.sizes() == mat_shrink.sizes());
-    BOOST_CHECK(mat_original.data().size() / data[1] / data[3] == mat_shrink.data().size());
+    BOOST_CHECK(mat_original.data().size() / size[1] / size[3] == mat_shrink.data().size());
 
     for(std::size_t i = 0; i < size[0]; ++i)
     {
         for(std::size_t j = 0; j < size[2]; ++j)
         {
-            double value_original = mat_original[std::array<std::size_t, 4>{ {i, 1, j, 1}}];
-            double value_shrink = mat_shrink[std::array<std::size_t, 4>{{i, 1, j, 1}}];
+            double value_original = mat_original[std::array<std::size_t, 4>{ {i, 0, j, 0}}];
+            double value_shrink = mat_shrink[std::array<std::size_t, 4>{{i, 0, j, 0}}];
             BOOST_CHECK_CLOSE(value_original, value_shrink, 0.0001);
         }
     }

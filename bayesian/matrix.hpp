@@ -329,15 +329,16 @@ public:
         sizes_type new_capacities(sizes_);
         steps_type new_steps(calc_steps(sizes_));
 
-        for(std::size_t i = 0; index < data_.size(); ++index)
+        for(std::size_t i = 0; i < data_.size(); ++i)
         {
             sizes_type index(sizes_.size());
             index_from(i, index.begin(), index.end());
 
-            auto const new_i = continuous_index_from(index, new_capacities.cbegin(), new_capacities.cend());
+            auto const new_i = continuous_index_from(index.cbegin(), index.cend(), new_steps.cbegin());
             std::swap(data_[i], data_[new_i]);
         }
 
+        data_.resize(std::accumulate(new_capacities.cbegin(), new_capacities.cend(), 1, std::multiplies<double>()));
         capacities_ = std::move(new_capacities);
         steps_ = std::move(new_steps);
     }
