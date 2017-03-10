@@ -153,6 +153,21 @@ public:
     /*! Strong guarantee: if an exception is thrown, there are no changes in the matrix.
 
         @tparam T: Type of list containing size information.
+        @tparam U: Type of list containing default values.
+        @param[in]   sizes: a list containing sizes of each dimension in matrix,
+                            such that, sizes.size() == dimention.
+        @param[in]   default_values: values used for filling.
+    **/
+    template<class T, class U>
+    void assign(T const& sizes, U const& default_values)
+    {
+        *this = matrix<Elem>{sizes, default_values};
+    }
+
+    //! Assign matrix by filling with iterator according to array of size-hint.
+    /*! Strong guarantee: if an exception is thrown, there are no changes in the matrix.
+
+        @tparam T: Type of list containing size information.
         @tparam InputIterator: Type of iterator containing data to fill.
         @param[in]   sizes: a list containing sizes of each dimension in matrix,
                             such that, sizes.size() == dimention.
@@ -162,7 +177,7 @@ public:
     template<class T, class InputIterator>
     void assign(T const& sizes, InputIterator first, InputIterator last)
     {
-        *this = matrix<Elem>{sizes, first, last};
+        *this = matrix<Elem>{ sizes, first, last };
     }
 
     //! (Copy operator=) Initialize nodes and arcs by copying a parameter.
@@ -224,7 +239,7 @@ public:
 
             // Copy elements of old data into new data.
             data_type new_data(calc_elem_size(sizes));
-            for_all([&new_data, &new_steps](sizes_type const& index)
+            for_all([this, &new_data, &new_steps](sizes_type const& index)
             {
                 std::size_t const old_index = continuous_index_from(std::cbegin(index), std::cend(index), std::cbegin(steps_));
                 std::size_t const new_index = continuous_index_from(std::cbegin(index), std::cend(index), std::cbegin(new_steps));
@@ -233,7 +248,7 @@ public:
 
             sizes_ = std::move(new_sizes);
             capacities_ = std::move(new_capacities);
-            steps = std::move(new_steps);
+            steps_ = std::move(new_steps);
             data_ = std::move(new_data);
         }
         else
@@ -280,7 +295,7 @@ public:
 
             // Copy elements of old data into new data.
             data_type new_data(calc_elem_size(sizes), value);
-            for_all([&new_data, &new_steps](sizes_type const& index)
+            for_all([this, &new_data, &new_steps](sizes_type const& index)
             {
                 std::size_t const old_index = continuous_index_from(std::cbegin(index), std::cend(index), std::cbegin(steps_));
                 std::size_t const new_index = continuous_index_from(std::cbegin(index), std::cend(index), std::cbegin(new_steps));
@@ -289,7 +304,7 @@ public:
 
             sizes_ = std::move(new_sizes);
             capacities_ = std::move(new_capacities);
-            steps = std::move(new_steps);
+            steps_ = std::move(new_steps);
             data_ = std::move(new_data);
         }
         else
