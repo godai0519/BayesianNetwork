@@ -16,7 +16,8 @@
 namespace bn {
 
 //! Provide a functions for each graph representing class.
-//! @tparam RepresentMethod: bn::adjacency_list or adjacency_matrix.
+/*! @tparam RepresentMethod: bn::adjacency_list or adjacency_matrix.
+**/
 template<class RepresentMethod>
 class network {
 public:
