@@ -42,7 +42,7 @@ public:
 
         @param[in]  rv: a random variable which represents a target of generated instance.
     **/
-    cpt(rv_ptr const& rv)
+    explicit cpt(rv_ptr const& rv)
         : rv_(rv)
     {
         create_matrix({});
@@ -250,9 +250,9 @@ public:
 
         @return instance of cpt resistered to CPT manager.
     **/
-    cpt_type& registering(node_type const& node, cpt_type const& cpt)
+    cpt_type& enroll(node_type const& node, cpt_type const& cpt)
     {
-        return registering(node, cpt_type(cpt));
+        return enroll(node, cpt_type(cpt));
     }
 
     //! Register CPT to cpt_list.

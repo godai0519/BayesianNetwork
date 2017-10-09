@@ -146,3 +146,42 @@ BOOST_DATA_TEST_CASE(cpt_copy, boost::unit_test::data::xrange(50), parent_num)
 	for (std::size_t j = 0; j < target_rv->max_value; ++j)
 		BOOST_CHECK_CLOSE(elem[j], elem_copied[j], 0.0001);
 }
+
+BOOST_AUTO_TEST_CASE(cpt_manager_for_same_rv)
+{
+	std::random_device rd;
+	std::mt19937 mt(rd());
+	std::uniform_int_distribution<int> parent_num_dist(1, 10);
+	std::uniform_int_distribution<int> max_value_dist(1, 10);
+	std::uniform_real_distribution<double> probability_dist(0, 1);
+
+	auto const target_rv1 = generate_target(mt, max_value_dist);
+	auto const parent_rv1 = generate_parents(mt, max_value_dist, parent_num_dist(mt));
+	bn::cpt cpt1(target_rv1, parent_rv1);
+	bn::cpt cpt2(target_rv1, parent_rv1);
+
+	auto const target_rv2 = generate_target(mt, max_value_dist);
+	auto const parent_rv2 = generate_parents(mt, max_value_dist, parent_num_dist(mt));
+	bn::cpt cpt3(target_rv2, parent_rv2);
+
+	// Different nodes for the same r.v. and another node.
+	auto const node1 = std::make_shared<bn::component::node>(target_rv1);
+	auto const node2 = std::make_shared<bn::component::node>(target_rv1);
+	auto const node3 = std::make_shared<bn::component::node>(target_rv2);
+
+	bn::cpt_manager manager;
+	manager.enroll(node1, cpt1);
+	manager.enroll(node2, std::move(cpt2));
+	manager.enroll(node3, cpt3);
+
+	BOOST_CHECK(&manager.at(node1) != &manager[node2]);
+	BOOST_CHECK(&manager.at(node1) != &manager[node3]);
+
+	manager.unenroll(node1);
+	manager.unenroll(node2);
+	manager.unenroll(node3);
+
+	BOOST_CHECK_THROW(manager.at(node1), std::out_of_range);
+	BOOST_CHECK_THROW(manager.at(node2), std::out_of_range);
+	BOOST_CHECK_THROW(manager.at(node3), std::out_of_range);
+}
