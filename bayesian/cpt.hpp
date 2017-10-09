@@ -13,12 +13,6 @@
 #include "matrix.hpp"
 #include "network/component.hpp"
 
-//#include <algorithm>
-//#include <unordered_map>
-//#include <vector>
-//#include "graph.hpp"
-//#include "matrix.hpp"
-
 namespace bn {
 
 //! A wrapper class of bn::matrix provides access methods to the CPT (Conditional Probability Table).
@@ -97,6 +91,8 @@ public:
 
     //! Access to probability list by condition r.v. list.
     /*! if condition is invalid, then throw std::runtime_error.
+
+        @return an 1-dimensional probability array corresponding to P(X_Q | X_E1 = x_e1, ..., X_EN = x_en).
     **/
     matrix_type::element_type& at(condition_type const& condition)
     {
@@ -105,6 +101,8 @@ public:
 
     //! Access to probability list by condition r.v. list (const version).
     /*! if condition is invalid then throw std::runtime_error.
+
+        @return an 1-dimensional probability array corresponding to P(X_Q | X_E1 = x_e1, ..., X_EN = x_en).
     **/
     matrix_type::element_type const& at(condition_type const& condition) const
     {
@@ -113,6 +111,8 @@ public:
 
     //! Access to probability list by condition r.v. list.
     /*! if condition is invalid, then throw std::runtime_error.
+
+        @return an 1-dimensional probability array corresponding to P(X_Q | X_E1 = x_e1, ..., X_EN = x_en).
     **/
     matrix_type::element_type& operator[] (condition_type const& condition)
     {
@@ -121,21 +121,55 @@ public:
 
     //! Access to probability list by condition r.v. list (const version).
     /*! if condition is invalid then throw std::runtime_error.
+
+        @return an 1-dimensional probability array corresponding to P(X_Q | X_E1 = x_e1, ..., X_EN = x_en).
     **/
     matrix_type::element_type const& operator[] (condition_type const& condition) const
     {
         return matrix_->operator[](condition_to_index(condition));
     }
 
-    //! Access to the target random variable of this instance.
-    rv_ptr const& rv() noexcept
+    //! Get the target random variable of this instance.
+    /*! 
+        @return a random variable corresponding to this cpt instance.
+    **/
+    rv_ptr const& rv() const noexcept
     {
         return rv_;
     }
+	
+	//! Get the parent random variables of the target.
+	/*!
+		@return a array of random variables which are parents in this cpt instance.
+	**/
+	std::vector<rv_ptr> const& parents() const noexcept
+	{
+		return parents_;
+	}
+
+	//! Verify whether given condition is sufficient in this instance.
+	/*!
+		@param[in]   condition: a set of pairs corresponding to the observed (evidence) nodes (environment).
+		@return      true if condition is valid for this cpt instance, false if index is invalid.
+	**/
+	bool is_valid(condition_type const& condition) const noexcept
+	{
+		for(auto const& parent : parents())
+		{
+			auto const it = condition.find(parent);
+			if(it == condition.end() || it->second >= parent->max_value)
+				return false;
+		}
+
+		return true;
+	}
 
     //! Convert condition of conditional r.v. into access list of matrix.
     /*! std::out_of_range is thown if the condition does not contain any parent nodes' value.
         std::runtime_error is thown if any parent nodes' value which is contained in the condition exceeds its max value.
+		No exceptions are thrown if is_valid(condition) is true.
+
+        @return an array of index in implementation of class cpt.
     **/
     std::vector<std::size_t> condition_to_index(condition_type const& condition) const
     {
@@ -202,6 +236,9 @@ private:
 **/
 class cpt_manager {
 public:
+    using cpt_type = cpt;
+    using node_type = component::node_ptr;
+
     //! (Default ctor)
     cpt_manager() = default;
 
@@ -209,20 +246,24 @@ public:
     virtual ~cpt_manager() = default;
 
     //! Register CPT to this CPT manager.
-    // A node corresponding to CPT is given from argument menber function(cpt.node()).
-    cpt_type& registering(cpt_type const& cpt)
+    /*! A node corresponding to CPT is given from argument menber function(cpt.node()).
+
+        @return instance of cpt resistered to CPT manager.
+    **/
+    cpt_type& registering(node_type const& node, cpt_type const& cpt)
     {
-        return registering(cpt_type(cpt));
+        return registering(node, cpt_type(cpt));
     }
 
-    // Register CPT to cpt_list.
-    // A node corresponding to CPT is given from argument menber function(cpt.node()).
-    // After call, argument will be moved and invalid.
-    cpt_type& registering(cpt_type&& cpt)
-    {
-        auto const node = cpt.node();
-        auto it = cpt_list_.find(node);
+    //! Register CPT to cpt_list.
+    /*! A node corresponding to CPT is given from argument menber function(cpt.node()).
+        After call, argument will be moved and invalid.
 
+        @return instance of cpt resistered to CPT manager.
+    **/
+    cpt_type& enroll(node_type const& node, cpt_type&& cpt)
+    {
+        auto it = cpt_list_.find(node);
         if(it != cpt_list_.end())
         {
             // override
@@ -241,9 +282,10 @@ public:
         return it->second;
     }
 
-    // Remove CPT corresponded to argument node from cpt_list.
-    // If CPT is not found, this function is no effect.
-    void unresistering(node_type const& node)
+    //! Remove CPT corresponded to argument node from cpt_list.
+    /*! If CPT is not found, this function is no effect.
+    **/
+    void unenroll(node_type const& node)
     {
         auto const it = cpt_list_.find(node);
         if(it != cpt_list_.end())
@@ -252,14 +294,15 @@ public:
         }
     }
 
-    // CPT access
-    // If list does not have it, create and resister new CPT.
+    //! CPT access operator
+    /*! If list does not have it, create and resister new CPT.
+    **/
     cpt_type& operator[](node_type const& node)
     {
         auto it = cpt_list_.find(node);
         if(it == cpt_list_.end())
         {
-            cpt_type new_cpt(node);
+            cpt_type new_cpt(node->get());
             it = cpt_list_.emplace(
                 std::piecewise_construct,
                 std::forward_as_tuple(node),
@@ -270,15 +313,17 @@ public:
         return it->second;
     }
 
-    // CPT access
-    // If list does not have it, throw exception.
+    //! CPT access
+    /*! If list does not have it, throw exception.
+    **/
     cpt_type& at(node_type const& node)
     {
         return cpt_list_.at(node);
     }
 
-    // CPT access (const version)
-    // If list does not have it, throw exception.
+    //! CPT access (const version)
+    /*! If list does not have it, throw exception.
+    **/
     cpt_type const& at(node_type const& node) const
     {
         return cpt_list_.at(node);

@@ -11,3 +11,8 @@ add_executable(matrix_test matrix.cpp)
 set_target_properties( matrix_test PROPERTIES OUTPUT_NAME "matrix" )
 add_test( matrix_test matrix )
 target_link_libraries(matrix_test ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+
+add_executable(cpt_test cpt.cpp)
+set_target_properties( cpt_test PROPERTIES OUTPUT_NAME "cpt" )
+add_test( cpt_test cpt )
+target_link_libraries(cpt_test ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
