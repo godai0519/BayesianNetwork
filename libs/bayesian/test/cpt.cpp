@@ -6,7 +6,7 @@
 
 bn::cpt::rv_ptr generate_target(
 	std::mt19937& mt,
-	std::uniform_int_distribution<int> const& max_value_dist
+	std::uniform_int_distribution<int>& max_value_dist
 )
 {
 	bn::cpt::rv_ptr target_rv(new bn::component::random_variable());
@@ -16,11 +16,11 @@ bn::cpt::rv_ptr generate_target(
 
 std::vector<bn::cpt::rv_ptr> generate_parents(
 	std::mt19937& mt,
-	std::uniform_int_distribution<int> const& max_value_dist,
+	std::uniform_int_distribution<int>& max_value_dist,
 	std::size_t const parent_num
 )
 {
-	std::vector<bn::cpt::rv_ptr> parent_rv(((parent_num + 1) % 10) + 1);
+	std::vector<bn::cpt::rv_ptr> parent_rv(parent_num);
 	std::generate(parent_rv.begin(), parent_rv.end(),
 		[&mt, &max_value_dist]() -> auto {
 		bn::cpt::rv_ptr rv(new bn::component::random_variable());
