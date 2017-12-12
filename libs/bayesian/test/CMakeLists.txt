@@ -16,3 +16,9 @@ add_executable(cpt_test cpt.cpp)
 set_target_properties( cpt_test PROPERTIES OUTPUT_NAME "cpt" )
 add_test( cpt_test cpt )
 target_link_libraries(cpt_test ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+
+add_executable(algorithm_test algorithm.cpp)
+set_target_properties( algorithm_test PROPERTIES OUTPUT_NAME "algorithm" )
+add_test( algorithm_test algorithm )
+target_link_libraries(algorithm_test ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+
