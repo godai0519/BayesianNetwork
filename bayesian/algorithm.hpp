@@ -32,10 +32,12 @@ auto recursive(F f)
  *  This function is create a ``reversed'' topological sort series.
  *  The time complexity is O(V + E).
  *
+ *  @tparam RepresentMethod: bn::adjacency_list or adjacency_matrix.
  *  @param[in]   g: a network including nodes which are targets of sort.
  *  @return      A node series created by ``reversed'' topological sort.
 **/
-std::vector<component::node_ptr> topological_sort(network const& g)
+template<class RepresentMethod>
+std::vector<component::node_ptr> topological_sort(network<RepresentMethod> const& g)
 {
     std::vector<component::node_ptr> result;
     result.reserve(g.all_node().size());
@@ -50,14 +52,14 @@ std::vector<component::node_ptr> topological_sort(network const& g)
     // return true if a sort series of given node and its children is found;
     // return false if it is not found.
     auto visit = recursive(
-        [&marks, &g](auto visit, component::node_ptr const& n) -> bool
+        [&marks, &g, &result](auto visit, component::node_ptr const& n) -> bool
         {
             if(marks[n] == 1) return false; // the network is not DAG.
             else if(marks[n] == 0)
             {
                 marks[n] = 1;
                 for(auto const& child : g.child_nodes(n))
-                    if(!visit(child)) return false;
+                    if(!visit(visit, child)) return false;
                 marks[n] = 2;
                 result.push_back(n);
             }
@@ -73,10 +75,12 @@ std::vector<component::node_ptr> topological_sort(network const& g)
 //! Judge that given graph is directed acyclic graph (DAG).
 /*! Powered by toporogical sort, so the time complexity is O(V + E).
  *
+ *  @tparam RepresentMethod: bn::adjacency_list or adjacency_matrix.
  *  @param[in]   g: a network to check that it is DAG.
  *  @return      true if the network is DAG.
 **/
-bool is_dag(network const& g)
+template<class RepresentMethod>
+bool is_dag(network<RepresentMethod> const& g)
 {
     return topological_sort(g).size() == g.all_node().size();
 }
