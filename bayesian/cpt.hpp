@@ -10,8 +10,8 @@
 
 #include <unordered_map>
 #include <vector>
-#include "matrix.hpp"
-#include "network/component.hpp"
+#include <bayesian/matrix.hpp>
+#include <bayesian/network/component.hpp>
 
 namespace bn {
 
@@ -20,8 +20,8 @@ namespace bn {
     Whenever given r.v.(Random Variable) list, list is regarded Conditional nodes and it return probabilities.
 
     Example:
-      when cpt_type::condition_type cond = {{node1, 2}, {node2, 5}};
-           cpt_type cpt(node3, {node1, node2});
+      when cpt::condition_type cond = {{node1, 2}, {node2, 5}};
+           cpt cpt(node3, {node1, node2});
 
       and  std::vector<double> probabilities = cpt[cond];
 

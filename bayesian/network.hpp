@@ -11,7 +11,7 @@
 #include <memory>
 #include <vector>
 #include <exception>
-#include "network/component.hpp"
+#include <bayesian/network/component.hpp>
 
 namespace bn {
 

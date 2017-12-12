@@ -2,7 +2,7 @@
 #include <boost/test/included/unit_test.hpp>
 #include <boost/test/data/test_case.hpp>
 #include <boost/test/data/monomorphic.hpp>
-#include "bayesian/cpt.hpp"
+#include <bayesian/cpt.hpp>
 
 bn::cpt::rv_ptr generate_target(
     std::mt19937& mt,

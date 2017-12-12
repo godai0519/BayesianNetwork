@@ -12,8 +12,8 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
-#include "component.hpp"
-#include "traits.hpp"
+#include <bayesian/network/component.hpp>
+#include <bayesian/network/traits.hpp>
 
 namespace bn {
 
