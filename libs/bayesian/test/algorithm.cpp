@@ -18,17 +18,18 @@ BOOST_AUTO_TEST_CASE(topological_sort_1)
             network.all_node().at(i + 1));
 
     auto const topological = bn::topological_sort(network);
+    auto const node = network.all_node();
     BOOST_CHECK(
         std::equal(
             topological.crbegin(), topological.crend(),
-            network.all_node().cbegin(), network.all_node().cend()));
+            node.cbegin(), node.cend()));
 
     BOOST_CHECK(bn::is_dag(network) == true);
 }
 
 BOOST_AUTO_TEST_CASE(topological_sort_2)
 {
-	bn::network<bn::adjacency_list> network;
+    bn::network<bn::adjacency_list> network;
     for(int i = 0; i < 6; ++i) network.add_node();
     network.add_arc(network.all_node().at(0), network.all_node().at(1));
     network.add_arc(network.all_node().at(0), network.all_node().at(2));
@@ -43,7 +44,7 @@ BOOST_AUTO_TEST_CASE(topological_sort_2)
 
 BOOST_AUTO_TEST_CASE(topological_sort_3)
 {
-	bn::network<bn::adjacency_list> network;
+    bn::network<bn::adjacency_list> network;
     for(int i = 0; i < 6; ++i) network.add_node();
     network.add_arc(network.all_node().at(0), network.all_node().at(2));
     network.add_arc(network.all_node().at(1), network.all_node().at(0));

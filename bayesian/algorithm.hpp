@@ -63,6 +63,8 @@ std::vector<component::node_ptr> topological_sort(network<RepresentMethod> const
                 marks[n] = 2;
                 result.push_back(n);
             }
+
+            return true;
         });
 
     for(auto const& n : g.all_node())
