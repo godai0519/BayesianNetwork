@@ -1,14 +1,23 @@
+/**
+* @file rejection_sampling.cpp
+* @brief An example which infers using Rejection Sampling.
+* @author godai_0519
+* @date 02/26/2018
+*/
+
+//
+// In this example, we reason probabilities shown in the following webpage:
+// A Brief Introduction to Graphical Models and Bayesian Networks (By Kevin Murphy, 1998)
+// https://www.cs.ubc.ca/~murphyk/Bayes/bnintro.html
+//
+// Thank you, Dr. Murphy.
+//
+
 #include <iostream>
 #include <bayesian/network.hpp>
 #include <bayesian/network/adjacency_matrix.hpp>
 #include <bayesian/cpt.hpp>
 #include <bayesian/inference/rejection_sampling.hpp>
-
-//
-// A Brief Introduction to Graphical Models and Bayesian Networks (By Kevin Murphy, 1998)
-// https://www.cs.ubc.ca/~murphyk/Bayes/bnintro.html
-//
-
 
 int main()
 {
@@ -53,41 +62,41 @@ int main()
     cpt_rain[{{cloudy->get(), 0}}] = std::vector<double>{0.8, 0.2};
     cpt_rain[{{cloudy->get(), 1}}] = std::vector<double>{0.2, 0.8};
 
-	cpts.enroll(sprinkler, cpt_sprinkler);
-	cpts.enroll(wet_grass, cpt_wet_grass);
-	cpts.enroll(cloudy, cpt_cloudy);
-	cpts.enroll(rain, cpt_rain);
+    cpts.enroll(sprinkler, cpt_sprinkler);
+    cpts.enroll(wet_grass, cpt_wet_grass);
+    cpts.enroll(cloudy, cpt_cloudy);
+    cpts.enroll(rain, cpt_rain);
 
-	// ==============================================
-	//     Infering Pr(Sprinkler = 1 | WetGrass = 1)
-	// ==============================================
+    // ==============================================
+    //     Infering Pr(Sprinkler = 1 | WetGrass = 1)
+    // ==============================================
 
-	bn::inference::rejection_sampling<bn::adjacency_matrix> rs1(network, cpts);
-	rs1.set_query(std::vector<bn::component::random_variable_ptr>{sprinkler->get()})
-	   .set_evidence(std::unordered_map<bn::component::random_variable_ptr, std::size_t>{ {wet_grass->get(), 1}});
+    bn::inference::rejection_sampling<bn::adjacency_matrix> rs1(network, cpts);
+    rs1.set_query(std::vector<bn::component::random_variable_ptr>{sprinkler->get()})
+       .set_evidence(std::unordered_map<bn::component::random_variable_ptr, std::size_t>{ {wet_grass->get(), 1}});
 
-	rs1.run(1'000'000);
-	auto const target_probability1 =
-		rs1.probability().at(sprinkler->get())[std::vector<std::size_t>{1}]; // Pr(Sprinkler = 1 | WetGrass = 1)
-	std::cout << target_probability1 << std::endl; // 0.429....
+    rs1.run(1'000'000);
+    auto const target_probability1 =
+        rs1.probability().at(sprinkler->get())[std::vector<std::size_t>{1}]; // Pr(Sprinkler = 1 | WetGrass = 1)
+    std::cout << target_probability1 << std::endl; // 0.429....
 
-	rs1.run(1'000'000);
-	auto const target_probability1_more =
-		rs1.probability().at(sprinkler->get())[std::vector<std::size_t>{1}]; // Pr(Sprinkler = 1 | WetGrass = 1) more accuracy
-	std::cout << target_probability1_more << std::endl; // 0.429....
+    rs1.run(1'000'000);
+    auto const target_probability1_more =
+        rs1.probability().at(sprinkler->get())[std::vector<std::size_t>{1}]; // more accurate Pr(Sprinkler = 1 | WetGrass = 1)
+    std::cout << target_probability1_more << std::endl; // 0.429....
 
 
     // ==============================================
     //     Infering Pr(Rain = 1 | WetGrass = 1)
     // ==============================================
 
-	bn::inference::rejection_sampling<bn::adjacency_matrix> rs2(network, cpts);
-	rs2.set_query(std::vector<bn::component::random_variable_ptr>{rain->get()})
-	   .set_evidence(std::unordered_map<bn::component::random_variable_ptr, std::size_t>{ {wet_grass->get(), 1}});
+    bn::inference::rejection_sampling<bn::adjacency_matrix> rs2(network, cpts);
+    rs2.set_query(std::vector<bn::component::random_variable_ptr>{rain->get()})
+       .set_evidence(std::unordered_map<bn::component::random_variable_ptr, std::size_t>{ {wet_grass->get(), 1}});
 
-	rs2.run(1'000'000);
-	auto const target_probability2 =
-		rs2.probability().at(rain->get())[std::vector<std::size_t>{1}]; // Pr(Rain = 1 | WetGrass = 1)
-	std::cout << target_probability2 << std::endl; // 0.708....
+    rs2.run(1'000'000);
+    auto const target_probability2 =
+        rs2.probability().at(rain->get())[std::vector<std::size_t>{1}]; // Pr(Rain = 1 | WetGrass = 1)
+    std::cout << target_probability2 << std::endl; // 0.708....
 }
 
