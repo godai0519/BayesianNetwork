@@ -1,4 +1,3 @@
 [submodule "docs"]
 	path = docs
-	url = https://github.com/godai0519/BayesianNetwork.git
-	branch = gh-pages
+	url = https://github.com/godai0519/BayesianNetworkDoc.git
