@@ -72,32 +72,6 @@ public:
             throw std::runtime_error("bn::matrix do not allow zero dimension.");
     }
 
-    //! (ctor) Initialize matrix by filling with default_values list according to array of size-hint.
-    /*! The same function of explicit matrix(T const& size) exist;
-        however, every data is filled by default_value in this ctor.
-
-        @tparam T: Type of list containing size information.
-        @tparam U: Type of list containing default values.
-        @param[in]   sizes: a list containing sizes of each dimension in matrix,
-                            such that, sizes.size() == dimention.
-        @param[in]   default_values: values used for filling.
-    **/
-    template<class T, class U>
-    matrix(T const& sizes, U const& default_values)
-        : sizes_(std::cbegin(sizes), std::cend(sizes))
-        , capacities_(std::cbegin(sizes), std::cend(sizes))
-        , steps_(calc_steps(capacities_))
-        , data_(calc_elem_size(sizes))
-    {
-        if(sizes_.empty())
-            throw std::runtime_error("bn::matrix do not allow zero dimension.");
-
-        if(data_.size() < std::distance(std::cbegin(default_values), std::cend(default_values)))
-            throw std::runtime_error("bn::matrix do not allow to initialize by default_values which is longest than calc_elem_size(sizes).");
-
-        std::copy(std::cbegin(default_values), std::cend(default_values), std::begin(data_));
-    }
-
     //! (ctor) Initialize matrix by filling with iterator according to array of size-hint.
     /*! The same function of explicit matrix(T const& size) exist;
         however, in this ctor, every data is filled by values of range [first, last).

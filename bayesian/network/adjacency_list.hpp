@@ -9,6 +9,7 @@
 #define BAYESIAN_NETWORKS_NETWORK_ADJACENCY_LIST_HPP
 
 #include <algorithm> //find_if
+#include <list>
 #include <memory>
 #include <unordered_map>
 #include <vector>
