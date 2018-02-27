@@ -137,37 +137,37 @@ public:
     {
         return rv_;
     }
-	
-	//! Get the parent random variables of the target.
-	/*!
-		@return a array of random variables which are parents in this cpt instance.
-	**/
-	std::vector<rv_ptr> const& parents() const noexcept
-	{
-		return parents_;
-	}
+    
+    //! Get the parent random variables of the target.
+    /*!
+        @return a array of random variables which are parents in this cpt instance.
+    **/
+    std::vector<rv_ptr> const& parents() const noexcept
+    {
+        return parents_;
+    }
 
-	//! Verify whether given condition is sufficient in this instance.
-	/*!
-		@param[in]   condition: a set of pairs corresponding to the observed (evidence) nodes (environment).
-		@return      true if condition is valid for this cpt instance, false if index is invalid.
-	**/
-	bool is_valid(condition_type const& condition) const noexcept
-	{
-		for(auto const& parent : parents())
-		{
-			auto const it = condition.find(parent);
-			if(it == condition.end() || it->second >= parent->max_value)
-				return false;
-		}
+    //! Verify whether given condition is sufficient in this instance.
+    /*!
+        @param[in]   condition: a set of pairs corresponding to the observed (evidence) nodes (environment).
+        @return      true if condition is valid for this cpt instance, false if index is invalid.
+    **/
+    bool is_valid(condition_type const& condition) const noexcept
+    {
+        for(auto const& parent : parents())
+        {
+            auto const it = condition.find(parent);
+            if(it == condition.end() || it->second >= parent->max_value)
+                return false;
+        }
 
-		return true;
-	}
+        return true;
+    }
 
     //! Convert condition of conditional r.v. into access list of matrix.
     /*! std::out_of_range is thown if the condition does not contain any parent nodes' value.
         std::runtime_error is thown if any parent nodes' value which is contained in the condition exceeds its max value.
-		No exceptions are thrown if is_valid(condition) is true.
+        No exceptions are thrown if is_valid(condition) is true.
 
         @return an array of index in implementation of class cpt.
     **/

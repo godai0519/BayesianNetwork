@@ -2,7 +2,7 @@
 * @file rejection_sampling.hpp
 * @brief Infering (Reasoning) any probability $P(Q|E)$ by using Rejection Sampling.
 * @author godai_0519
-* @date 02/21/2016
+* @date 02/21/2018
 */
 
 #ifndef BAYESIAN_NETWORKS_INFERENCE_REJECTION_SAMPLING_HPP
@@ -45,7 +45,7 @@ public:
           evidences_(std::forward<EvidenceType>(evidences))
     {
     }
-	
+    
     rejection_sampling& set_query(query_type queries)
     {
         if(!is_contained(queries, network_)) throw std::runtime_error(""); // TODO:
@@ -138,10 +138,10 @@ private:
             new_sample.emplace(q, std::move(mat));
         }
 
-		auto topological_sorted = bn::topological_sort(network_);
+        auto topological_sorted = bn::topological_sort(network_);
 
-		std::swap(new_sample, accepted_samples_);
-		std::swap(topological_sorted, topological_sorted_);
+        std::swap(new_sample, accepted_samples_);
+        std::swap(topological_sorted, topological_sorted_);
     }
 
     // TODO: 外へ
@@ -157,7 +157,7 @@ private:
 
     bool is_contained(component::random_variable_ptr const& rv, network<RepresentMethod> const& network) const
     {
-		auto const& nodes = network_.all_node();
+        auto const& nodes = network_.all_node();
         return std::any_of(nodes.cbegin(), nodes.cend(),
             [this, &rv](auto const& n)
             {
@@ -167,8 +167,8 @@ private:
 
     bool is_contained(component::node_ptr const& node, network<RepresentMethod> const& network) const
     {
-		auto const& nodes = network_.all_node();
-		return std::any_of(nodes.cbegin(), nodes.cend(),
+        auto const& nodes = network_.all_node();
+        return std::any_of(nodes.cbegin(), nodes.cend(),
             [&node](auto const& n)
             {
                 return n == node;
