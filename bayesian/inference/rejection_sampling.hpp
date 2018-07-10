@@ -20,7 +20,8 @@ namespace bn {
 namespace inference {
 
 //! Provide a class performing Rejection Sampling for bn::network.
-/*! TODO: Old-fashioned interface.
+/*! @tparam RepresentMethod: Type of representation of network structure.
+    TODO: Old-fashioned interface.
 **/
 template<class RepresentMethod>
 class rejection_sampling {
@@ -30,12 +31,20 @@ public:
     using sample_type = std::unordered_map<component::random_variable_ptr, matrix<std::size_t>>;
     using probability_type = std::unordered_map<component::random_variable_ptr, matrix<double>>;
 
+    //! (ctor) Initialize the reasoner using the argument bayesian network.
+    /*! @param[in]   network: bayesian network structure.
+        @param[in]   cpt: CPT list corresponding to network.
+    **/
     // TODO: tag
     rejection_sampling(network<RepresentMethod> const& network, cpt_manager const& cpts)
         : network_(network.clone()), cpts_(cpts)
     {
     }
 
+    //! (ctor) Initialize the reasoner using the argument bayesian network and queries and evidences.
+    /*! @param[in]   network: bayesian network structure.
+        @param[in]   cpt: CPT list corresponding to network.
+     **/
     // TODO: tag
     template<class NetworkType, class CptManagerType, class QueryType, class EvidenceType>
     rejection_sampling(NetworkType&& network, CptManagerType&& cpts, QueryType&& queries = QueryType(), EvidenceType&& evidences = EvidenceType())
@@ -46,6 +55,7 @@ public:
     {
     }
     
+    //! Set a query variable, which is a target of reasoning.
     rejection_sampling& set_query(query_type queries)
     {
         if(!is_contained(queries, network_)) throw std::runtime_error(""); // TODO:
@@ -54,6 +64,7 @@ public:
         return *this;
     }
 
+    //! Set query variables, which are targets of reasoning.
     template<class QueryType>
     rejection_sampling& set_query(QueryType&& queries)
     {
@@ -63,6 +74,7 @@ public:
         return *this;
     }
 
+    //! Set evidence variables, which are already known (conditions).
     rejection_sampling& set_evidence(evidence_type evidences)
     {
         evidences_ = std::move(evidences);
@@ -70,10 +82,17 @@ public:
         return *this;
     }
 
+    //! Get query variables
     query_type const& query() const noexcept { return queries_; }
+
+    //! Get query variables
     evidence_type const& evidence() const noexcept { return evidences_; }
 
+    //! Get samples used in reasoning process.
+    /*! Calling function `run` one or more times is required. */
     sample_type const& sample() const noexcept { return accepted_samples_; }
+
+    //! Perform reasoning step in rejection sampling, which calculates query probabilities by using samples generated in sampling step.
     probability_type probability() const
     {
         probability_type probability_list;
@@ -93,11 +112,13 @@ public:
         return probability_list;
     }
 
+    // Re-initialize
     void reset()
     {
         initialize();
     }
 
+    //! Perform sampling step in rejection sampling, until generating iterator_num
     sample_type run(std::size_t const iterator_num)
     {
         if(is_modified_)
@@ -129,6 +150,7 @@ public:
     }
 
 private:
+    // Refresh a generated sample and a topological order for graph.
     void initialize()
     {
         sample_type new_sample;
