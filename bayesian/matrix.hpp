@@ -8,6 +8,7 @@
 #ifndef BAYESIAN_NETWORKS_MATRIX_HPP
 #define BAYESIAN_NETWORKS_MATRIX_HPP
 
+#include <array>
 #include <cstdint>
 #include <iterator>
 #include <numeric>
