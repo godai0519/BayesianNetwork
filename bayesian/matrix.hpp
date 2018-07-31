@@ -8,12 +8,12 @@
 #ifndef BAYESIAN_NETWORKS_MATRIX_HPP
 #define BAYESIAN_NETWORKS_MATRIX_HPP
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
+#include <functional>
 #include <iterator>
 #include <numeric>
-#include <algorithm>
-#include <functional>
 #include <bayesian/traits.hpp>
 
 namespace bn {
