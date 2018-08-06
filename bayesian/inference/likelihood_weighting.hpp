@@ -13,6 +13,7 @@
 #include <numeric>
 #include <unordered_map>
 #include <bayesian/network.hpp>
+#include <bayesian/operator.hpp>
 #include <bayesian/algorithm.hpp>
 #include <bayesian/make_sample.hpp>
 
@@ -165,37 +166,6 @@ private:
 
         std::swap(new_sample, accepted_samples_);
         std::swap(topological_sorted, topological_sorted_);
-    }
-
-    // TODO: 外へ
-    template<class Elem>
-    bool is_contained(std::vector<Elem> const& elements, network<RepresentMethod> const& network) const
-    {
-        return std::all_of(elements.cbegin(), elements.cend(),
-            [this, &network](auto const& element)
-            {
-                return is_contained(element, network);
-            });
-    }
-
-    bool is_contained(component::random_variable_ptr const& rv, network<RepresentMethod> const& network) const
-    {
-        auto const& nodes = network_.all_node();
-        return std::any_of(nodes.cbegin(), nodes.cend(),
-            [this, &rv](auto const& n)
-            {
-                return n->get() == rv;
-            });
-    }
-
-    bool is_contained(component::node_ptr const& node, network<RepresentMethod> const& network) const
-    {
-        auto const& nodes = network_.all_node();
-        return std::any_of(nodes.cbegin(), nodes.cend(),
-            [&node](auto const& n)
-            {
-                return n == node;
-            });
     }
 
     bool is_modified_ = true;
