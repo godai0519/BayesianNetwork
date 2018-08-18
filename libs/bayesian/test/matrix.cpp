@@ -205,9 +205,8 @@ BOOST_AUTO_TEST_CASE(resize_default_value)
             {
                 if(i >= size[0] || j >= size[1] || k >= size[2])
                 {
-                    double const elem_mat3 = mat3[std::array<std::size_t, 4>{ {i, j, k}}];
+                    double const elem_mat3 = mat3[std::array<std::size_t, 3>{ {i, j, k}}];
                     BOOST_CHECK_CLOSE(elem_mat3, default_value, 0.0001);
-
                 }
             }
         }
