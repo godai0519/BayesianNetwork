@@ -118,7 +118,7 @@ BOOST_AUTO_TEST_CASE(list_artificial_network)
     BOOST_CHECK(network.all_arc().size() == 0);
 }
 
-BOOST_DATA_TEST_CASE(list_add_full_arc, boost::unit_test::data::xrange(10) ^ boost::unit_test::data::random(3, 200), i, node_num)
+BOOST_DATA_TEST_CASE(list_add_full_arc, boost::unit_test::data::xrange(10) ^ boost::unit_test::data::random(3, 50), i, node_num)
 {
     bn::network<bn::adjacency_list> network;
 
@@ -354,7 +354,7 @@ BOOST_AUTO_TEST_CASE(matrix_artificial_network)
     BOOST_CHECK(network.all_arc().size() == 0);
 }
 
-BOOST_DATA_TEST_CASE(matrix_add_full_arc, boost::unit_test::data::xrange(10) ^ boost::unit_test::data::random(3, 200), i, node_num)
+BOOST_DATA_TEST_CASE(matrix_add_full_arc, boost::unit_test::data::xrange(10) ^ boost::unit_test::data::random(3, 50), i, node_num)
 {
     bn::network<bn::adjacency_matrix> network;
 

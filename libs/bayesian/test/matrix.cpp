@@ -14,7 +14,7 @@ BOOST_AUTO_TEST_CASE(assign_test)
     std::generate(v.begin(), v.end(), std::ref(rnd));
     std::seed_seq seq(v.begin(), v.end());
     std::mt19937 engine(seq);
-    std::uniform_int_distribution<std::size_t> int_dist(1, 200);
+    std::uniform_int_distribution<std::size_t> int_dist(1, 50);
     std::uniform_real_distribution<double> real_dist(0.0, 1000);
 
     // Determine size
@@ -63,7 +63,7 @@ BOOST_AUTO_TEST_CASE(resize)
     std::generate(v.begin(), v.end(), std::ref(rnd));
     std::seed_seq seq(v.begin(), v.end());
     std::mt19937 engine(seq);
-    std::uniform_int_distribution<std::size_t> int_dist(5, 200);
+    std::uniform_int_distribution<std::size_t> int_dist(5, 50);
     std::uniform_real_distribution<double> real_dist(0.0, 1000);
 
     // Determine size
@@ -126,7 +126,7 @@ BOOST_AUTO_TEST_CASE(resize_default_value)
     std::generate(v.begin(), v.end(), std::ref(rnd));
     std::seed_seq seq(v.begin(), v.end());
     std::mt19937 engine(seq);
-    std::uniform_int_distribution<std::size_t> int_dist(5, 200);
+    std::uniform_int_distribution<std::size_t> int_dist(5, 50);
     std::uniform_real_distribution<double> real_dist(0.0, 1000);
 
     // Determine size
@@ -222,7 +222,7 @@ BOOST_AUTO_TEST_CASE(shrink_to_fit)
     std::generate(v.begin(), v.end(), std::ref(rnd));
     std::seed_seq seq(v.begin(), v.end());
     std::mt19937 engine(seq);
-    std::uniform_int_distribution<std::size_t> int_dist(5, 200);
+    std::uniform_int_distribution<std::size_t> int_dist(5, 50);
     std::uniform_real_distribution<double> real_dist(0.0, 1000);
 
     // Determine size
@@ -269,7 +269,7 @@ BOOST_AUTO_TEST_CASE(copy_move_test)
     std::generate(v.begin(), v.end(), std::ref(rnd));
     std::seed_seq seq(v.begin(), v.end());
     std::mt19937 engine(seq);
-    std::uniform_int_distribution<std::size_t> int_dist(1, 200);
+    std::uniform_int_distribution<std::size_t> int_dist(1, 50);
     std::uniform_real_distribution<double> real_dist(0.0, 1000);
 
     // Determine size & data
@@ -326,7 +326,7 @@ BOOST_DATA_TEST_CASE(multiplication_mm, boost::unit_test::data::xrange(10))
     std::generate(v.begin(), v.end(), std::ref(rnd));
     std::seed_seq seq(v.begin(), v.end());
     std::mt19937 engine(seq);
-    std::uniform_int_distribution<std::size_t> int_dist(1, 200);
+    std::uniform_int_distribution<std::size_t> int_dist(1, 50);
     std::uniform_real_distribution<double> real_dist(0.0, 1000);
 
     // Generate parameter
@@ -363,7 +363,7 @@ BOOST_DATA_TEST_CASE(multiplication_ms, boost::unit_test::data::xrange(10))
     std::generate(v.begin(), v.end(), std::ref(rnd));
     std::seed_seq seq(v.begin(), v.end());
     std::mt19937 engine(seq);
-    std::uniform_int_distribution<std::size_t> int_dist(1, 200);
+    std::uniform_int_distribution<std::size_t> int_dist(1, 50);
     std::uniform_real_distribution<double> real_dist(0.0, 1000);
 
     // Generate parameter
