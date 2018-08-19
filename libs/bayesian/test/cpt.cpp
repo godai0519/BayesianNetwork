@@ -153,7 +153,6 @@ BOOST_AUTO_TEST_CASE(cpt_manager_for_same_rv)
     std::mt19937 mt(rd());
     std::uniform_int_distribution<int> parent_num_dist(1, 10);
     std::uniform_int_distribution<int> max_value_dist(1, 10);
-    std::uniform_real_distribution<double> probability_dist(0, 1);
 
     auto const target_rv1 = generate_target(mt, max_value_dist);
     auto const parent_rv1 = generate_parents(mt, max_value_dist, parent_num_dist(mt));
