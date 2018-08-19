@@ -1,0 +1,45 @@
+version: '{build}'
+branches:
+  only:
+  - master
+  - release
+  - develop
+  - testing/appveyor
+clone_folder: C:\projects\bayesiannetwork
+image:
+- Visual Studio 2017
+- Visual Studio 2015
+configuration:
+- Debug
+- Release
+platform:
+- x64
+- x86
+environment:
+  matrix:
+  - BOOST_ROOT: C:\Libraries\boost_1_67_0
+
+init:
+- if "%platform%"=="x86" (set "ARCH=")
+  else if "%platform%"=="x64" (set "ARCH= Win64")
+  else (set ARCH=" %platform%")
+- if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2017" (
+      set "GENERATOR=Visual Studio 15 2017%ARCH%"
+  ) else if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2015" (
+      set "GENERATOR=Visual Studio 14 2015%ARCH%"
+  )
+- echo "Building for %GENERATOR%"
+
+before_build:
+- cd C:\projects\bayesiannetwork
+- md build && cd build
+- cmake -G "%GENERATOR%" -DBOOST_ROOT="%BOOST_ROOT%" ..
+
+build_script:
+- cd C:\projects\bayesiannetwork\build
+- cmake --build . --config %configuration% -- /m
+
+test_script:
+- cd C:\projects\bayesiannetwork\build
+- ctest -V -j 8
+
