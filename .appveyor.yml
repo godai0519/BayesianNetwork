@@ -4,7 +4,6 @@ branches:
   - master
   - release
   - develop
-  - testing/appveyor
 clone_folder: C:\projects\bayesiannetwork
 image:
 - Visual Studio 2017
